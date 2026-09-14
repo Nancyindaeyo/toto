@@ -1,27 +1,27 @@
-import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.48-release1';
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, getRabbitMirrorExternalPlacementParent, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.48-release1';
-import { recordTtSurface, ttSurfaceNow } from './ttSurfaceDiagnostics.js?rmv=1.5.48-release1';
-import { WORLD_INFO_BOOK_NAME_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, updateSettings } from './settings.js?rmv=1.5.48-release1';
-import { assertRabbitMirrorIndependentResponseBytes, assertRabbitMirrorIndependentResponseText, authorizeRabbitMirrorIndependentServiceRequest, fetchRabbitMirrorIndependentCompletion } from './independentSecurityGuard.js?rmv=1.5.48-release1';
-import { parseIndependentAdvancedOptions, buildIndependentAdvancedCarrier, applyIndependentAdvancedExclusions, independentAdvancedOptionsSignature } from './advancedRequestOptions.js?rmv=1.5.48-release1';
-import { buildRabbitMirrorPromptDetails, planRabbitMirrorPromptDetails, renderRabbitMirrorPromptPlan, prepareSelectedMemoryForPrompt, memoryRequestSettingsKey, assertMemoryRequestSettings } from './promptBuilder.js?rmv=1.5.48-release1';
-import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from './externalWorldBook/store.js?rmv=1.5.48-release1';
-import { describeExternalWorldBookPreflightFailure, describeBatchPlanFailure } from './externalWorldBook/errors.js?rmv=1.5.48-release1';
-import { cleanRabbitMirrorOutput, compactTotoBlock, refreshRabbitMirrorToolsInScope, repairMalformedRabbitMirrorMarkup, repairRabbitMirrorScopedClassAliasesInScope, isolateRabbitMirrorInteractionIds, rearmRabbitMirrorSerializedInteractionRoot, armRabbitMirrorFirstUseInteraction, repairRabbitMirrorPersistedExclusiveGridSpan, clearRabbitMirrorHorizontalClipArtifacts, sanitizeRabbitMirrorUntrustedTemplate, validateRabbitMirrorRecoveredStyleAssignments } from './outputSanitizer.js?rmv=1.5.48-release1';
-import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.48-release1';
-import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from './replacementReceipt.js?rmv=1.5.48-release1';
-import { parseMultifaceOutput, recoverableMultifaceFrames, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from './multifaceProtocol.js?rmv=1.5.48-release1';
-import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from './multifaceProof.js?rmv=1.5.48-release1';
-import { FOLLOW_MULTIFACE_COMMITTED_EVENT, FOLLOW_MULTIFACE_REJECTED_EVENT, getRabbitMirrorFollowBatchFailure, scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.48-release1';
-import { getCurrentChatKey, updateLatestVisualSignature, parseVisualFamilySkeleton, describeVisualFamilyDimensions, markPendingBatchAttempt, commitPendingComboBatch, releasePendingComboBatch } from './storage.js?rmv=1.5.48-release1';
-import { buildFeedbackCatFinalCheck, buildFeedbackCatPrompt, consumeInjectedFeedbackForSuccessfulIndependentRabbitMirror, getActiveFeedbackForCurrentChat, markFeedbackCatInjected } from './feedbackCat.js?rmv=1.5.48-release1';
-import { getRabbitMirrorRecipe, recordRabbitMirrorRecipe } from './blacklist.js?rmv=1.5.48-release1';
-import { readFollowPartialResult, followPartialResultFaceOwnerKey } from './followPartialResults.js?rmv=1.5.48-release1';
-import { recordRabbitMirrorIndependentPrompt } from './tokenMeter.js?rmv=1.5.48-release1';
-import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.48-release1';
-import { rememberIndependentTransportDiagnostic } from './transportDiagnostics.js?rmv=1.5.48-release1';
+import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.51-narrow1';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, getRabbitMirrorExternalPlacementParent, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.51-narrow1';
+import { recordTtSurface, ttSurfaceNow } from './ttSurfaceDiagnostics.js?rmv=1.5.51-narrow1';
+import { WORLD_INFO_BOOK_NAME_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, updateSettings } from './settings.js?rmv=1.5.51-narrow1';
+import { assertRabbitMirrorIndependentResponseBytes, assertRabbitMirrorIndependentResponseText, authorizeRabbitMirrorIndependentServiceRequest, fetchRabbitMirrorIndependentCompletion } from './independentSecurityGuard.js?rmv=1.5.51-narrow1';
+import { parseIndependentAdvancedOptions, buildIndependentAdvancedCarrier, applyIndependentAdvancedExclusions, independentAdvancedOptionsSignature } from './advancedRequestOptions.js?rmv=1.5.51-narrow1';
+import { buildRabbitMirrorPromptDetails, planRabbitMirrorPromptDetails, renderRabbitMirrorPromptPlan, prepareSelectedMemoryForPrompt, memoryRequestSettingsKey, assertMemoryRequestSettings } from './promptBuilder.js?rmv=1.5.51-narrow1';
+import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from './externalWorldBook/store.js?rmv=1.5.51-narrow1';
+import { describeExternalWorldBookPreflightFailure, describeBatchPlanFailure } from './externalWorldBook/errors.js?rmv=1.5.51-narrow1';
+import { cleanRabbitMirrorOutput, compactTotoBlock, refreshRabbitMirrorToolsInScope, repairMalformedRabbitMirrorMarkup, repairRabbitMirrorScopedClassAliasesInScope, isolateRabbitMirrorInteractionIds, rearmRabbitMirrorSerializedInteractionRoot, armRabbitMirrorFirstUseInteraction, repairRabbitMirrorPersistedExclusiveGridSpan, clearRabbitMirrorHorizontalClipArtifacts, sanitizeRabbitMirrorUntrustedTemplate, validateRabbitMirrorRecoveredStyleAssignments } from './outputSanitizer.js?rmv=1.5.51-narrow1';
+import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.51-narrow1';
+import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from './replacementReceipt.js?rmv=1.5.51-narrow1';
+import { parseMultifaceOutput, recoverableMultifaceFrames, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from './multifaceProtocol.js?rmv=1.5.51-narrow1';
+import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from './multifaceProof.js?rmv=1.5.51-narrow1';
+import { FOLLOW_MULTIFACE_COMMITTED_EVENT, FOLLOW_MULTIFACE_REJECTED_EVENT, getRabbitMirrorFollowBatchFailure, scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.51-narrow1';
+import { getCurrentChatKey, updateLatestVisualSignature, parseVisualFamilySkeleton, describeVisualFamilyDimensions, markPendingBatchAttempt, commitPendingComboBatch, releasePendingComboBatch } from './storage.js?rmv=1.5.51-narrow1';
+import { buildFeedbackCatFinalCheck, buildFeedbackCatPrompt, consumeInjectedFeedbackForSuccessfulIndependentRabbitMirror, getActiveFeedbackForCurrentChat, markFeedbackCatInjected } from './feedbackCat.js?rmv=1.5.51-narrow1';
+import { getRabbitMirrorRecipe, recordRabbitMirrorRecipe } from './blacklist.js?rmv=1.5.51-narrow1';
+import { readFollowPartialResult, followPartialResultFaceOwnerKey } from './followPartialResults.js?rmv=1.5.51-narrow1';
+import { recordRabbitMirrorIndependentPrompt } from './tokenMeter.js?rmv=1.5.51-narrow1';
+import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.51-narrow1';
+import { rememberIndependentTransportDiagnostic } from './transportDiagnostics.js?rmv=1.5.51-narrow1';
 
-const RUNTIME_VERSION = '1.5.48';
+const RUNTIME_VERSION = '1.5.51';
 const STORE_KEY = 'rabbit_mirror_independent_outputs_v1';
 const INTERACTION_STATE_MIGRATION_KEY = 'rabbit_mirror_independent_interaction_state_migration_securityfix2_v2';
 const API_PROFILE_STORE_KEY = 'rabbit_mirror_independent_api_profiles_v1';
@@ -3901,7 +3901,7 @@ async function loadIndependentAppearanceReference(owner){
  let module;
  assertIndependentPromptOwner(owner);
  try{
-  try{module=await import('./appearanceReference.js?rmv=1.5.48-release1');}
+  try{module=await import('./appearanceReference.js?rmv=1.5.51-narrow1');}
   catch{
    const error=new Error('外观参考模块未能加载；本轮未发送请求，请刷新后重试或关闭外观参考。');
    error.code='RABBIT_MIRROR_APPEARANCE_MODULE_UNAVAILABLE';error.requestCount=0;throw error;
@@ -4850,6 +4850,64 @@ function scheduleExternalHostGeometrySettleRecheck(host,step=0,expectedCycle='')
 function syncExternalHostGeometry(el,host,context={}){
  if(!host?.isConnected) return {changed:false};
  return applyExternalHostGeometryPlan(host,computeExternalHostGeometryPlan(el,host),context);
+}
+// Explicit Maintenance Rabbit action only. Refresh this owned external lane in
+// place; never borrow another host, restore saved markup or schedule a sweep.
+export function remeasureRabbitMirrorFaceGeometry(root){
+ const result=(status,beforeWidth=0,afterWidth=beforeWidth)=>({status,beforeWidth,afterWidth});
+ if(!root?.isConnected || !root.matches?.('details')) return result('stale');
+ if(!root.open) return result('unavailable');
+ const host=root.closest?.(`[${SOURCE_ATTR}]`);
+ if(!host) return result(root.dataset?.rabbitMirrorExternalDetails==='true'?'unavailable':'inline');
+ if(!host.isConnected || !externalFaceDetails(host).includes(root)) return result('stale');
+ if(host.dataset?.rmSource!=='independent' || host.dataset.rmState!=='ready'
+  || host.hidden || host.dataset.rmAwaitingOwner==='true' || host.dataset.rmAwaitingFreshSource==='true'
+  || host.dataset.rmPending==='true') return result('unavailable');
+ const owner=String(host.dataset.rmOwnerMesid??host.dataset.rmExternalOwnerMessage??'');
+ if(!/^\d+$/.test(owner)) return result('unavailable');
+ const index=Number(owner); const ctx=getContext(); const msg=ctx.chat?.[index];
+ if(!isRabbitMirrorEligibleAssistantMessage(msg)) return result('stale');
+ const expectedChat=chatKey(ctx); const expectedSwipe=String(swipeId(msg));
+ const expectedSourceHash=messageSourceFingerprint(msg);
+ const expectedKey=recordKey(ctx,index,msg);
+ // Check the same source identity as generation, without observe/store access or
+ // an all-host fallback. A projected TT root needs a currently mounted owner.
+ const pairs=[
+  ['rmOwnerChat','rabbitMirrorOwnerChat',expectedChat],
+  ['rmOwnerMesid','rabbitMirrorOwnerMesid',String(index)],
+  ['rmOwnerSwipe','rabbitMirrorOwnerSwipe',expectedSwipe],
+  ['rmKey','rabbitMirrorOwnerKey',expectedKey],
+  ['rmSourceHash','rabbitMirrorOwnerSourceHash',expectedSourceHash],
+ ];
+ if(pairs.some(([hostKey,rootKey,expected])=>!expected
+  || String(host.dataset[hostKey]??'')!==expected || String(root.dataset?.[rootKey]??'')!==expected)) return result('stale');
+ const el=messageElement(index);
+ if(!el?.isConnected || messageElementForExternalHost(host)!==el) return result('unavailable');
+ const placement=String(host.dataset.rmPlacement||'external');
+ if(placement==='inline') return result(el.contains?.(host)?'inline':'stale');
+ if(placement!=='external') return result('unavailable');
+ const managedParent=getRabbitMirrorExternalPlacementParent(el);
+ if(isRabbitMirrorManagedChatSurface() && !managedParent) return result('unavailable');
+ const placementParent=managedParent||el.parentElement;
+ if(host.parentElement!==placementParent || el.contains?.(host)) return result('stale');
+ if(!managedParent && externalHostAppearsBeforeOwner(el,host)) return result('stale');
+ const measure=()=>{try{return roundedGeometryNumber(root.getBoundingClientRect().width);}catch{return 0;}};
+ const beforeWidth=measure();
+ if(beforeWidth<=0) return result('unavailable');
+ const plan=computeExternalHostGeometryPlan(el,host);
+ if(!plan || plan.skip || plan.clear) return result('unavailable',beforeWidth);
+ clearIndependentExternalCompactShellWidth(host);
+ clearGeometryDataset(host,'rmGeometryConfirmed');
+ for(const key of ['rmGeometryConfirmedCycle','rmGeometryConfirmedReason','rmGeometryConfirmedSource']) delete host.dataset[key];
+ const cycleId=beginExternalHostGeometryCycle(host,'manual-narrow-remeasure',el);
+ applyExternalHostGeometryPlan(host,plan,{phase:'manual-narrow-remeasure',cycleId});
+ if(plan.mobileIndependent && plan.structural){
+  confirmExternalHostGeometry(host,plan.structural,'manual-structural-measurement','structural');
+  host.dataset.rmGeometrySettleState='confirmed';
+ }
+ finishExternalHostGeometrySettle(host,cycleId);
+ const afterWidth=measure();
+ return result(afterWidth>beforeWidth+1?'remeasured':'unavailable',beforeWidth,afterWidth);
 }
 function externalHostGeometrySettledForOwner(el,host){
  if(!host?.dataset || !el) return false;
@@ -7025,6 +7083,92 @@ function rescueIndependentExternalAutoRootWidth(host,targetDetails=null){
  return true;
 }
 
+const manualFaceAutoWidthRepairs=new WeakMap();
+const MANUAL_FACE_AUTO_WIDTH_PROPERTIES=['width','inline-size','max-width','max-inline-size','box-sizing'];
+function manualFaceAutoWidthContentRoot(root){
+ const children=root?.children;
+ if(!children || children.length>64) return {body:null,status:'protected'};
+ let body=null;
+ for(const node of children){
+  if(['SUMMARY','STYLE','SCRIPT','TEMPLATE','LINK','META','INPUT'].includes(node?.tagName)
+   || node.hidden || node.matches?.(PERSISTED_RUNTIME_UI_SELECTOR)) continue;
+  let style;
+  try{style=getComputedStyle(node);}catch{return {body:null,status:'unavailable'};}
+  if(style?.display==='none' || ['hidden','collapse'].includes(style?.visibility)) continue;
+  // Several visible direct regions can be an authored split layout. Do not
+  // select just its first column and stretch it over its neighbors.
+  if(body) return {body:null,status:'protected'};
+  body=node;
+ }
+ return {body,status:body?'candidate':'unavailable'};
+}
+// Undo only this live action's properties. Persisted baseline attributes are not
+// trusted as executable/restorable style input for a manual operation.
+export function undoRabbitMirrorFaceAutoWidth(root){
+ const saved=manualFaceAutoWidthRepairs.get(root);
+ if(!saved || !root?.isConnected || saved.body.parentElement!==root) return false;
+ const {body,properties,attributes,appliedAttributes}=saved;
+ let changed=false;
+ for(const [property,value,priority] of properties){
+  const applied=property==='box-sizing'?'border-box':'100%';
+  if(body.style.getPropertyValue(property)!==applied || body.style.getPropertyPriority(property)!=='important') continue;
+  if(value) body.style.setProperty(property,value,priority);
+  else body.style.removeProperty(property);
+  changed=true;
+ }
+ for(const [name,value] of attributes){
+  if(body.getAttribute(name)!==appliedAttributes?.get(name)) continue;
+  if(value===null) body.removeAttribute(name);
+  else body.setAttribute(name,value);
+ }
+ manualFaceAutoWidthRepairs.delete(root);
+ return changed;
+}
+// Called only after Maintenance Rabbit has revalidated its captured owner. The
+// ordinary automatic/mobile-only rescue above remains unchanged.
+export function repairRabbitMirrorFaceAutoWidth(root){
+ const result=(status,beforeWidth=0,afterWidth=beforeWidth,containerWidth=0)=>({status,beforeWidth,afterWidth,containerWidth});
+ if(!root?.isConnected || !root.matches?.('details')) return result('stale');
+ if(!root.open || typeof getComputedStyle!=='function') return result('unavailable');
+ const candidate=manualFaceAutoWidthContentRoot(root);
+ if(!candidate.body) return result(candidate.status);
+ const body=candidate.body;
+ if(!body?.isConnected || !body.style) return result('unavailable');
+ let style,beforeWidth=0,containerWidth=0;
+ try{
+  style=getComputedStyle(body);
+  beforeWidth=roundedGeometryNumber(body.getBoundingClientRect().width);
+  // A broken ::details-content can itself report the stale narrow width. The
+  // real details content box is the authority for this explicit remeasurement.
+  containerWidth=roundedGeometryNumber(elementContentBoxRect(root)?.width);
+ }catch{return result('unavailable');}
+ if(containerWidth<220 || beforeWidth<120) return result('unavailable',beforeWidth,beforeWidth,containerWidth);
+ if(beforeWidth/containerWidth>=INDEPENDENT_EXTERNAL_AUTO_ROOT_WIDTH_RATIO) return result('unchanged',beforeWidth,beforeWidth,containerWidth);
+ if(independentExternalRootHasAuthorSizingIntent(root,body)
+  || !['block','flex','grid','flow-root','list-item'].includes(String(style?.display||'').toLowerCase())
+  || ['absolute','fixed'].includes(String(style?.position||'').toLowerCase())
+  || String(style?.cssFloat||'none').toLowerCase()!=='none'
+  || Math.abs(parseFloat(style?.marginLeft||'0')||0)>2
+  || Math.abs(parseFloat(style?.marginRight||'0')||0)>2) return result('protected',beforeWidth,beforeWidth,containerWidth);
+ const saved={
+  body,
+  properties:MANUAL_FACE_AUTO_WIDTH_PROPERTIES.map(property=>[property,body.style.getPropertyValue(property),body.style.getPropertyPriority(property)]),
+  attributes:[INDEPENDENT_CONTENT_WIDTH_BASELINE_ATTR,INDEPENDENT_CONTENT_WIDTH_RESCUE_ATTR].map(name=>[name,body.getAttribute(name)]),
+ };
+ manualFaceAutoWidthRepairs.set(root,saved);
+ captureIndependentContentWidthBaseline(body);
+ for(const property of MANUAL_FACE_AUTO_WIDTH_PROPERTIES) body.style.setProperty(property,property==='box-sizing'?'border-box':'100%','important');
+ body.setAttribute(INDEPENDENT_CONTENT_WIDTH_RESCUE_ATTR,'manual-auto-root-fill');
+ saved.appliedAttributes=new Map(saved.attributes.map(([name])=>[name,body.getAttribute(name)]));
+ let afterWidth=0;
+ try{afterWidth=roundedGeometryNumber(body.getBoundingClientRect().width);}catch{}
+ if(afterWidth<containerWidth*.94 || afterWidth>containerWidth+2 || afterWidth<=beforeWidth+1){
+  undoRabbitMirrorFaceAutoWidth(root);
+  return result('unavailable',beforeWidth,beforeWidth,containerWidth);
+ }
+ return result('repaired',beforeWidth,afterWidth,containerWidth);
+}
+
 function stripIndependentTransientLayoutArtifacts(details){
  if(!details?.querySelectorAll) return details;
  details.querySelectorAll('[data-rm-rejected-preview-host]').forEach(node=>{ node.replaceChildren(); node.hidden=true; });
@@ -8524,7 +8668,7 @@ function showIndependentHistory(root,owner={}){
 }
 function resayIndependentMirror(root,owner={}){
  if(getSettings().generationSource==='follow'){
-  void import('./followFaceRetry.js?rmv=1.5.48-release1').then(({retryFollowFace})=>retryFollowFace(root,owner,{
+  void import('./followFaceRetry.js?rmv=1.5.51-narrow1').then(({retryFollowFace})=>retryFollowFace(root,owner,{
    getContext,hostBusy:hostGenerationLooksActive,maxRequestChars:MAX_INDEPENDENT_REQUEST_CHARS,
    resolveOwner:target=>{
     const host=target?.closest?.('[data-rabbit-mirror-external-source="true"][data-rm-source="follow"]');
@@ -9372,7 +9516,7 @@ function settleEarlyBodyAtFinal(ctx,index){
 }
 async function probeIndependentEarlyBody(packet,sequence){
  if(!earlyBodyPacketCurrent(packet)) return;
- if(!earlyBodyParserPromise) earlyBodyParserPromise=import('./earlyBodyTags.js?rmv=1.5.48-release1')
+ if(!earlyBodyParserPromise) earlyBodyParserPromise=import('./earlyBodyTags.js?rmv=1.5.51-narrow1')
   .then(module=>{earlyBodyParser=module;return module;}).catch(()=>{earlyBodyParserPromise=null;return null;});
  const parser=await earlyBodyParserPromise;
  if(!parser || sequence!==earlyBodyProbeSequence || !earlyBodyPacketCurrent(packet)) return;

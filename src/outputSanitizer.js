@@ -1,10 +1,10 @@
-import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.48-release1';
-import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.48-release1';
-import { recordTtSurface, ttSurfaceNow, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.48-release1';
-import { getSettings, syncExternalReferenceVisibility } from './settings.js?rmv=1.5.48-release1';
-import { applyRabbitMirrorBannedWordsToDom, filterRabbitMirrorVisibleTextValue, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.48-release1';
-import { getCurrentChatKey } from './storage.js?rmv=1.5.48-release1';
-import { getSanitizedRabbitMirrorFaceProof } from './multifaceProof.js?rmv=1.5.48-release1';
+import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.51-narrow1';
+import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.51-narrow1';
+import { recordTtSurface, ttSurfaceNow, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.51-narrow1';
+import { getSettings, syncExternalReferenceVisibility } from './settings.js?rmv=1.5.51-narrow1';
+import { applyRabbitMirrorBannedWordsToDom, filterRabbitMirrorVisibleTextValue, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.51-narrow1';
+import { getCurrentChatKey } from './storage.js?rmv=1.5.51-narrow1';
+import { getSanitizedRabbitMirrorFaceProof } from './multifaceProof.js?rmv=1.5.51-narrow1';
 import {
     FEEDBACK_CAT_TYPES,
     clearActiveFeedbackForCurrentChat,
@@ -14,14 +14,14 @@ import {
     getFeedbackCatLastReceiptForCurrentChat,
     setActiveFeedbackForCurrentChat,
     auditVisibleLanguageBalanceText,
-} from './feedbackCat.js?rmv=1.5.48-release1';
-import { scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.48-release1';
-import { getRabbitMirrorGenerationSnapshot } from './generationGuard.js?rmv=1.5.48-release1';
-import { FAVORITE_MULTIPLIER_MAX, FAVORITE_MULTIPLIER_MIN, RECIPE_RECORDED_EVENT, blacklistEntries, clearBlacklist, clearFavorites, favoriteEntries, getBlacklistState, getFavoriteMultiplier, getFavoritesState, getRabbitMirrorRecipe, isBlacklisted, isFavorited, removeBlacklistItem, removeFavoriteItem, selectionCatalogEntries, setBlacklistEnabled, setFavoriteMultiplier, toggleBlacklistItem, toggleFavoriteItem } from './blacklist.js?rmv=1.5.48-release1';
-import { analyzeStylelessControlKinds, collectBoundedElementDescendants, countMeaningfulStateVisualRules, semanticEnsembleScalePlan } from './presentationQuality.js?rmv=1.5.48-release1';
+} from './feedbackCat.js?rmv=1.5.51-narrow1';
+import { scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.51-narrow1';
+import { getRabbitMirrorGenerationSnapshot } from './generationGuard.js?rmv=1.5.51-narrow1';
+import { FAVORITE_MULTIPLIER_MAX, FAVORITE_MULTIPLIER_MIN, RECIPE_RECORDED_EVENT, blacklistEntries, clearBlacklist, clearFavorites, favoriteEntries, getBlacklistState, getFavoriteMultiplier, getFavoritesState, getRabbitMirrorRecipe, isBlacklisted, isFavorited, removeBlacklistItem, removeFavoriteItem, selectionCatalogEntries, setBlacklistEnabled, setFavoriteMultiplier, toggleBlacklistItem, toggleFavoriteItem } from './blacklist.js?rmv=1.5.51-narrow1';
+import { analyzeStylelessControlKinds, collectBoundedElementDescendants, countMeaningfulStateVisualRules, semanticEnsembleScalePlan } from './presentationQuality.js?rmv=1.5.51-narrow1';
 
 
-const RUNTIME_VERSION = '1.5.48';
+const RUNTIME_VERSION = '1.5.51';
 const RUNTIME_VERSION_ATTR = 'data-rabbit-mirror-runtime-version';
 
 const FEEDBACK_CAT_RUNTIME_STYLE_ID = 'rabbit-mirror-feedback-cat-runtime-style';
@@ -22619,6 +22619,59 @@ function runMaintenanceUserRepair(root, button, mode) {
     return true;
 }
 
+// Explicit current-face width recovery. Keep the live DOM and all interaction
+// state intact; this path never enters source repair or generation/persistence.
+async function runMaintenanceNarrowFaceRepair(root, button) {
+    if (!root?.isConnected || !button?.isConnected) return false;
+    const details = button.closest?.('details');
+    if (!details || !(root === details || root.contains?.(details)) || !isRabbitMirrorDetails(details)) return false;
+    if (!details.open) {
+        setMaintenanceRabbitState(button, MAINTENANCE_STATES.idle, '请先展开这面兔子镜，再执行窄面电击');
+        return false;
+    }
+    const repairRun = beginMaintenanceRepairRun(root, button);
+    if (!repairRun) return false;
+    try {
+        if (rejectOversizedMaintenanceRepair(root, button, '窄面电击')) return false;
+        if (!maintenanceRepairRunIsCurrent(repairRun)) return false;
+        setMaintenanceRabbitState(button, MAINTENANCE_STATES.checking, '⚡ 正在重新测量并恢复这面兔子镜的宽度');
+        const adapter = await import('./independentApi.js?rmv=1.5.51-narrow1');
+        // Loading the adapter is the sole async boundary. Never apply a delayed
+        // click to a new chat, Swipe, source revision, face or replacement node.
+        if (!root.isConnected || !details.isConnected || !button.isConnected
+            || button.closest?.('details') !== details || !details.open
+            || !maintenanceRepairRunIsCurrent(repairRun)) {
+            if (button.isConnected) setMaintenanceRabbitState(button, MAINTENANCE_STATES.idle, '本次窄面电击已因目标或展开状态变化取消');
+            return false;
+        }
+        const geometry = adapter.remeasureRabbitMirrorFaceGeometry(details);
+        if (geometry.status === 'stale') {
+            setMaintenanceRabbitState(button, MAINTENANCE_STATES.unknown, '镜面归属已变化，本次电击已取消');
+            return false;
+        }
+        const summary = details.querySelector(':scope > summary');
+        if (summary) containRabbitMirrorTitleToolFloat(summary);
+        const content = adapter.repairRabbitMirrorFaceAutoWidth(details);
+        const gains = [geometry, content].filter(result =>
+            Number(result.afterWidth) > Number(result.beforeWidth) + 2);
+        if (gains.length) {
+            const result = gains[gains.length - 1];
+            setMaintenanceRabbitState(button, MAINTENANCE_STATES.idle,
+                `⚡ 已恢复宽度：${Math.round(result.beforeWidth)} → ${Math.round(result.afterWidth)}px，请确认显示`);
+        } else {
+            setMaintenanceRabbitState(button, MAINTENANCE_STATES.idle,
+                '⚡ 已复测，未确认可安全恢复的压窄；若仍异常，请生成全链路诊断');
+        }
+        return gains.length > 0;
+    } catch (error) {
+        console.debug('[RabbitMirror] narrow face repair failed:', error);
+        failMaintenanceRabbit(button, '窄面电击未完成，请生成全链路诊断');
+        return false;
+    } finally {
+        finishMaintenanceRepairRun(repairRun);
+    }
+}
+
 function maintenanceRecommendationForInspection(inspection) {
     const findings = inspection?.findings || [];
     const plan = maintenanceRepairModesForFindings(findings);
@@ -22672,6 +22725,7 @@ function showMaintenanceRabbitMenu(root, button) {
       <button type="button" data-rm-maintenance-action="auto">✨ 自动判断并维修（推荐）</button>
       <button type="button" data-rm-maintenance-action="patrol">🔍 只巡逻，不修改</button>
       <button type="button" data-rm-maintenance-action="interaction">🖱️ 点了没有反应</button>
+      <button type="button" data-rm-maintenance-action="narrow-width">⚡ 强效电击：恢复窄面</button>
       <button type="button" data-rm-maintenance-action="text">📱 排版不适配／内容显示不全</button>
       <button type="button" data-rm-maintenance-action="source">📄 空白或显示代码、纯文字</button>
       <button type="button" data-rm-maintenance-action="style">🎨 样子不对</button>
@@ -22709,6 +22763,10 @@ function showMaintenanceRabbitMenu(root, button) {
         }
         closeMaintenanceRabbitMenu();
         if (action === 'close') return;
+        if (action === 'narrow-width') {
+            void runMaintenanceNarrowFaceRepair(root, button);
+            return;
+        }
         if (action === 'reset-interaction') {
             const repairRun = beginMaintenanceRepairRun(root, button);
             if (!repairRun) return;

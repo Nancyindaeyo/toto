@@ -1,16 +1,16 @@
-import { TAROT_IMAGE_RULES } from '../data/raw/tarotImageRules.js?rmv=1.5.48-release1';
-import { TOUCH_THEATER_RULES } from '../data/raw/touchTheaterRules.js?rmv=1.5.48-release1';
-import { buildBehaviorRuleBlock } from './behaviorRules.js?rmv=1.5.48-release1';
-import { buildBatchInteractionDiversityRule } from './batchInteractionDiversity.js?rmv=1.5.48-release1';
-import { VISUAL_SCENERY_RULES } from '../data/raw/visualSceneryRules.js?rmv=1.5.48-release1';
-import { pickCombination, pickCombinationBatch, pickCombinationForMultifaceResay } from './picker.js?rmv=1.5.48-release1';
-import { getComboHistory, getRecentRiskFlags, getRecentRiskFlagCounts, getRecentInteractionFamilies, getRepeatedVisualFamilyDimensions } from './storage.js?rmv=1.5.48-release1';
-import { buildPaletteCooldownExecutionLock, buildPaletteCooldownRule } from './paletteCooldown.js?rmv=1.5.48-release1';
-import { readSelectedMemoryForPrompt } from './memoryScanner.js?rmv=1.5.48-release1';
-export { prepareSelectedMemoryForPrompt, memoryRequestSettingsKey, assertMemoryRequestSettings } from './memoryScanner.js?rmv=1.5.48-release1';
-import { resolveRawSnippetForItem } from '../data/raw/rawSegmentLookup.js?rmv=1.5.48-release1';
-import { externalSummaryForSending } from './externalWorldBook/summary.js?rmv=1.5.48-release1';
-import { DEFAULT_VISUAL_PROMPT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS, normalizeIndependentContextExcludedTags } from './settings.js?rmv=1.5.48-release1';
+import { TAROT_IMAGE_RULES } from '../data/raw/tarotImageRules.js?rmv=1.5.51-narrow1';
+import { TOUCH_THEATER_RULES } from '../data/raw/touchTheaterRules.js?rmv=1.5.51-narrow1';
+import { buildBehaviorRuleBlock } from './behaviorRules.js?rmv=1.5.51-narrow1';
+import { buildBatchInteractionDiversityRule } from './batchInteractionDiversity.js?rmv=1.5.51-narrow1';
+import { VISUAL_SCENERY_RULES } from '../data/raw/visualSceneryRules.js?rmv=1.5.51-narrow1';
+import { pickCombination, pickCombinationBatch, pickCombinationForMultifaceResay } from './picker.js?rmv=1.5.51-narrow1';
+import { getComboHistory, getRecentRiskFlags, getRecentRiskFlagCounts, getRecentInteractionFamilies, getRepeatedVisualFamilyDimensions } from './storage.js?rmv=1.5.51-narrow1';
+import { buildPaletteCooldownExecutionLock, buildPaletteCooldownRule } from './paletteCooldown.js?rmv=1.5.51-narrow1';
+import { readSelectedMemoryForPrompt } from './memoryScanner.js?rmv=1.5.51-narrow1';
+export { prepareSelectedMemoryForPrompt, memoryRequestSettingsKey, assertMemoryRequestSettings } from './memoryScanner.js?rmv=1.5.51-narrow1';
+import { resolveRawSnippetForItem } from '../data/raw/rawSegmentLookup.js?rmv=1.5.51-narrow1';
+import { externalSummaryForSending } from './externalWorldBook/summary.js?rmv=1.5.51-narrow1';
+import { DEFAULT_VISUAL_PROMPT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS, normalizeIndependentContextExcludedTags } from './settings.js?rmv=1.5.51-narrow1';
 
 function asText(value) {
     return String(value || '').replace(/\s+/g, ' ').trim();

@@ -1,3 +1,5 @@
+import { packBatchPlanText, unpackBatchPlanText } from './batchPlanCodec.js?rmv=1.5.51-narrow1';
+
 const STORAGE_KEY = 'rabbit_mirror_theater:last_combo:v11';
 const PENDING_KEY = 'rabbit_mirror_theater:pending_combo:v11';
 const MAX_STORED = 20;
@@ -662,7 +664,10 @@ export function getRecentInteractionFamilyCounts(limit = 5) {
 // 多面是"一次生成 N 个组合，各自等待自己那一面真正渲染完成后再分别提交"。
 // 本层只提供显式提交能力；真正成功和当前 owner 的证明由未来 C2 调用方负责。
 const PENDING_BATCH_KEY = 'rabbit_mirror_theater:pending_batch:v1';
-const ACTIVE_BATCH_REGISTRY_KEY = 'rabbit_mirror_theater:pending_batch_registry:v2';
+// Keep the old slot readable for requests already in flight in another tab.
+// Older runtimes must never mistake a packed plan for prompt-ready material.
+const LEGACY_BATCH_REGISTRY_KEY = 'rabbit_mirror_theater:pending_batch_registry:v2';
+const ACTIVE_BATCH_REGISTRY_KEY = 'rabbit_mirror_theater:pending_batch_registry:v3';
 const ACTIVE_BATCH_REGISTRY_MAX = 8;
 const ACTIVE_BATCH_REGISTRY_MAX_CHARS = 1024 * 1024;
 let pendingBatchSequence = 0;
@@ -839,23 +844,45 @@ export function createPendingComboBatchPlan(combos = [], identity = null, fairne
     return payload.length <= 262144 ? cloneSerializable(candidate) : reject('BATCH_PLAN_TOO_LARGE');
 }
 
-function normalizeActiveBatchRecord(value) {
-    const plan = normalizeLocalBatchPlan(value?.plan);
+function normalizeActiveBatchRecord(value, storageKey = ACTIVE_BATCH_REGISTRY_KEY) {
+    let source = value?.plan;
+    if (storageKey === ACTIVE_BATCH_REGISTRY_KEY) {
+        const text = unpackBatchPlanText(value?.planPayload);
+        if (text === null) return null;
+        try { source = JSON.parse(text); } catch { return null; }
+    }
+    const plan = normalizeLocalBatchPlan(source);
     if (!plan || typeof value.registrySession !== 'string' || !value.registrySession ||
         !Number.isFinite(value.createdAt) || value.createdAt <= 0) return null;
-    return { plan, registrySession: value.registrySession, createdAt: value.createdAt };
+    return { plan, registrySession: value.registrySession, createdAt: value.createdAt, storageKey, stored: value };
 }
 
 function readActiveBatchRegistry() {
     try {
-        const raw = localStorage.getItem(ACTIVE_BATCH_REGISTRY_KEY);
-        if (raw === null) return { raw: null, records: [] };
-        if (raw.length > ACTIVE_BATCH_REGISTRY_MAX_CHARS) return null;
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed) || parsed.length > ACTIVE_BATCH_REGISTRY_MAX) return null;
-        const records = parsed.map(normalizeActiveBatchRecord);
-        return records.some(record => !record) ? null : { raw, records };
+        const rawByKey = {};
+        const records = [];
+        // This path runs only for explicit batch operations, never at startup.
+        for (const key of [ACTIVE_BATCH_REGISTRY_KEY, LEGACY_BATCH_REGISTRY_KEY]) {
+            const raw = localStorage.getItem(key);
+            rawByKey[key] = raw;
+            if (raw === null) continue;
+            if (raw.length > ACTIVE_BATCH_REGISTRY_MAX_CHARS) return null;
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed) || parsed.length > ACTIVE_BATCH_REGISTRY_MAX) return null;
+            for (const value of parsed) {
+                const record = normalizeActiveBatchRecord(value, key);
+                if (!record) return null;
+                records.push(record);
+            }
+        }
+        return { raw: rawByKey[ACTIVE_BATCH_REGISTRY_KEY], rawByKey, records };
     } catch { return null; }
+}
+
+function registryWithoutRecord(registry, record) {
+    return JSON.stringify(registry.records
+        .filter(item => item.storageKey === record.storageKey && item !== record)
+        .map(item => item.stored));
 }
 
 function activeBatchRecordIsFresh(record, now = Date.now()) {
@@ -898,8 +925,8 @@ function compactExpiredTransactionRaw(key, raw, now) {
                 && data.faces.every((face, index) => validBatchCombo(face) && face.batchId === data.batchId
                     && face.faceIndex === index && face.signature === signatureOf(face)
                     && (face.committed === undefined || typeof face.committed === 'boolean'))) return null;
-        } else if (key === ACTIVE_BATCH_REGISTRY_KEY) {
-            if (!Array.isArray(data) || data.length > ACTIVE_BATCH_REGISTRY_MAX || data.some(row => !normalizeActiveBatchRecord(row))) return raw;
+        } else if (key === ACTIVE_BATCH_REGISTRY_KEY || key === LEGACY_BATCH_REGISTRY_KEY) {
+            if (!Array.isArray(data) || data.length > ACTIVE_BATCH_REGISTRY_MAX || data.some(row => !normalizeActiveBatchRecord(row, key))) return raw;
             // Keep original surviving objects, including fields owned by other tabs.
             next = data.filter(row => !expiredTransactionTime(row.createdAt, now));
         } else if (key === ATTEMPT_STORAGE_KEY) {
@@ -925,7 +952,7 @@ function reclaimExpiredTransactionsForQuota(changes) {
     try {
         // A failed/foreign rollback must never authorize cleanup or overwrite.
         if (rebased.some(change => localStorage.getItem(change.key) !== change.before)) return null;
-        for (const key of [PENDING_KEY, PENDING_BATCH_KEY, ACTIVE_BATCH_REGISTRY_KEY, ATTEMPT_STORAGE_KEY]) {
+        for (const key of [PENDING_KEY, PENDING_BATCH_KEY, ACTIVE_BATCH_REGISTRY_KEY, LEGACY_BATCH_REGISTRY_KEY, ATTEMPT_STORAGE_KEY]) {
             const before = localStorage.getItem(key);
             const after = compactExpiredTransactionRaw(key, before, now);
             if (after === before) continue;
@@ -1045,8 +1072,12 @@ export function markPendingBatchAttempt(planInput = null, options = {}) {
     const existing = liveRecords.find(record => record.plan.batchId === plan.batchId);
     if (existing) return JSON.stringify(existing.plan) === JSON.stringify(plan) || reject('BATCH_ID_CONFLICT');
     if (liveRecords.length >= ACTIVE_BATCH_REGISTRY_MAX) return reject('BATCH_REGISTRY_CAPACITY');
-    const record = { plan, registrySession: PENDING_SESSION_TOKEN, createdAt: now };
-    const registryAfter = JSON.stringify([...liveRecords, record]);
+    const planPayload = packBatchPlanText(JSON.stringify(plan));
+    if (!planPayload) return reject('BATCH_PLAN_TOO_LARGE');
+    const record = { planPayload, registrySession: PENDING_SESSION_TOKEN, createdAt: now };
+    const registryAfter = JSON.stringify([
+        ...liveRecords.filter(item => item.storageKey === ACTIVE_BATCH_REGISTRY_KEY).map(item => item.stored), record,
+    ]);
     if (registryAfter.length > ACTIVE_BATCH_REGISTRY_MAX_CHARS) return reject('BATCH_REGISTRY_TOO_LARGE');
     let pityBefore;
     let attemptBefore;
@@ -1102,7 +1133,11 @@ function batchHistoryPayload(plan, scans, beforeRaw) {
     for (const face of acceptedFaces) {
         const scan = scans[face.faceIndex];
         const combo = face.combo;
-        history.push({ ...combo, signature: signatureOf(combo), ts: now, batchId: plan.batchId, faceIndex: face.faceIndex,
+        // Successful history is accounting, not a recovery source for a pending
+        // prompt. Consumers use IDs, UI/interaction and visual fingerprints.
+        // Preserve those fields while avoiding another copy of mother materials.
+        const { themes, formats, ...accounting } = combo;
+        history.push({ ...accounting, signature: signatureOf(combo), ts: now, batchId: plan.batchId, faceIndex: face.faceIndex,
             visualSignature: scan.visualSignature || combo.visualSignature,
             visualSkeleton: scan.visualSkeleton || combo.visualSkeleton,
             riskFlags: scan.riskFlags, paletteFingerprint: scan.paletteFingerprint || undefined,
@@ -1128,7 +1163,8 @@ export function commitPendingComboBatch(faceScans = [], expected = null) {
     if (!registry || !expected) return false;
     const index = registry.records.findIndex(record => activeBatchRecordIsFresh(record) && planMatchesExpected(record.plan, expected));
     if (index < 0) return false;
-    const plan = registry.records[index].plan;
+    const record = registry.records[index];
+    const plan = record.plan;
     if (!Array.isArray(faceScans) || faceScans.length !== plan.requestedFaceCount) return false;
     for (let index = 0; index < faceScans.length; index += 1) if (!Object.hasOwn(faceScans, index)) return false;
     const allowPartial = expected.partial === true;
@@ -1143,12 +1179,15 @@ export function commitPendingComboBatch(faceScans = [], expected = null) {
     const historyAfter = batchHistoryPayload(plan, scans, historyBefore);
     const pityAfter = batchPityCommittedPayload(plan, pityBefore, scans);
     if (historyAfter === null || pityAfter === null) return false;
-    const registryAfter = JSON.stringify(registry.records.filter((_, recordIndex) => recordIndex !== index));
+    const registryAfter = registryWithoutRecord(registry, record);
     const changes = [];
     if (historyAfter !== historyBefore) changes.push({ key: STORAGE_KEY, before: historyBefore, after: historyAfter });
     if (pityAfter !== (pityBefore || '{}')) changes.push({ key: FORMAT_ELIGIBLE_MISS_STORAGE_KEY, before: pityBefore, after: pityAfter });
-    changes.push({ key: ACTIVE_BATCH_REGISTRY_KEY, before: registry.raw, after: registryAfter });
-    return writeOwnedTransaction(changes);
+    changes.push({ key: record.storageKey, before: registry.rawByKey[record.storageKey], after: registryAfter });
+    // Release the completed reservation before growing history, so a fitting
+    // final state does not require room for both. Owned rollback restores it.
+    const shrinks = change => typeof change.before === 'string' && change.after.length < change.before.length;
+    return writeOwnedTransaction([...changes.filter(shrinks), ...changes.filter(change => !shrinks(change))]);
 }
 
 export function releasePendingComboBatch(expected = null) {
@@ -1157,8 +1196,9 @@ export function releasePendingComboBatch(expected = null) {
     if (!registry) return false;
     const index = registry.records.findIndex(record => planMatchesExpected(record.plan, expected));
     if (index < 0) return true;
-    const after = JSON.stringify(registry.records.filter((_, recordIndex) => recordIndex !== index));
-    return writeOwnedTransaction([{ key: ACTIVE_BATCH_REGISTRY_KEY, before: registry.raw, after }]);
+    const record = registry.records[index];
+    const after = registryWithoutRecord(registry, record);
+    return writeOwnedTransaction([{ key: record.storageKey, before: registry.rawByKey[record.storageKey], after }]);
 }
 
 export function setPendingComboBatch(combos = [], identity = null) {

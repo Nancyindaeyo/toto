@@ -1,7 +1,7 @@
-import { readLocalExternalImportFile, readPlainTextWorldBook } from './fileReader.js?rmv=1.5.48-release1';
-import { getSettings, updateSettings } from '../settings.js?rmv=1.5.48-release1';
-import { listHostWorldBooks, readHostWorldBook } from './hostReader.js?rmv=1.5.48-release1';
-import { searchNormalizedWorldBookEntries } from './normalize.js?rmv=1.5.48-release1';
+import { readLocalExternalImportFile, readPlainTextWorldBook } from './fileReader.js?rmv=1.5.51-narrow1';
+import { getSettings, updateSettings } from '../settings.js?rmv=1.5.51-narrow1';
+import { listHostWorldBooks, readHostWorldBook } from './hostReader.js?rmv=1.5.51-narrow1';
+import { searchNormalizedWorldBookEntries } from './normalize.js?rmv=1.5.51-narrow1';
 import {
     EXTERNAL_WORLD_BOOK_SELECTION_MODE,
     createEmptySelection,
@@ -9,14 +9,14 @@ import {
     createWholeBookSelection,
     entryIdentity,
     toggleEntrySelection,
-} from './selectionState.js?rmv=1.5.48-release1';
+} from './selectionState.js?rmv=1.5.51-narrow1';
 import {
     EXTERNAL_WORLD_BOOK_CLASSIFICATION,
     applyExternalWorldBookBulkClassification,
     createExternalWorldBookClassificationDraft,
     externalWorldBookClassificationCounts,
     updateExternalWorldBookDraftItem,
-} from './classifier.js?rmv=1.5.48-release1';
+} from './classifier.js?rmv=1.5.51-narrow1';
 import {
     deleteExternalLibrary,
     listExternalLibraries,
@@ -28,7 +28,7 @@ import {
     hydrateExternalPoolMetadata,
     getExternalPoolHydrationStatus,
     rebuildExternalPoolMetadata,
-} from './store.js?rmv=1.5.48-release1';
+} from './store.js?rmv=1.5.51-narrow1';
 
 const MODAL_ID = 'rh_external_worldbook_import_modal';
 const PAGE_SIZE = 50;
@@ -631,7 +631,7 @@ function createLibraryTransferControls() {
         if (busy) return;
         const owner = state; lock(true); feedback('正在读取本设备已导入的库并生成迁移文件……');
         try {
-            const module = await import('./backup.js?rmv=1.5.48-release1');
+            const module = await import('./backup.js?rmv=1.5.51-narrow1');
             if (!current(owner)) return;
             const result = await module.exportExternalLibraryBackup();
             if (!current(owner)) return;
@@ -648,7 +648,7 @@ function createLibraryTransferControls() {
         if (!globalThis.confirm('导入这份备份里的外部库？目标已有同编号库会保留并跳过，其余库保留备份的分类和启用状态。不删除或覆盖旧库，不改变抽签总开关。')) return;
         const owner = state, backup = pending; lock(true); feedback('正在原子保存迁移数据；请暂时保留此页面……');
         try {
-            const module = await import('./backup.js?rmv=1.5.48-release1');
+            const module = await import('./backup.js?rmv=1.5.51-narrow1');
             if (!current(owner)) return;
             const result = await module.importExternalLibraryBackup(backup);
             if (!current(owner)) return;
@@ -666,7 +666,7 @@ function createLibraryTransferControls() {
         const selected = file.files?.[0]; if (!selected) return;
         const owner = state, ownSequence = ++sequence; lock(true); feedback('正在校验迁移文件，尚未写入……');
         try {
-            const module = await import('./backup.js?rmv=1.5.48-release1');
+            const module = await import('./backup.js?rmv=1.5.51-narrow1');
             if (!current(owner)) return;
             const backup = await module.readExternalLibraryBackupFile(selected);
             if (!current(owner) || sequence !== ownSequence) return;

@@ -382,7 +382,7 @@ export async function prepareSelectedMemoryForPrompt(settings, options = {}) {
     let worldBookError = '';
     if (settings.memoryWorldBookEnabled === true && typeof settings.memoryWorldBookId === 'string' && settings.memoryWorldBookId.trim()) {
         try {
-            const { readBoundMemoryWorldBook } = await import('./memoryWorldBook.js?rmv=1.5.48-release1');
+            const { readBoundMemoryWorldBook } = await import('./memoryWorldBook.js?rmv=1.5.51-narrow1');
             const result = await readBoundMemoryWorldBook(settings, maxChars, options.worldBookOptions);
             if (result) additional.push(result);
         } catch (error) {
