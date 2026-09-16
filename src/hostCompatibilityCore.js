@@ -5,9 +5,10 @@
 const PARTICIPANT_ID = 'rabbitmirror/message-runtime';
 const SURFACES = new Set(['fullscreen-window', 'backdrop', 'free-window', 'viewport-host']);
 
-// Only retain a fixed diagnostic code, never the host exception/body. TT v1
-// freezes registration at the first projection; reattempting or launching a
-// legacy observer after that point would violate managed DOM ownership.
+// TT v1 freezes registration at the first projection. If this extension is
+// loaded after that freeze, we still follow currently visible #chat > .mes
+// nodes and emit the same lease callbacks. We do not rewrite projection
+// structure or append siblings to #chat.
 function registrationFailureReason(error) {
     const message = typeof error?.message === 'string' ? error.message : '';
     if (message.includes('must register before the first projection')) return 'late-projection';
@@ -30,9 +31,10 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
     let initialized = false;
     let managed = false;
     let registration = null;
-    let status = Object.freeze({ host: 'sillytavern', managed: false, registered: false, protocolVersion: null, errorCode: '' });
+    let status = Object.freeze({ host: 'sillytavern', managed: false, registered: false, protocolVersion: null, errorCode: '', projectionFallback: false });
     const subscriptions = new Map();
     const mounted = new Map();
+    const visibleFallback = { observer: null, chatWaiter: null, contentFrame: 0, pendingContent: new Set(), adopted: new Map() };
 
     function reportFault(error) {
         status = Object.freeze({ ...status, errorCode: 'CHAT_SURFACE_CONSUMER_FAILED' });
@@ -104,6 +106,141 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         return dispose;
     }
 
+    function messageContent(element) {
+        return element.querySelector?.('.mes_text') || element;
+    }
+
+    function messageId(element) {
+        const id = Number(element?.getAttribute?.('mesid'));
+        return Number.isInteger(id) ? id : NaN;
+    }
+
+    function isAuxiliaryMessageChild(node) {
+        return node instanceof Element && !!node.matches?.(
+            'toto, [data-rabbit-mirror-external-source="true"], .rabbit-mirror-composer-clearance, [data-rabbit-mirror-tool-entry-host], .rabbit-mirror-maintenance-toolbar, [data-rabbit-mirror-tool-entry-host] *',
+        );
+    }
+
+    function dropVisibleLease(element) {
+        const record = visibleFallback.adopted.get(element);
+        if (!record) return;
+        visibleFallback.adopted.delete(element);
+        record.contentObserver?.disconnect?.();
+        try { record.mount.abort(); } catch {}
+        try { record.content.abort(); } catch {}
+    }
+
+    function adoptVisibleMessage(element) {
+        if (disposed || !managed || status.registered || !(element instanceof Element) || !element.matches?.('.mes')) return;
+        const mesid = messageId(element);
+        if (!Number.isInteger(mesid) || !element.isConnected) return;
+        dropVisibleLease(element);
+        const content = messageContent(element);
+        const mount = new AbortController();
+        const contentLease = new AbortController();
+        openLease('didMount', { mesid, element, content, signal: mount.signal });
+        openLease('didCommitContent', { mesid, element, content, signal: contentLease.signal });
+        const contentObserver = typeof MutationObserver === 'function'
+            ? new MutationObserver(records => {
+                const hostReplacedContent = records.some(record =>
+                    [...(record.addedNodes || []), ...(record.removedNodes || [])]
+                        .some(node => node instanceof Element && !isAuxiliaryMessageChild(node)),
+                );
+                if (hostReplacedContent) queueVisibleContent(element);
+            })
+            : null;
+        contentObserver?.observe(element, { childList: true });
+        visibleFallback.adopted.set(element, { mount, content: contentLease, contentObserver });
+    }
+
+    function refreshVisibleContent(element) {
+        const record = visibleFallback.adopted.get(element);
+        if (!record || disposed || !element.isConnected) return;
+        const mesid = messageId(element);
+        if (!Number.isInteger(mesid)) return;
+        const content = messageContent(element);
+        try { record.content.abort(); } catch {}
+        const contentLease = new AbortController();
+        openLease('didCommitContent', { mesid, element, content, signal: contentLease.signal });
+        record.content = contentLease;
+        record.contentNode = content;
+    }
+
+    function queueVisibleContent(element) {
+        if (!element) return;
+        visibleFallback.pendingContent.add(element);
+        if (visibleFallback.contentFrame) return;
+        visibleFallback.contentFrame = hostGlobal.requestAnimationFrame?.(() => {
+            visibleFallback.contentFrame = 0;
+            const pending = [...visibleFallback.pendingContent];
+            visibleFallback.pendingContent.clear();
+            for (const node of pending) refreshVisibleContent(node);
+        }) || 0;
+        if (!visibleFallback.contentFrame) {
+            visibleFallback.pendingContent.clear();
+            refreshVisibleContent(element);
+        }
+    }
+
+    function collectDirectMessages(root, node) {
+        if (!(node instanceof Element)) return [];
+        if (node.matches?.('.mes') && node.parentElement === root) return [node];
+        return [...(node.querySelectorAll?.(':scope > .mes, .mes') || [])].filter(el => el.parentElement === root);
+    }
+
+    function stopVisibleProjectionFallback() {
+        visibleFallback.observer?.disconnect?.();
+        visibleFallback.observer = null;
+        visibleFallback.chatWaiter?.disconnect?.();
+        visibleFallback.chatWaiter = null;
+        if (visibleFallback.contentFrame && typeof hostGlobal.cancelAnimationFrame === 'function') {
+            hostGlobal.cancelAnimationFrame(visibleFallback.contentFrame);
+        }
+        visibleFallback.contentFrame = 0;
+        visibleFallback.pendingContent.clear();
+        for (const element of [...visibleFallback.adopted.keys()]) dropVisibleLease(element);
+    }
+
+    function attachVisibleProjectionFallback(chatRoot) {
+        if (disposed || !managed || status.registered || visibleFallback.observer || !chatRoot?.isConnected) return;
+        status = Object.freeze({ ...status, projectionFallback: true });
+        for (const element of chatRoot.querySelectorAll?.(':scope > .mes') || []) adoptVisibleMessage(element);
+        if (typeof MutationObserver !== 'function') return;
+        visibleFallback.observer = new MutationObserver(records => {
+            if (disposed || status.registered) return;
+            for (const record of records) {
+                if (record.target !== chatRoot || record.type !== 'childList') continue;
+                for (const node of record.removedNodes || []) {
+                    for (const element of collectDirectMessages(chatRoot, node)) dropVisibleLease(element);
+                }
+                for (const node of record.addedNodes || []) {
+                    for (const element of collectDirectMessages(chatRoot, node)) adoptVisibleMessage(element);
+                }
+            }
+        });
+        visibleFallback.observer.observe(chatRoot, { childList: true });
+        try { console.info('[RabbitMirror] ChatSurface late-projection fallback: following visible #chat > .mes leases'); } catch {}
+    }
+
+    function startVisibleProjectionFallback() {
+        if (disposed || !managed || status.registered) return;
+        const doc = hostGlobal.document;
+        const chatRoot = doc?.getElementById?.('chat') || doc?.querySelector?.('#chat');
+        if (chatRoot?.isConnected) {
+            attachVisibleProjectionFallback(chatRoot);
+            return;
+        }
+        if (visibleFallback.chatWaiter || typeof MutationObserver !== 'function' || !doc?.documentElement) return;
+        visibleFallback.chatWaiter = new MutationObserver(() => {
+            const found = doc.getElementById?.('chat') || doc.querySelector?.('#chat');
+            if (!found?.isConnected) return;
+            visibleFallback.chatWaiter?.disconnect?.();
+            visibleFallback.chatWaiter = null;
+            attachVisibleProjectionFallback(found);
+        });
+        visibleFallback.chatWaiter.observe(doc.documentElement, { childList: true, subtree: true });
+    }
+
     function initialize() {
         if (initialized || disposed) return status;
         initialized = true;
@@ -117,12 +254,14 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
             // Ownership is unknown, so do not launch an unmanaged repair watcher.
             managed = true;
             status = Object.freeze({ ...status, managed, errorCode: 'CHAT_SURFACE_OWNERSHIP_UNAVAILABLE' });
+            startVisibleProjectionFallback();
             return status;
         }
         status = Object.freeze({ ...status, managed });
         if (!managed) return status;
         if (api.protocolVersion !== 1 || typeof api.registerParticipant !== 'function') {
             status = Object.freeze({ ...status, errorCode: 'CHAT_SURFACE_PROTOCOL_UNSUPPORTED' });
+            startVisibleProjectionFallback();
             return status;
         }
         try {
@@ -136,6 +275,7 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         } catch (error) {
             status = Object.freeze({ ...status, errorCode: 'CHAT_SURFACE_REGISTRATION_FAILED',
                 registrationFailure: registrationFailureReason(error) });
+            startVisibleProjectionFallback();
         }
         return status;
     }
@@ -151,7 +291,9 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
                 throw new TypeError(`RabbitMirror ChatSurface ${kind} must be a function`);
             }
         }
-        if (!managed || !status.registered) return () => {};
+        // Host registration is best-effort. Late-projection still delivers visible
+        // #chat leases so settings and in-viewport theaters can start.
+        if (!managed) return () => {};
         if (subscriptions.has(definition.id)) throw new Error(`Duplicate RabbitMirror ChatSurface consumer: ${definition.id}`);
         const subscription = { id: definition.id, didMount: definition.didMount, didCommitContent: definition.didCommitContent };
         subscriptions.set(subscription.id, subscription);
@@ -186,6 +328,7 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
     function dispose() {
         if (disposed) return;
         disposed = true;
+        stopVisibleProjectionFallback();
         let firstError = null;
         for (const record of [...mounted.values()]) {
             for (const kind of ['didMount', 'didCommitContent']) {

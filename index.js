@@ -3,7 +3,7 @@ import { clearLastCombo } from './src/storage.js?rmv=1.5.51-narrow1';
 import { clearAllFeedbackCatState, destroyFeedbackCatPromptSync, initFeedbackCatPromptSync } from './src/feedbackCat.js?rmv=1.5.51-narrow1';
 import { getSettings, updateSettings } from './src/settings.js?rmv=1.5.51-narrow1';
 import { initRabbitMirrorIndependentSecurityGuard, destroyRabbitMirrorIndependentSecurityGuard } from './src/independentSecurityGuard.js?rmv=1.5.51-narrow1';
-import { initRabbitMirrorHostCompatibility, isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface, getRabbitMirrorEarlyBootstrap } from './src/hostCompatibility.js?rmv=1.5.51-narrow1';
+import { initRabbitMirrorHostCompatibility, isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface, getRabbitMirrorEarlyBootstrap, getRabbitMirrorHostCompatibilityStatus } from './src/hostCompatibility.js?rmv=1.5.52-domcompat1';
 
 // TT requires ownership registration before its first projection, not after the
 // deferred DOM runtime loads. This bridge has no network, timers or heavy imports.
@@ -12,8 +12,8 @@ initRabbitMirrorHostCompatibility();
 // SecurityFix2 leaves only the prompt interceptor and request guard in the parser-critical
 // graph. The 1.8 MiB UI/sanitizer/independent runtime graph is imported after the host has
 // received a paint/idle opportunity, or immediately after explicit RabbitMirror intent.
-const GOLDEN_MERGE_VERSION = '1.5.51';
-const RABBIT_MIRROR_RUNTIME_VERSION = '1.5.51';
+const GOLDEN_MERGE_VERSION = '1.5.52';
+const RABBIT_MIRROR_RUNTIME_VERSION = '1.5.52';
 const earlyBootstrap = getRabbitMirrorEarlyBootstrap();
 let runtimeCancelled = earlyBootstrap?.cancelled === true || (!!globalThis.__rabbitMirrorTtBootstrap && !earlyBootstrap);
 let runtimeClaimed = !runtimeCancelled;
@@ -74,12 +74,12 @@ async function ensureDeferredCoreRuntime(reason = 'scheduled-idle') {
     if (deferredRuntimeModules) return deferredRuntimeModules;
     if (deferredRuntimePromise) return deferredRuntimePromise;
     deferredRuntimePromise = Promise.all([
-        import('./src/outputSanitizer.js?rmv=1.5.51-narrow1'),
+        import('./src/outputSanitizer.js?rmv=1.5.52-domcompat1'),
         import('./src/visualScanner.js?rmv=1.5.51-narrow1'),
-        import('./src/independentApi.js?rmv=1.5.51-narrow1'),
-        import('./src/touchTheater.js?rmv=1.5.51-narrow1'),
-        import('./src/ui.js?rmv=1.5.51-narrow1'),
-        import('./src/composerClearance.js?rmv=1.5.51-narrow1'),
+        import('./src/independentApi.js?rmv=1.5.52-domcompat1'),
+        import('./src/touchTheater.js?rmv=1.5.52-domcompat1'),
+        import('./src/ui.js?rmv=1.5.52-domcompat1'),
+        import('./src/composerClearance.js?rmv=1.5.52-domcompat1'),
     ]).then(async ([output, visual, independent, touch, ui, clearance]) => {
         if (!runtimeIsActive()) return null;
         deferredRuntimeModules = { output, visual, independent, touch, ui, clearance };
@@ -150,6 +150,13 @@ function stableHostChatSignature() {
     } catch { return ''; }
 }
 
+function shouldBypassEmptyChatGate() {
+    try {
+        const status = getRabbitMirrorHostCompatibilityStatus();
+        return status.host === 'tauritavern' && status.managed === true && status.registered !== true;
+    } catch { return false; }
+}
+
 function requestDeferredIdleCheck(delay = 1400) {
     if (!runtimeIsActive() || deferredRuntimeModules || deferredRuntimePromise) return;
     deferredBootTimer = setTimeout(() => {
@@ -215,11 +222,15 @@ function runDeferredBoot() {
         // Empty chat and not-yet-loaded chat are intentionally indistinguishable for
         // the heavy DOM graph. A no-timeout idle slot may still prewarm only the much
         // smaller generation graph so the first send does not pay its parse cost.
+        installDeferredChatWakeObserver();
+        // TT late-projection has no host leases. Do not wait forever for a ChatSurface
+        // didMount that cannot arrive; settings and visible-floor consumers still boot.
+        if (shouldBypassEmptyChatGate()) {
+            void ensureDeferredCoreRuntime('tt-late-projection');
+            return;
+        }
         if (!generationPrewarmDone && beginGenerationRuntimePrewarm()) return;
         if (!generationPrewarmDone && generationPrewarmStarted) return;
-        // Stay dormant in a genuinely empty chat; one direct-child observer wakes
-        // the idle gate when SillyTavern mounts a message. No permanent polling.
-        installDeferredChatWakeObserver();
         return;
     }
     deferredChatWakeObserver?.disconnect?.();
