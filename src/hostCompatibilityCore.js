@@ -34,7 +34,23 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
     let status = Object.freeze({ host: 'sillytavern', managed: false, registered: false, protocolVersion: null, errorCode: '', projectionFallback: false });
     const subscriptions = new Map();
     const mounted = new Map();
-    const visibleFallback = { observer: null, chatWaiter: null, contentFrame: 0, pendingContent: new Set(), adopted: new Map() };
+    const visibleFallback = { observer: null, chatWaiter: null, chatPoll: 0, contentFrame: 0, pendingContent: new Set(), adopted: new Map() };
+
+    function hostTimeout(fn, ms) {
+        const schedule = hostGlobal.setTimeout?.bind(hostGlobal) || setTimeout;
+        return schedule(fn, ms);
+    }
+
+    function hostClearTimeout(id) {
+        if (!id) return;
+        const clear = hostGlobal.clearTimeout?.bind(hostGlobal) || clearTimeout;
+        clear(id);
+    }
+
+    function findChatRoot() {
+        const doc = hostGlobal.document;
+        return doc?.getElementById?.('chat') || doc?.querySelector?.('#chat') || null;
+    }
 
     function reportFault(error) {
         status = Object.freeze({ ...status, errorCode: 'CHAT_SURFACE_CONSUMER_FAILED' });
@@ -193,6 +209,8 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         visibleFallback.observer = null;
         visibleFallback.chatWaiter?.disconnect?.();
         visibleFallback.chatWaiter = null;
+        hostClearTimeout(visibleFallback.chatPoll);
+        visibleFallback.chatPoll = 0;
         if (visibleFallback.contentFrame && typeof hostGlobal.cancelAnimationFrame === 'function') {
             hostGlobal.cancelAnimationFrame(visibleFallback.contentFrame);
         }
@@ -204,7 +222,9 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
     function attachVisibleProjectionFallback(chatRoot) {
         if (disposed || !managed || status.registered || visibleFallback.observer || !chatRoot?.isConnected) return;
         status = Object.freeze({ ...status, projectionFallback: true });
-        for (const element of chatRoot.querySelectorAll?.(':scope > .mes') || []) adoptVisibleMessage(element);
+        // Prefer direct children: TT ChatSurface only owns #chat > .mes.
+        // Avoid :scope here; some WKWebView query paths miss it during bootstrap.
+        for (const node of chatRoot.children || []) adoptVisibleMessage(node);
         if (typeof MutationObserver !== 'function') return;
         visibleFallback.observer = new MutationObserver(records => {
             if (disposed || status.registered) return;
@@ -224,29 +244,50 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
 
     function startVisibleProjectionFallback() {
         if (disposed || !managed || status.registered) return;
-        const doc = hostGlobal.document;
-        const chatRoot = doc?.getElementById?.('chat') || doc?.querySelector?.('#chat');
-        if (chatRoot?.isConnected) {
-            attachVisibleProjectionFallback(chatRoot);
-            return;
-        }
-        if (visibleFallback.chatWaiter || typeof MutationObserver !== 'function' || !doc?.documentElement) return;
-        visibleFallback.chatWaiter = new MutationObserver(() => {
-            const found = doc.getElementById?.('chat') || doc.querySelector?.('#chat');
-            if (!found?.isConnected) return;
+        const attachIfReady = () => {
+            if (disposed || !managed || status.registered || visibleFallback.observer) return true;
+            const chatRoot = findChatRoot();
+            if (!chatRoot?.isConnected) return false;
             visibleFallback.chatWaiter?.disconnect?.();
             visibleFallback.chatWaiter = null;
-            attachVisibleProjectionFallback(found);
-        });
-        visibleFallback.chatWaiter.observe(doc.documentElement, { childList: true, subtree: true });
+            hostClearTimeout(visibleFallback.chatPoll);
+            visibleFallback.chatPoll = 0;
+            attachVisibleProjectionFallback(chatRoot);
+            return true;
+        };
+        if (attachIfReady()) return;
+        const doc = hostGlobal.document;
+        if (!visibleFallback.chatWaiter && typeof MutationObserver === 'function' && doc?.documentElement) {
+            visibleFallback.chatWaiter = new MutationObserver(() => { attachIfReady(); });
+            visibleFallback.chatWaiter.observe(doc.documentElement, { childList: true, subtree: true });
+        }
+        // iOS WKWebView can skip subtree MutationObserver delivery while the
+        // virtualizer is measuring. Bounded polling still finds #chat.
+        if (!visibleFallback.chatPoll) {
+            let attempts = 0;
+            const poll = () => {
+                visibleFallback.chatPoll = 0;
+                if (attachIfReady() || disposed || status.registered || ++attempts > 40) return;
+                visibleFallback.chatPoll = hostTimeout(poll, 250);
+            };
+            visibleFallback.chatPoll = hostTimeout(poll, 0);
+        }
     }
 
     function initialize() {
-        if (initialized || disposed) return status;
-        initialized = true;
+        if (disposed) return status;
         const host = hostGlobal?.__TAURITAVERN__;
+        // First evaluation can beat the host ABI on iOS deferred third-party load.
+        if (initialized) {
+            if (status.host === 'sillytavern' && host) initialized = false;
+            else return status;
+        }
+        initialized = true;
         const api = host?.api?.chatSurface;
-        if (!host) return status;
+        if (!host) {
+            initialized = false;
+            return status;
+        }
         status = Object.freeze({ ...status, host: 'tauritavern', protocolVersion: api?.protocolVersion ?? null });
         if (typeof api?.isManagedOwnershipRequired !== 'function') return status;
         try { managed = api.isManagedOwnershipRequired() === true; }
