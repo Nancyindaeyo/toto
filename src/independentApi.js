@@ -1,5 +1,5 @@
-import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.54-content1';
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, getRabbitMirrorExternalPlacementParent, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.54-content1';
+import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.55-extfloor1';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, getRabbitMirrorExternalPlacementParent, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.55-extfloor1';
 import { recordTtSurface, ttSurfaceNow } from './ttSurfaceDiagnostics.js?rmv=1.5.51-narrow1';
 import { WORLD_INFO_BOOK_NAME_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, updateSettings } from './settings.js?rmv=1.5.51-narrow1';
 import { assertRabbitMirrorIndependentResponseBytes, assertRabbitMirrorIndependentResponseText, authorizeRabbitMirrorIndependentServiceRequest, fetchRabbitMirrorIndependentCompletion } from './independentSecurityGuard.js?rmv=1.5.51-narrow1';
@@ -7,7 +7,7 @@ import { parseIndependentAdvancedOptions, buildIndependentAdvancedCarrier, apply
 import { buildRabbitMirrorPromptDetails, planRabbitMirrorPromptDetails, renderRabbitMirrorPromptPlan, prepareSelectedMemoryForPrompt, memoryRequestSettingsKey, assertMemoryRequestSettings } from './promptBuilder.js?rmv=1.5.51-narrow1';
 import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from './externalWorldBook/store.js?rmv=1.5.51-narrow1';
 import { describeExternalWorldBookPreflightFailure, describeBatchPlanFailure } from './externalWorldBook/errors.js?rmv=1.5.51-narrow1';
-import { cleanRabbitMirrorOutput, compactTotoBlock, refreshRabbitMirrorToolsInScope, repairMalformedRabbitMirrorMarkup, repairRabbitMirrorScopedClassAliasesInScope, isolateRabbitMirrorInteractionIds, rearmRabbitMirrorSerializedInteractionRoot, armRabbitMirrorFirstUseInteraction, repairRabbitMirrorPersistedExclusiveGridSpan, clearRabbitMirrorHorizontalClipArtifacts, sanitizeRabbitMirrorUntrustedTemplate, validateRabbitMirrorRecoveredStyleAssignments } from './outputSanitizer.js?rmv=1.5.54-content1';
+import { cleanRabbitMirrorOutput, compactTotoBlock, refreshRabbitMirrorToolsInScope, repairMalformedRabbitMirrorMarkup, repairRabbitMirrorScopedClassAliasesInScope, isolateRabbitMirrorInteractionIds, rearmRabbitMirrorSerializedInteractionRoot, armRabbitMirrorFirstUseInteraction, repairRabbitMirrorPersistedExclusiveGridSpan, clearRabbitMirrorHorizontalClipArtifacts, sanitizeRabbitMirrorUntrustedTemplate, validateRabbitMirrorRecoveredStyleAssignments } from './outputSanitizer.js?rmv=1.5.55-extfloor1';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.51-narrow1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from './replacementReceipt.js?rmv=1.5.51-narrow1';
 import { parseMultifaceOutput, recoverableMultifaceFrames, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from './multifaceProtocol.js?rmv=1.5.51-narrow1';
@@ -21,7 +21,7 @@ import { recordRabbitMirrorIndependentPrompt } from './tokenMeter.js?rmv=1.5.51-
 import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.51-narrow1';
 import { rememberIndependentTransportDiagnostic } from './transportDiagnostics.js?rmv=1.5.51-narrow1';
 
-const RUNTIME_VERSION = '1.5.54';
+const RUNTIME_VERSION = '1.5.55';
 const STORE_KEY = 'rabbit_mirror_independent_outputs_v1';
 const INTERACTION_STATE_MIGRATION_KEY = 'rabbit_mirror_independent_interaction_state_migration_securityfix2_v2';
 const API_PROFILE_STORE_KEY = 'rabbit_mirror_independent_api_profiles_v1';
@@ -1143,8 +1143,23 @@ function saveRecordForSlot(store,slot,value,{dropLegacy=true}={}){
  store[slot]=value;
  return store;
 }
+function visibleChatMessageElement(index){
+ const root=document.querySelector('#chat');
+ if(!root) return null;
+ const wanted=String(index);
+ for(const node of root.children||[]){
+  if(node instanceof Element && node.matches?.('.mes') && node.getAttribute?.('mesid')===wanted && node.isConnected) return node;
+ }
+ return null;
+}
 function messageElement(index){
- if(isRabbitMirrorManagedChatSurface()) return getRabbitMirrorMountedMessages().find(context=>context.mesid===Number(index) && !context.signal.aborted)?.element || null;
+ if(isRabbitMirrorManagedChatSurface()){
+  const leased=getRabbitMirrorMountedMessages().find(context=>context.mesid===Number(index) && !context.signal.aborted)?.element;
+  if(leased?.isConnected) return leased;
+  // Late-projection has no host leases for a just-committed tail. 轻壳外置 still
+  // attaches to the visible floor, not a #chat sibling.
+  return visibleChatMessageElement(index);
+ }
  return document.querySelector(`#chat .mes[mesid="${index}"], #chat [mesid="${index}"].mes, #chat [mesid="${index}"]`);
 }
 function messageBody(el){ return el?.querySelector?.('.mes_text') || el; }
@@ -10559,6 +10574,20 @@ function installManagedIndependentMessages(){
  const install=(context,wholeMessage=false)=>{
   if(context.signal.aborted || !context.element?.isConnected || !currentRuntime()) return;
   if(runtimeMode()!=='off') syncMessageBatch([context.mesid],true);
+  if(runtimeMode()==='independent'){
+   const ctx=getContext();
+   const id=context.mesid;
+   ensureGenerationPlaceholderForIndex(id,hostGenerationLooksActive());
+   if(!wholeMessage){
+    if(recoverDeferredAutomaticHostCompletion(ctx,id,'visible-floor-content-commit')) return;
+    if(!suppressesAutomaticGeneration(ctx,id)){
+     const live=currentGenerationIdentity(id);
+     if(live && String(live.msg?.mes||'').trim() && !hasGenerationWorkFor(id,live.slot,live.sourceHash)){
+      scheduleMessageGeneration(id,200,true);
+     }
+    }
+   }
+  }
   if(!wholeMessage) return;
   return ()=>{
    queuedIndices.delete(context.mesid);

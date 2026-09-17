@@ -417,7 +417,13 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         subscribe,
         getMountedMessages() {
             initialize();
-            return [...mounted.values()].map(record => (record.didCommitContent || record.didMount)?.context).filter(Boolean);
+            return [...mounted.values()].map(record => {
+                const content = record.didCommitContent;
+                const mount = record.didMount;
+                const live = (content && !content.context.signal.aborted ? content : null)
+                    || (mount && !mount.context.signal.aborted ? mount : null);
+                return live?.context;
+            }).filter(Boolean);
         },
         externalPlacementParent(message) {
             initialize();
