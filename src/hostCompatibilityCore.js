@@ -131,16 +131,31 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         return Number.isInteger(id) ? id : NaN;
     }
 
-    function isAuxiliaryMessageChild(node) {
-        return node instanceof Element && !!node.matches?.(
-            'toto, [data-rabbit-mirror-external-source="true"], .rabbit-mirror-composer-clearance, [data-rabbit-mirror-tool-entry-host], .rabbit-mirror-maintenance-toolbar, [data-rabbit-mirror-tool-entry-host] *',
+    function mutationTargetIsAuxiliary(record) {
+        const target = record.target?.nodeType === 1 ? record.target : record.target?.parentElement;
+        return !!target?.closest?.(
+            'toto, [data-rabbit-mirror-external-source="true"], .rabbit-mirror-composer-clearance, [data-rabbit-mirror-tool-entry-host], .rabbit-mirror-maintenance-toolbar',
         );
+    }
+
+    function isHostMessageContentMutation(records) {
+        return records.some(record => {
+            if (record.type === 'attributes') return record.attributeName === 'mesid';
+            if (record.type !== 'childList' || mutationTargetIsAuxiliary(record)) return false;
+            return [...(record.addedNodes || []), ...(record.removedNodes || [])].some(node => {
+                if (!(node instanceof Element)) return true;
+                return !node.matches?.(
+                    '[data-rabbit-mirror-external-source="true"], .rabbit-mirror-composer-clearance, [data-rabbit-mirror-tool-entry-host], .rabbit-mirror-maintenance-toolbar',
+                );
+            });
+        });
     }
 
     function dropVisibleLease(element) {
         const record = visibleFallback.adopted.get(element);
         if (!record) return;
         visibleFallback.adopted.delete(element);
+        hostClearTimeout(record.commitTimer);
         record.contentObserver?.disconnect?.();
         try { record.mount.abort(); } catch {}
         try { record.content.abort(); } catch {}
@@ -153,20 +168,30 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         dropVisibleLease(element);
         const content = messageContent(element);
         const mount = new AbortController();
-        const contentLease = new AbortController();
         openLease('didMount', { mesid, element, content, signal: mount.signal });
-        openLease('didCommitContent', { mesid, element, content, signal: contentLease.signal });
+        // Host generations rewrite .mes_text, not #chat children. Independent /
+        // follow 外置 shells are placed on the floor (.mes), never serialized into
+        // 正文. Wait for the host body to settle, then emit didCommitContent so
+        // those shells can attach to the same .mes.
         const contentObserver = typeof MutationObserver === 'function'
             ? new MutationObserver(records => {
-                const hostReplacedContent = records.some(record =>
-                    [...(record.addedNodes || []), ...(record.removedNodes || [])]
-                        .some(node => node instanceof Element && !isAuxiliaryMessageChild(node)),
-                );
-                if (hostReplacedContent) queueVisibleContent(element);
+                if (disposed || status.registered) return;
+                const nextId = messageId(element);
+                if (nextId !== mesid) {
+                    adoptVisibleMessage(element);
+                    return;
+                }
+                if (isHostMessageContentMutation(records)) queueVisibleContent(element);
             })
             : null;
-        contentObserver?.observe(element, { childList: true });
-        visibleFallback.adopted.set(element, { mount, content: contentLease, contentObserver });
+        contentObserver?.observe(element, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['mesid'],
+        });
+        visibleFallback.adopted.set(element, { mount, content: null, contentObserver, commitTimer: 0 });
+        queueVisibleContent(element);
     }
 
     function refreshVisibleContent(element) {
@@ -175,7 +200,7 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         const mesid = messageId(element);
         if (!Number.isInteger(mesid)) return;
         const content = messageContent(element);
-        try { record.content.abort(); } catch {}
+        try { record.content?.abort(); } catch {}
         const contentLease = new AbortController();
         openLease('didCommitContent', { mesid, element, content, signal: contentLease.signal });
         record.content = contentLease;
@@ -183,19 +208,15 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
     }
 
     function queueVisibleContent(element) {
-        if (!element) return;
-        visibleFallback.pendingContent.add(element);
-        if (visibleFallback.contentFrame) return;
-        visibleFallback.contentFrame = hostGlobal.requestAnimationFrame?.(() => {
-            visibleFallback.contentFrame = 0;
-            const pending = [...visibleFallback.pendingContent];
-            visibleFallback.pendingContent.clear();
-            for (const node of pending) refreshVisibleContent(node);
-        }) || 0;
-        if (!visibleFallback.contentFrame) {
-            visibleFallback.pendingContent.clear();
+        const record = visibleFallback.adopted.get(element);
+        if (!record || disposed) return;
+        hostClearTimeout(record.commitTimer);
+        // Coalesce streaming token writes. Host replaceChildren on .mes_text
+        // otherwise looks like a new commit on every frame.
+        record.commitTimer = hostTimeout(() => {
+            record.commitTimer = 0;
             refreshVisibleContent(element);
-        }
+        }, 150);
     }
 
     function collectDirectMessages(root, node) {
@@ -398,7 +419,12 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
             initialize();
             return [...mounted.values()].map(record => (record.didCommitContent || record.didMount)?.context).filter(Boolean);
         },
-        externalPlacementParent(message) { initialize(); return managed ? message : null; },
+        externalPlacementParent(message) {
+            initialize();
+            // Managed ChatSurface forbids #chat siblings. 纯外置 still belongs to
+            // this floor: append on .mes, outside .mes_text.
+            return managed ? message : null;
+        },
         applySurface(element, surface) {
             if (!SURFACES.has(surface)) throw new TypeError('Unsupported RabbitMirror host surface');
             if (!hostGlobal?.__TAURITAVERN__?.api?.layout || typeof element?.setAttribute !== 'function') return false;

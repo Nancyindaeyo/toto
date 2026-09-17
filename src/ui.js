@@ -1,24 +1,24 @@
 import { DEFAULT_INDEPENDENT_CONTEXT_EXCLUDED_TAGS, DEFAULT_VISUAL_PROMPT, INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT, RABBIT_MIRROR_BANNED_WORD_MAX_COUNT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, normalizeRabbitMirrorBannedWords, updateSettings, resetSettings } from './settings.js?rmv=1.5.51-narrow1';
 import { startTtSurfaceDiagnostics, stopTtSurfaceDiagnostics, isTtSurfaceDiagnosticsActive, buildTtSurfaceReport, recordTtSurface, registerTtSurfaceCleanup, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.51-narrow1';
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorHostCompatibilityStatus } from './hostCompatibility.js?rmv=1.5.53-iosidle1';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorHostCompatibilityStatus } from './hostCompatibility.js?rmv=1.5.54-content1';
 import { clearLastCombo, getCurrentChatKey } from './storage.js?rmv=1.5.51-narrow1';
 import { normalizeEarlyBodyTags } from './earlyBodyTags.js?rmv=1.5.51-narrow1';
-import { applyRabbitMirrorHostSurface } from './hostCompatibility.js?rmv=1.5.53-iosidle1';
+import { applyRabbitMirrorHostSurface } from './hostCompatibility.js?rmv=1.5.54-content1';
 import { BEHAVIOR_RULE_MAX_CHARS, DEFAULT_BEHAVIOR_RULE_TEXT, resolveBehaviorRuleText } from './behaviorRules.js?rmv=1.5.51-narrow1';
 import { clearRecentIndependentTransportDiagnostics } from './transportDiagnostics.js?rmv=1.5.51-narrow1';
 import { parseIndependentAdvancedOptions } from './advancedRequestOptions.js?rmv=1.5.51-narrow1';
 import { parseRabbitMirrorReplacementLines, formatRabbitMirrorReplacementLines } from './bannedWords.js?rmv=1.5.51-narrow1';
 import { clearRabbitMirrorPrompt } from './injector.js?rmv=1.5.51-narrow1';
 import { clearFeedbackCatExtensionPrompt, getActiveFeedbackForCurrentChat, syncFeedbackCatExtensionPrompt } from './feedbackCat.js?rmv=1.5.51-narrow1';
-import { configureMaintenanceAutoSafeMode, refreshFeedbackCats, refreshMaintenanceRabbits, refreshRecipeButtons } from './outputSanitizer.js?rmv=1.5.53-iosidle1';
+import { configureMaintenanceAutoSafeMode, refreshFeedbackCats, refreshMaintenanceRabbits, refreshRecipeButtons } from './outputSanitizer.js?rmv=1.5.54-content1';
 import { scanMemoryPlugins, testMemoryProvider } from './memoryScanner.js?rmv=1.5.51-narrow1';
 import { getLastRabbitMirrorTokenRecordForSource, TOKEN_METER_EVENT } from './tokenMeter.js?rmv=1.5.51-narrow1';
-import { API_REQUEST_DIAGNOSTIC_EVENT, WORLD_INFO_BOOKS_CHANGED_EVENT, fetchIndependentModels, fetchWorldInfoBooks, getIndependentConnectionProfiles, getIndependentSavedModels, getLastIndependentApiRequestDiagnostic, getLastIndependentModelListDiagnostic, getObservedWorldInfoBooks, importCurrentSillyTavernConnection, refreshRabbitMirrorGenerationMode, scanCurrentChatIndependentContextTags, testIndependentConnection } from './independentApi.js?rmv=1.5.53-iosidle1';
+import { API_REQUEST_DIAGNOSTIC_EVENT, WORLD_INFO_BOOKS_CHANGED_EVENT, fetchIndependentModels, fetchWorldInfoBooks, getIndependentConnectionProfiles, getIndependentSavedModels, getLastIndependentApiRequestDiagnostic, getLastIndependentModelListDiagnostic, getObservedWorldInfoBooks, importCurrentSillyTavernConnection, refreshRabbitMirrorGenerationMode, scanCurrentChatIndependentContextTags, testIndependentConnection } from './independentApi.js?rmv=1.5.54-content1';
 import { configureRabbitMirrorNoSendRegex, inspectRabbitMirrorNoSendRegex, openSillyTavernRegexSettings } from './regexConfigurator.js?rmv=1.5.51-narrow1';
 import { BLACKLIST_CHANGED_EVENT, blacklistEntries, blacklistPoolStats, clearBlacklist, removeBlacklistItem, setBlacklistEnabled, favoriteEntries, removeFavoriteItem, setFavoriteMultiplier, clearFavorites } from './blacklist.js?rmv=1.5.51-narrow1';
 
 const SETTINGS_UI_VERSION = '1.10-parameter-exclusion';
-const RUNTIME_VERSION = '1.5.53';
+const RUNTIME_VERSION = '1.5.54';
 
 function isCurrentRuntime() {
     return globalThis.__rabbitMirrorRuntimeVersion === RUNTIME_VERSION;
@@ -668,7 +668,7 @@ function bindTtDiagnosticTap(button, activate, isAlive) {
 
 function ttDiagnosticHostNote(state) {
     if (state?.managed === true && state?.registered === true) return 'ChatSurface 已托管。';
-    if (state?.projectionFallback === true) return 'TT 首次投影已关闭注册窗口；兔子镜改为跟随当前可见楼层。iOS 不再等待 requestIdleCallback。滚动后新进入画面的楼层会再挂载。';
+    if (state?.projectionFallback === true) return 'TT 首次投影已关闭注册窗口；兔子镜跟随当前可见楼层，并在正文写入 .mes_text 后再注入。滚动后新进入画面的楼层会再挂载。';
     if (state?.registrationFailure === 'late-projection') return '兔子镜尝试注册时 TT 的首次聊天投影已开始，已错过注册窗口；反复点击设置不能补注册，具体加载时序请查看 TT 诊断。';
     if (state?.registrationFailure === 'duplicate-participant') return 'TT 检测到重复的兔子镜注册；请仅启用一份正式版或测试版兔子镜后重启。';
     if (state?.registrationFailure === 'host-rejected') return 'TT 拒绝了 ChatSurface 注册，具体原因未公开；不能据此认定已接入或已修复。';

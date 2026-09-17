@@ -1,10 +1,10 @@
 {
   "display_name": "兔子镜小剧场",
   "loading_order": 100,
-  "js": "index.js?rmv=1.5.53-iosidle1",
-  "css": "style.css?rmv=1.5.53",
+  "js": "index.js?rmv=1.5.54-content1",
+  "css": "style.css?rmv=1.5.54",
   "author": "Toto",
-  "version": "1.5.53",
+  "version": "1.5.54",
   "homePage": "https://github.com/Zaiyebuzuoyouqingdetiangou/toto",
   "auto_update": true,
   "generate_interceptor": "rabbitMirrorGenerateInterceptor",
@@ -13,5 +13,5 @@
     "disable": "onDisable",
     "clean": "onClean"
   },
-  "description": "兔子镜小剧场：开着 TT DOM 虚化时，错过 ChatSurface 注册窗口仍跟随当前可见楼层工作；iOS 不再等待永不空闲的 requestIdleCallback。"
+  "description": "兔子镜小剧场：开着 TT DOM 虚化时跟随可见楼层，并在新生成正文写入 .mes_text 后再提交注入。"
 }

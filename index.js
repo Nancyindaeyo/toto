@@ -3,7 +3,7 @@ import { clearLastCombo } from './src/storage.js?rmv=1.5.51-narrow1';
 import { clearAllFeedbackCatState, destroyFeedbackCatPromptSync, initFeedbackCatPromptSync } from './src/feedbackCat.js?rmv=1.5.51-narrow1';
 import { getSettings, updateSettings } from './src/settings.js?rmv=1.5.51-narrow1';
 import { initRabbitMirrorIndependentSecurityGuard, destroyRabbitMirrorIndependentSecurityGuard } from './src/independentSecurityGuard.js?rmv=1.5.51-narrow1';
-import { initRabbitMirrorHostCompatibility, isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface, getRabbitMirrorEarlyBootstrap, getRabbitMirrorHostCompatibilityStatus } from './src/hostCompatibility.js?rmv=1.5.53-iosidle1';
+import { initRabbitMirrorHostCompatibility, isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface, getRabbitMirrorEarlyBootstrap, getRabbitMirrorHostCompatibilityStatus } from './src/hostCompatibility.js?rmv=1.5.54-content1';
 
 // TT requires ownership registration before its first projection, not after the
 // deferred DOM runtime loads. This bridge has no network, timers or heavy imports.
@@ -12,8 +12,8 @@ initRabbitMirrorHostCompatibility();
 // SecurityFix2 leaves only the prompt interceptor and request guard in the parser-critical
 // graph. The 1.8 MiB UI/sanitizer/independent runtime graph is imported after the host has
 // received a paint/idle opportunity, or immediately after explicit RabbitMirror intent.
-const GOLDEN_MERGE_VERSION = '1.5.53';
-const RABBIT_MIRROR_RUNTIME_VERSION = '1.5.53';
+const GOLDEN_MERGE_VERSION = '1.5.54';
+const RABBIT_MIRROR_RUNTIME_VERSION = '1.5.54';
 const earlyBootstrap = getRabbitMirrorEarlyBootstrap();
 let runtimeCancelled = earlyBootstrap?.cancelled === true || (!!globalThis.__rabbitMirrorTtBootstrap && !earlyBootstrap);
 let runtimeClaimed = !runtimeCancelled;
@@ -76,12 +76,12 @@ async function ensureDeferredCoreRuntime(reason = 'scheduled-idle') {
     if (deferredRuntimeModules) return deferredRuntimeModules;
     if (deferredRuntimePromise) return deferredRuntimePromise;
     deferredRuntimePromise = Promise.all([
-        import('./src/outputSanitizer.js?rmv=1.5.53-iosidle1'),
+        import('./src/outputSanitizer.js?rmv=1.5.54-content1'),
         import('./src/visualScanner.js?rmv=1.5.51-narrow1'),
-        import('./src/independentApi.js?rmv=1.5.53-iosidle1'),
-        import('./src/touchTheater.js?rmv=1.5.53-iosidle1'),
-        import('./src/ui.js?rmv=1.5.53-iosidle1'),
-        import('./src/composerClearance.js?rmv=1.5.53-iosidle1'),
+        import('./src/independentApi.js?rmv=1.5.54-content1'),
+        import('./src/touchTheater.js?rmv=1.5.54-content1'),
+        import('./src/ui.js?rmv=1.5.54-content1'),
+        import('./src/composerClearance.js?rmv=1.5.54-content1'),
     ]).then(async ([output, visual, independent, touch, ui, clearance]) => {
         if (!runtimeIsActive()) return null;
         deferredRuntimeModules = { output, visual, independent, touch, ui, clearance };
