@@ -1,6 +1,7 @@
 // Split from outputSanitizer.js — diagnostics.
 
 import { cloneRabbitMirrorFilteredNode } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
+import { collectBoundedElementDescendants } from '../presentationQuality.js?rmv=1.5.53-cn-boundary1';
 import { collectRevealedClipHosts, shouldRelaxRevealedClipPanel, REVEALED_CLIP_RESCUE_ATTR } from '../revealedClipRepair.js?rmv=1.5.58-fork1';
 import { auditVisibleLanguageBalanceText } from '../feedbackCat.js?rmv=1.5.53-cn-boundary1';
 import {
@@ -21,7 +22,7 @@ import {
     isInsideChatMessage,
     isMaintenanceRabbitEnabled,
     isRabbitMirrorDetails,
-} from './runtime.js?rmv=1.5.74';
+} from './runtime.js?rmv=1.6';
 import {
     CHANGE_PSEUDO_RESCUE_ATTR,
     CHANNEL_DIAL_CYCLE_COUNT_ATTR,
@@ -54,7 +55,7 @@ import {
     WEBKIT_3D_FLIP_RESCUE_ATTR,
     passportDocumentRescueStates,
     unlabeledCheckedHostRescueStates,
-} from './checkedStateRescue.js?rmv=1.5.74';
+} from './checkedStateRescue.js?rmv=1.6';
 import {
     RENDERED_ADJACENT_HIDDEN_GROUP_RESCUE_ATTR,
     RENDERED_BUTTON_ADJACENT_HIDDEN_ITEM_ATTR,
@@ -81,7 +82,7 @@ import {
     renderedListDetailRescueStates,
     renderedMaskRevealRescueStates,
     renderedStateLayerRescueStates,
-} from './renderedStateRescue.js?rmv=1.5.74';
+} from './renderedStateRescue.js?rmv=1.6';
 import {
     RAW_RADIO_RESET_LAST_ATTR,
     RAW_RADIO_RESET_ROOT_ATTR,
@@ -92,7 +93,7 @@ import {
     getRabbitMirrorSummaryText,
     getRawAssistantMessageForRenderedRoot,
     rawSelfMutationRescueStates,
-} from './scriptedInteractionRescue.js?rmv=1.5.74';
+} from './scriptedInteractionRescue.js?rmv=1.6';
 import {
     REVERSIBLE_RADIO_LAST_ATTR,
     REVERSIBLE_RADIO_ROOT_ATTR,
@@ -103,13 +104,13 @@ import {
     findNestedDetailsPopupClippingCandidates,
     formatWebKit3DFlipEvidence,
     repairNestedDetailsPopupClipping,
-} from './fallbackRescue.js?rmv=1.5.74';
-import { RADIO_GROUP_RESCUE_ATTR, RADIO_GROUP_ROOT_ATTR } from './idsAndRearm.js?rmv=1.5.74';
+} from './fallbackRescue.js?rmv=1.6';
+import { RADIO_GROUP_RESCUE_ATTR, RADIO_GROUP_ROOT_ATTR } from './idsAndRearm.js?rmv=1.6';
 import {
     findFillInChoiceCandidates,
     findStaticChoiceSelectionCandidates,
     findStructuredStaticDisclosureCandidates,
-} from './choiceRescue.js?rmv=1.5.74';
+} from './choiceRescue.js?rmv=1.6';
 import {
     CODE_SHELL_SELECTOR,
     MAINTENANCE_QUARANTINED_SCRIPT_ATTR,
@@ -127,7 +128,7 @@ import {
     needsSanitize,
     normalizeMaintenanceSummaryText,
     parseTotoFragment,
-} from './maintenanceInspect.js?rmv=1.5.74';
+} from './maintenanceInspect.js?rmv=1.6';
 import {
     RABBIT_MIRROR_MAX_TEMPLATE_SOURCE_CHARS,
     RABBIT_MIRROR_SANITIZER_IMPORT_STRIPPED_ATTR,
@@ -140,7 +141,7 @@ import {
     sanitizeRabbitMirrorUntrustedTemplate,
     stripCssComments,
     validateRabbitMirrorTemplateStructuralBudget,
-} from './markup.js?rmv=1.5.74';
+} from './markup.js?rmv=1.6';
 import {
     HCLIP_REPORT_ATTR,
     VIEWPORT_LAYOUT_COUNT_ATTR,
@@ -148,14 +149,14 @@ import {
     inspectMaintenanceMobileLayout,
     inspectMaintenanceViewportLayout,
     maintenanceMobileLayoutIsPassportManaged,
-} from './layoutRescue.js?rmv=1.5.74';
-import { normalizeRabbitMirrorToolButton, rabbitMirrorTextPresentation } from './toolsChrome.js?rmv=1.5.74';
+} from './layoutRescue.js?rmv=1.6';
+import { normalizeRabbitMirrorToolButton, rabbitMirrorTextPresentation } from './toolsChrome.js?rmv=1.6';
 import {
     getMessageIndexFromMirrorNode,
     hostScriptModule,
     messageUsesDistinctDisplaySource,
     outputHostGenerationLooksActive,
-} from './lifecycle.js?rmv=1.5.74';
+} from './lifecycle.js?rmv=1.6';
 
 export const INTERACTION_DIAGNOSTIC_PANEL_ATTR = 'data-rabbit-mirror-interaction-diagnostic';
 
@@ -900,6 +901,21 @@ function maintenanceCssPixelValue(value) {
 }
 
 
+export function maintenanceContainerHasPositionedStackedDescendants(ancestor) {
+    // 容器内存在 absolute/fixed 定位后代时，它的固定高度与 overflow 裁切通常是在
+    // 收纳作者有意的叠放层（tab 叠页、事件层、3D 舞台）；把这类外壳当作“文字裁切
+    // 祖先”改开高度与滚动方式，会把叠层压回文档流造成错位/重叠。宁可跳过，也不修开。
+    if (!ancestor?.firstElementChild) return false;
+    const traversal = collectBoundedElementDescendants(ancestor, 160);
+    if (traversal.exceeded) return false;
+    for (const descendant of traversal.elements) {
+        const position = String(maintenanceSafeComputedStyle(descendant)?.position || '').trim().toLowerCase();
+        if (position === 'absolute' || position === 'fixed') return true;
+    }
+    return false;
+}
+
+
 function maintenanceSafeTextClippingAncestorEvidence(element, root, textRects) {
     if (!element || !root || !Array.isArray(textRects) || !textRects.length) return null;
     let ancestor = element.parentElement;
@@ -932,6 +948,12 @@ function maintenanceSafeTextClippingAncestorEvidence(element, root, textRects) {
         const horizontal = clipsX && textRects.some(textRect => textRect.left < rect.left - 1 || textRect.right > rect.right + 1);
         const vertical = clipsY && textRects.some(textRect => textRect.top < rect.top - 1 || textRect.bottom > rect.bottom + 1);
         if ((horizontal || vertical) && !(horizontal && !vertical && maintenanceHasIntentionalMarquee(ancestor))) {
+            // 叠放外壳（含 absolute/fixed 后代的容器）的裁切与固定高度是作者有意为之。
+            if (maintenanceContainerHasPositionedStackedDescendants(ancestor)) {
+                ancestor = ancestor.parentElement;
+                depth += 1;
+                continue;
+            }
             return { element: ancestor, horizontal, vertical, depth: depth + 1 };
         }
         ancestor = ancestor.parentElement;

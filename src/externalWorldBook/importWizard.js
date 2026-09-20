@@ -29,6 +29,7 @@ import {
     getExternalPoolHydrationStatus,
     rebuildExternalPoolMetadata,
 } from './store.js?rmv=1.5.53-text1';
+import { applyAppearanceTheme } from '../settingsAppearance.js?rmv=1.6';
 
 const MODAL_ID = 'rh_external_worldbook_import_modal';
 const PAGE_SIZE = 50;
@@ -106,7 +107,7 @@ function renderBookList() {
         const row = el('button', {
             className: 'menu_button',
             type: 'button',
-            style: { width: '100%', textAlign: 'left', padding: '8px 9px', margin: '3px 0', minHeight: '42px' },
+            style: { width: '100%', textAlign: 'left', padding: '8px 9px', margin: '3px 0', minHeight: '44px' },
         });
         row.append(el('div', { text: item.displayName, style: { fontWeight: '700', overflowWrap: 'anywhere' } }));
         if (item.fileId !== item.displayName) row.append(el('div', { text: item.fileId, style: { opacity: '.55', fontSize: '10px', overflowWrap: 'anywhere' } }));
@@ -224,8 +225,8 @@ function renderEntries() {
     }
 
     state.pager.replaceChildren();
-    const prev = button('上一页', () => { state.page -= 1; renderEntries(); }, { minHeight: '32px' });
-    const next = button('下一页', () => { state.page += 1; renderEntries(); }, { minHeight: '32px' });
+    const prev = button('上一页', () => { state.page -= 1; renderEntries(); }, { minHeight: '44px' });
+    const next = button('下一页', () => { state.page += 1; renderEntries(); }, { minHeight: '44px' });
     prev.disabled = state.page <= 0;
     next.disabled = state.page >= pageCount - 1;
     state.pager.append(prev, el('span', { text: `第 ${state.page + 1} / ${pageCount} 页`, style: { opacity: '.68', fontSize: '11px', alignSelf: 'center' } }), next);
@@ -291,7 +292,7 @@ async function loadLocalFiles(files) {
         const row = button(`${book.sourceName}（${book.entryCount} 条）`, () => {
             showNormalizedBook(book);
             setStatus(`已读取本地世界书「${book.sourceName}」。`, 'success');
-        }, { width: '100%', textAlign: 'left', minHeight: '40px', margin: '3px 0' });
+        }, { width: '100%', textAlign: 'left', minHeight: '44px', margin: '3px 0' });
         state.localBookList.append(row);
     }
     for (const item of backups) {
@@ -377,8 +378,8 @@ function renderClassification() {
     }
 
     state.classificationPager.replaceChildren();
-    const prev = button('上一页', () => { state.classificationPage -= 1; renderClassification(); }, { minHeight: '32px' });
-    const next = button('下一页', () => { state.classificationPage += 1; renderClassification(); }, { minHeight: '32px' });
+    const prev = button('上一页', () => { state.classificationPage -= 1; renderClassification(); }, { minHeight: '44px' });
+    const next = button('下一页', () => { state.classificationPage += 1; renderClassification(); }, { minHeight: '44px' });
     prev.disabled = state.classificationPage <= 0;
     next.disabled = state.classificationPage >= pageCount - 1;
     state.classificationPager.append(prev, el('span', { text: `第 ${state.classificationPage + 1} / ${pageCount} 页`, style: { opacity: '.68', fontSize: '11px', alignSelf: 'center' } }), next);
@@ -461,7 +462,7 @@ async function renderSavedLibraries() {
                     setStatus(`已${library.enabled ? '停用' : '启用'}「${library.displayName}」。自动档参与外部抽取需打开“外部母本参与抽签”；指定文本面会优先使用已启用的文本类。`);
                 } catch (error) { setStatus(String(error?.message || error), 'error'); }
                 finally { control.disabled = false; }
-            }, { minHeight: '34px' }),
+            }, { minHeight: '44px' }),
             button('删除本地库', async () => {
                 if (typeof globalThis.confirm === 'function' && !globalThis.confirm(`删除兔子镜本地保存的「${library.displayName}」？`)) return;
                 try {
@@ -475,7 +476,7 @@ async function renderSavedLibraries() {
                     await renderSavedLibraries();
                     setStatus(`已删除兔子镜本地保存的「${library.displayName}」。`);
                 } catch (error) { setStatus(String(error?.message || error), 'error'); }
-            }, { minHeight: '34px' }),
+            }, { minHeight: '44px' }),
         );
         if (needsRebuild.has(library.libraryId)) {
             const rebuild = button('重建抽签索引', async () => {
@@ -758,8 +759,8 @@ function createModal(initialView = 'plain', importKind = '') {
  width: var(--rh-external-control-width,100%) !important; min-width: 0 !important; max-width: 100% !important;
  height: auto !important; min-height: 44px !important; font: inherit; font-size: 14px !important;
  line-height: 1.5 !important; letter-spacing: normal !important; writing-mode: horizontal-tb !important;
- color: inherit; background: var(--SmartThemeBlurTintColor,#202226); border: 1px solid currentColor;
- border-radius: 8px; padding: 8px; margin: 0; opacity: 1; text-shadow: none;
+ color: inherit; background: var(--SmartThemeBlurTintColor,#fff); border: 1px solid var(--SmartThemeBorderColor,#b8c5d6);
+ border-radius: 12px; padding: 8px; margin: 0; opacity: 1; text-shadow: none;
 }
 #${MODAL_ID} .rh-external-button { display: block !important; white-space: normal !important; word-break: normal !important; overflow-wrap: break-word !important; cursor: pointer; touch-action: manipulation; }
 #${MODAL_ID} .rh-external-button:disabled, #${MODAL_ID} .rh-external-input:disabled { opacity: .55; cursor: default; }
@@ -767,14 +768,15 @@ function createModal(initialView = 'plain', importKind = '') {
 #${MODAL_ID} .rh-external-button:active:not(:disabled) { filter: brightness(.92); }
 #${MODAL_ID} .rh-external-button[aria-pressed="true"] { border-width: 2px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 #${MODAL_ID} #rh_external_local_file { display: none !important; }
-#${MODAL_ID} #rh_external_choose_file { min-height: 48px !important; border-width: 2px; font-weight: 700; }
+#${MODAL_ID} #rh_external_choose_file { min-height: 44px !important; border-width: 2px; font-weight: 700; }
 @media (pointer: coarse) { #${MODAL_ID} .rh-external-input { font-size: 16px !important; } }
 ` }));
-    const card = el('div', { className: 'rh-external-card', style: { width: 'min(820px,100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--SmartThemeBlurTintColor,#202226)', color: 'var(--SmartThemeBodyColor,#ddd)', border: '1px solid color-mix(in srgb,currentColor 18%,transparent)', borderRadius: '18px', boxShadow: '0 22px 70px rgba(0,0,0,.42)' } });
+    applyAppearanceTheme(overlay);
+    const card = el('div', { className: 'rh-external-card', style: { width: 'min(820px,100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--SmartThemeBlurTintColor,#fff)', color: 'var(--SmartThemeBodyColor,#34495d)', border: '1px solid var(--SmartThemeBorderColor,#cfdae5)', borderRadius: '18px', boxShadow: '0 22px 70px rgba(0,0,0,.42)' } });
     const header = el('div', { className: 'rh-external-header', style: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 44px', gap: '8px', alignItems: 'center', padding: '11px 12px', borderBottom: '1px solid color-mix(in srgb,currentColor 12%,transparent)' } });
     const title = el('div');
     title.append(el('div', { text: '母本库：导入与备份', style: { fontWeight: '700', fontSize: '16px' } }));
-    title.append(el('div', { text: '文字想法、TXT / MD / JSON 都能导入；换设备可一次搬走整库。', style: { fontSize: '12px', lineHeight: '1.5', marginTop: '2px' } }));
+    title.append(el('div', { text: '导入四步：选择类别 → 选择来源 → 读取并确认 → 保存后启用。备份与管理在下方单独区域。', style: { fontSize: '12px', lineHeight: '1.5', marginTop: '2px' } }));
     let disposeViewport = () => {};
     const dismiss = (restoreFocus = true) => {
         clearTimeout(debounceId);
@@ -794,7 +796,10 @@ function createModal(initialView = 'plain', importKind = '') {
     const scroll = el('div', { className: 'rh-external-scroll', style: { padding: '12px', minHeight: '0', minWidth: '0', overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' } });
     scroll.append(el('p', { className: 'rh-external-import-notice', text: '不会进入兔子镜内置，感谢各位制作小剧场的老师，请征求作者同意后使用。', style: { margin: '0 0 12px', fontSize: '12px', lineHeight: '1.6', overflowWrap: 'anywhere' } }));
     const transferControls = createLibraryTransferControls();
-    const sourceButtons = el('nav', { attrs: { 'aria-label': '母本库操作' }, style: { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '8px' } });
+    // 导入来源与备份/管理分两组：同组按钮共用等高网格行，避免长文案把同排按钮撑成两种高度。
+    const navGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '8px', gridAutoRows: '1fr' };
+    const sourceButtons = el('nav', { attrs: { 'aria-label': '选择来源' }, style: { ...navGridStyle } });
+    const utilityButtons = el('nav', { attrs: { 'aria-label': '备份与管理' }, style: { ...navGridStyle, marginTop: '8px' } });
     const hostPane = el('section', { id: 'rh_external_host_panel', style: { marginTop: '12px' } });
     const filePane = el('section', { id: 'rh_external_file_panel', style: { marginTop: '12px', display: 'none' } });
     const plainPane = el('section', { id: 'rh_external_plain_panel', style: { marginTop: '12px', display: 'none' } });
@@ -818,17 +823,17 @@ function createModal(initialView = 'plain', importKind = '') {
         if (which === 'plain') { try { plainInput.focus({ preventScroll: true }); } catch {} }
         if (announce && which !== 'host') setStatus(which === 'transfer' ? '旧设备导出 → 把文件发到新设备 → 新设备选文件并确认导入。' : which === 'manage' ? '先启用需要的库。自动档使用外部内容需打开“外部母本参与抽签”；指定文本面优先使用已启用的文本类。' : '先读取内容 → 确认分类并保存 → 启用母本库。读取和切换页面不会保存。');
     };
-    for (const [view, label, panelId] of [
-        ['plain', '粘贴文字', plainPane.id],
-        ['file', '导入文件（TXT / MD / JSON）', filePane.id],
-        ['transfer', '换设备：导出／导入整库', transferControls.panel.id],
-        ['manage', '管理母本库', managePane.id],
-        ['host', '从酒馆世界书导入', hostPane.id],
+    for (const [view, label, panelId, group] of [
+        ['plain', '粘贴文字', plainPane.id, 'source'],
+        ['file', '导入文件（TXT / MD / JSON）', filePane.id, 'source'],
+        ['host', '从酒馆世界书导入', hostPane.id, 'source'],
+        ['transfer', '换设备：导出／导入整库', transferControls.panel.id, 'utility'],
+        ['manage', '管理母本库', managePane.id, 'utility'],
     ]) {
         const control = button(label, () => showView(view), { minHeight: '44px' });
         control.setAttribute('aria-controls', panelId);
         navButtons.set(view, control);
-        sourceButtons.append(control);
+        (group === 'source' ? sourceButtons : utilityButtons).append(control);
     }
     const importPurpose = el('select', { id: 'rh_external_import_kind', className: 'text_pole', attrs: { 'aria-label': '导入类别' } });
     for (const [value, label] of [['', '普通母本：按主题／展现形式等分类'], ['text', '文本类：导入的条目全部用于长文本']]) importPurpose.append(el('option', { value, text: label }));
@@ -840,8 +845,10 @@ function createModal(initialView = 'plain', importKind = '') {
         state.classificationPanel.style.display = 'none';
         setStatus(state.importKind === 'text' ? '文本类导入：选择来源并读取，选中的条目会全部归为文本；确认保存后按需启用。' : '普通母本导入：读取后确认主题、展现形式等分类。');
     });
-    scroll.append(el('label', { text: '导入类别', attrs: { for: importPurpose.id } }), importPurpose,
-        el('p', { text: '文本类独立于展现形式，用于生成长文本；可使用 HTML 排版，不要求内部交互。整库迁移保留备份原分类。', style: { fontSize: '12px', lineHeight: '1.5' } }), sourceButtons);
+    scroll.append(el('label', { text: '① 选择类别', attrs: { for: importPurpose.id } }), importPurpose,
+        el('p', { text: '文本类独立于展现形式，用于生成长文本；可使用 HTML 排版，不要求内部交互。整库迁移保留备份原分类。', style: { fontSize: '12px', lineHeight: '1.5' } }),
+        el('div', { text: '② 选择来源', style: { fontSize: '13px', fontWeight: '700', margin: '10px 0 6px' } }), sourceButtons,
+        el('div', { text: '备份与管理（单独使用，不属于导入流程）', style: { fontSize: '13px', fontWeight: '700', margin: '14px 0 6px' } }), utilityButtons);
 
     const bookSearch = el('input', { className: 'text_pole', type: 'search', placeholder: '搜索世界书名称', style: { width: '100%', marginTop: '8px', boxSizing: 'border-box' } });
     const bookList = el('div', { style: { maxHeight: '210px', overflowY: 'auto', marginTop: '6px', padding: '4px 2px', WebkitOverflowScrolling: 'touch' } });
@@ -899,9 +906,9 @@ function createModal(initialView = 'plain', importKind = '') {
     const entryMeta = el('div', { text: '尚未读取世界书。', style: { fontSize: '11px', opacity: '.66', margin: '7px 0' } });
     const selectionActions = el('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '7px', margin: '4px 0 8px' } });
     selectionActions.append(
-        button('全选整本', selectWholeBook, { minHeight: '38px', fontWeight: '700' }),
-        button('只选筛选结果', selectCurrentFilter, { minHeight: '38px' }),
-        button('清空选择', clearSelection, { minHeight: '38px' }),
+        button('全选整本', selectWholeBook, { minHeight: '44px', fontWeight: '700' }),
+        button('只选筛选结果', selectCurrentFilter, { minHeight: '44px' }),
+        button('清空选择', clearSelection, { minHeight: '44px' }),
     );
     const selectionHint = el('div', { text: '读取世界书后默认整本选中；只需要部分内容时可搜索并点击“只选筛选结果”，也可手动取消个别条目。', style: { fontSize: '10px', opacity: '.62', lineHeight: '1.45', marginBottom: '6px' } });
     const entryList = el('div', { style: { minHeight: '120px', maxHeight: '360px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } });
@@ -912,7 +919,7 @@ function createModal(initialView = 'plain', importKind = '') {
 
     const advanceActions = el('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '7px', marginTop: '8px' } });
     advanceActions.append(
-        button('进入分类确认', startClassificationReview, { minHeight: '40px', fontWeight: '700' }),
+        button('进入分类确认', startClassificationReview, { minHeight: '44px', fontWeight: '700' }),
     );
     entrySection.append(divider, entrySearch, fullTextLabel, entryMeta, selectionActions, selectionHint, entryList, pager, advanceActions);
     sourceWorkflow.append(entrySection);
@@ -941,7 +948,7 @@ function createModal(initialView = 'plain', importKind = '') {
     classificationFilter.addEventListener('change', () => { state.classificationPage = 0; renderClassification(); });
     const classificationList = el('div', { style: { maxHeight: '400px', overflowY: 'auto', WebkitOverflowScrolling: 'touch', marginTop: '6px' } });
     const classificationPager = el('div', { style: { display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '8px' } });
-    const saveButton = button('确认分类并保存到本地', saveClassificationReview, { width: '100%', minHeight: '42px', marginTop: '8px', fontWeight: '700' });
+    const saveButton = button('确认分类并保存到本地', saveClassificationReview, { width: '100%', minHeight: '44px', marginTop: '8px', fontWeight: '700' });
     classificationPanel.append(classificationMeta, bulkActions, classificationFilter, classificationList, classificationPager, saveButton);
     sourceWorkflow.append(classificationPanel);
 

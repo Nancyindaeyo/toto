@@ -1,6 +1,6 @@
 // Split from outputSanitizer.js — markup.
 
-import { getSettings } from '../settings.js?rmv=1.5.74';
+import { getSettings } from '../settings.js?rmv=1.6';
 import { applyRabbitMirrorBannedWordsToDom } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import {
     EXTERNAL_REFERENCE_NOTE_ATTR,
@@ -13,7 +13,7 @@ import {
     clearMirrorTitleDisplayArtifacts,
     escapeRegExp,
     hashInteractionSignature,
-} from './runtime.js?rmv=1.5.74';
+} from './runtime.js?rmv=1.6';
 
 const TOTO_BLOCK_RE = /<toto\b[\s\S]*?<\/toto>/gi;
 
@@ -306,7 +306,7 @@ function zeroEdgeDeclarationPresent(css = '', property = '') {
 }
 
 
-export function cssDeclarationBlockContainsUnsafeOverlayGeometry(value = '') {
+export function cssDeclarationBlockContainsUnsafeOverlayGeometry(value = '', { allowContainedAbsoluteStack = false } = {}) {
     const css = decodeCssEscapesForSecurity(value).replace(/\/\*[\s\S]*?\*\//g, '').toLowerCase();
     if (!css.trim()) return false;
     const positionMatch = /\bposition\s*:\s*(fixed|sticky|absolute)\b/.exec(css);
@@ -321,16 +321,21 @@ export function cssDeclarationBlockContainsUnsafeOverlayGeometry(value = '') {
 
     if (position === 'fixed') return fullInset || (viewportWidth && viewportHeight);
     if (position === 'sticky') return viewportWidth && viewportHeight;
+    // 镜面作者在自身内容里建立了定位上下文时，width/height:100% 的 absolute 层
+    // 只是贴住镜内最近定位祖先的叠放面板（事件层、3D 翻页卡、全屏详情页），
+    // 它的包含块在镜面内部。只有“四边全贴 + 超高 z-index”的整张覆盖广告形态
+    // 才继续视为危险；fixed/sticky 永远按上面的旧规则清理。
+    if (allowContainedAbsoluteStack) return fullInset && highZ;
     return (viewportWidth && viewportHeight) || (fullInset && highZ);
 }
 
 
-function cssContainsUnsafeOverlayGeometry(value = '') {
-    return cssDeclarationBodies(value).some(cssDeclarationBlockContainsUnsafeOverlayGeometry);
+function cssContainsUnsafeOverlayGeometry(value = '', options) {
+    return cssDeclarationBodies(value).some(body => cssDeclarationBlockContainsUnsafeOverlayGeometry(body, options));
 }
 
 
-export function sanitizeGeneratedCssDeclarationBlock(value = '') {
+export function sanitizeGeneratedCssDeclarationBlock(value = '', options) {
     const declarations = splitCssDeclarationList(value);
     const kept = [];
     for (const declaration of declarations) {
@@ -342,7 +347,7 @@ export function sanitizeGeneratedCssDeclarationBlock(value = '') {
     }
     let cleaned = kept.join(';');
     if (cleaned && !/;\s*$/.test(cleaned)) cleaned += ';';
-    if (cssDeclarationBlockContainsUnsafeOverlayGeometry(cleaned)) {
+    if (cssDeclarationBlockContainsUnsafeOverlayGeometry(cleaned, options)) {
         cleaned = splitCssDeclarationList(cleaned)
             .filter(declaration => !/^\s*position\s*:\s*(?:fixed|sticky|absolute)\b/i.test(String(declaration || '')))
             .map(declaration => String(declaration || '').trim())
@@ -363,7 +368,7 @@ function stripGeneratedCssImportRules(value = '') {
 }
 
 
-function sanitizeGeneratedStyleSheet(value = '') {
+export function sanitizeGeneratedStyleSheet(value = '', options) {
     const original = String(value || '');
     if (!original.trim()) return original;
     const source = stripGeneratedCssImportRules(original);
@@ -409,14 +414,14 @@ function sanitizeGeneratedStyleSheet(value = '') {
         }
     }
 
-    if (!spans.length) return sanitizeGeneratedCssDeclarationBlock(source);
+    if (!spans.length) return sanitizeGeneratedCssDeclarationBlock(source, options);
     let cleaned = source;
     for (const span of spans.sort((a, b) => b.start - a.start)) {
         const body = cleaned.slice(span.start, span.end);
-        const sanitized = sanitizeGeneratedCssDeclarationBlock(body);
+        const sanitized = sanitizeGeneratedCssDeclarationBlock(body, options);
         cleaned = `${cleaned.slice(0, span.start)}${sanitized}${cleaned.slice(span.end)}`;
     }
-    if (cssContainsUnsafeGeneratedResource(cleaned) || cssContainsUnsafeOverlayGeometry(cleaned)) return '';
+    if (cssContainsUnsafeGeneratedResource(cleaned) || cssContainsUnsafeOverlayGeometry(cleaned, options)) return '';
     return cleaned;
 }
 
@@ -579,6 +584,21 @@ export function validateRabbitMirrorTemplateStructuralBudget(template) {
 }
 
 
+// 判断这一面镜面的生成内容里是否存在作者写入的定位上下文（relative/absolute/
+// fixed/sticky 规则或内联定位）。存在时，width/height:100% 的 absolute 全尺寸层
+// 才有明确的镜内包含块，属于“作者有意叠放”；不存在时维持原有严格清理。
+export function rabbitMirrorTemplateHasAuthoredPositioningContext(template) {
+    const positionedRe = /\bposition\s*:\s*(?:relative|absolute|fixed|sticky)\b/i;
+    for (const style of template.content.querySelectorAll('style')) {
+        if (positionedRe.test(decodeCssEscapesForSecurity(String(style.textContent || '')))) return true;
+    }
+    for (const element of template.content.querySelectorAll('[style]')) {
+        if (positionedRe.test(decodeCssEscapesForSecurity(String(element.getAttribute?.('style') || '')))) return true;
+    }
+    return false;
+}
+
+
 export function sanitizeRabbitMirrorUntrustedTemplate(template) {
     if (!template?.content?.querySelectorAll) return false;
     // Fail closed before any broad selector walk. This prevents model-produced tag,
@@ -592,13 +612,22 @@ export function sanitizeRabbitMirrorUntrustedTemplate(template) {
     template.content.querySelectorAll(`[${EXTERNAL_REFERENCE_NOTE_ATTR}]`).forEach(node => node.remove());
     unwrapGeneratedForms(template);
 
+    // 镜面内容内部的叠放层（事件层、3D 翻页卡、全屏详情面板）靠 width/height:100% 的
+    // absolute 贴住作者自建的定位容器；其包含块是镜内最近的定位祖先。只有同一模板
+    // 确实存在作者写入的定位上下文（非 static 定位规则或内联定位）时，才把这类
+    // absolute 几何视为“作者有意叠放”放行。fixed/sticky 以及“四边全贴 + 超高
+    // z-index”的覆盖广告形态不受此豁免影响，仍按原规则清理。
+    const overlayGeometryOptions = {
+        allowContainedAbsoluteStack: rabbitMirrorTemplateHasAuthoredPositioningContext(template),
+    };
+
     let droppedLocalStyleCount = 0;
     let importStrippedStyleCount = 0;
     for (const style of [...template.content.querySelectorAll('style')]) {
         const css = String(style.textContent || '');
         const cssWithoutImports = stripGeneratedCssImportRules(css);
         if (cssWithoutImports !== css) importStrippedStyleCount += 1;
-        const cleanedCss = sanitizeGeneratedStyleSheet(css);
+        const cleanedCss = sanitizeGeneratedStyleSheet(css, overlayGeometryOptions);
         if (!cleanedCss.trim()) {
             if (cssWithoutImports.trim()) droppedLocalStyleCount += 1;
             style.remove();
@@ -660,7 +689,7 @@ export function sanitizeRabbitMirrorUntrustedTemplate(template) {
                 }
             }
             if (name === 'style') {
-                const cleanedStyle = sanitizeGeneratedCssDeclarationBlock(value);
+                const cleanedStyle = sanitizeGeneratedCssDeclarationBlock(value, overlayGeometryOptions);
                 if (!cleanedStyle.trim()) element.removeAttribute(attribute.name);
                 else if (cleanedStyle !== value) element.setAttribute(attribute.name, cleanedStyle);
                 continue;

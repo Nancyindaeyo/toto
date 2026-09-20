@@ -1,8 +1,8 @@
 // Split from ui.js — TT diagnostic entry.
 
 import { startTtSurfaceDiagnostics, stopTtSurfaceDiagnostics, isTtSurfaceDiagnosticsActive, buildTtSurfaceReport, recordTtSurface, registerTtSurfaceCleanup, nextTtSurfaceClickSeq } from '../ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
-import { getRabbitMirrorHostCompatibilityStatus } from '../hostCompatibility.js?rmv=1.5.74';
-import { RUNTIME_VERSION, isCurrentRuntime } from './runtime.js?rmv=1.5.74';
+import { getRabbitMirrorHostCompatibilityStatus } from '../hostCompatibility.js?rmv=1.6';
+import { RUNTIME_VERSION, isCurrentRuntime } from './runtime.js?rmv=1.6';
 
 let retainedTtDiagnosticReport = '';
 

@@ -2,9 +2,9 @@ import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-vis
 import { extension_settings } from '../../../../extensions.js';
 import { saveSettingsDebounced } from '../../../../../script.js';
 import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
-import { AUTOMATIC_REROLL_DEFAULT, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.5.74';
-import { DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS, normalizeIndependentMaxRequestChars } from './independentRequestBudget.js?rmv=1.5.74';
-import { normalizeMissingShellScanRange } from './independentApi/missingRetryShell.js?rmv=1.5.74';
+import { AUTOMATIC_REROLL_DEFAULT, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.6';
+import { DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS, normalizeIndependentMaxRequestChars } from './independentRequestBudget.js?rmv=1.6';
+import { normalizeMissingShellScanRange } from './independentApi/missingRetryShell.js?rmv=1.6';
 
 export const MODULE_NAME = 'rabbit_mirror_theater';
 

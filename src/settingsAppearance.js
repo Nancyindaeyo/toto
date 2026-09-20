@@ -1,6 +1,6 @@
 // UI palettes from the user-provided Hearttrace source, by Toto.
 // Presentation only: no generation settings, Prompt, content storage, or network.
-import { closeTheaterFavoriteLibrary, closeTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.74';
+import { closeTheaterFavoriteLibrary, closeTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.6';
 export const UI_THEMES = Object.freeze([
   {
     "id": "default",
@@ -97,6 +97,30 @@ export function normalizeAppearance(value) {
                 ? source.custom[key] : UI_THEMES[0].palette[key],
         ])),
     };
+}
+
+const tokenNames = { background: 'bg', surface: 'card', text: 'text', muted: 'muted', accent: 'primary', accentAlt: 'secondary', border: 'border' };
+const hostTokens = { background: 'var(--SmartThemeBlurTintColor, #f5f4fb)', surface: 'var(--SmartThemeBlurTintColor, #ffffff)', text: 'var(--SmartThemeBodyColor, #34495d)', muted: 'var(--SmartThemeBodyColor, #586b7c)', accent: 'var(--SmartThemeQuoteColor, #ce729c)', accentAlt: 'var(--SmartThemeQuoteColor, #58a59e)', border: 'var(--SmartThemeBorderColor, #cfdae5)' };
+const smartThemeAliases = [['--SmartThemeBodyColor', 'text'], ['--SmartThemeBlurTintColor', 'card'], ['--SmartThemeBorderColor', 'border'], ['--SmartThemeQuoteColor', 'primary']];
+
+// Panels mounted outside the settings workbench (for example the world-book import
+// wizard on document.body) cannot inherit the workbench's theme tokens. Apply the
+// exact same --rh-* palette and SmartTheme aliasing to one such root element.
+export function applyAppearanceTheme(target, appearance) {
+    if (!target?.style) return;
+    let state = appearance;
+    if (!state) {
+        try { state = normalizeAppearance(JSON.parse(globalThis.localStorage.getItem(APPEARANCE_STORAGE_KEY) || 'null')); }
+        catch { state = normalizeAppearance(null); }
+    }
+    const preset = UI_THEMES.find(theme => theme.id === state.mode);
+    const palette = state.mode === 'custom' ? state.custom : preset?.palette;
+    target.dataset.rhTheme = state.mode;
+    for (const key of paletteKeys) target.style.setProperty('--rh-' + tokenNames[key], palette?.[key] || hostTokens[key]);
+    for (const [alias, key] of smartThemeAliases) {
+        if (state.mode === 'host') target.style.removeProperty(alias);
+        else target.style.setProperty(alias, `var(--rh-${key})`);
+    }
 }
 
 const iconPaths = {
@@ -284,17 +308,9 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     const appearance=html('div','rh-ui-appearance',`<label for="rh_ui_theme">界面主题</label><select id="rh_ui_theme" class="text_pole"><option value="host">跟随酒馆主题</option>${UI_THEMES.map(t=>`<option value="${t.id}">${t.label}</option>`).join('')}<option value="custom">自定义配色</option></select><p data-rh-theme-label></p><div id="rh_ui_custom" class="rh-ui-custom-grid" hidden>${paletteKeys.map((key,i)=>`<label>${colorLabels[i]}<input type="color" data-rh-color="${key}" aria-label="${colorLabels[i]}"><span data-rh-color-value="${key}"></span></label>`).join('')}</div><div class="rh-ui-save-status" role="status" aria-live="polite"></div>`);body('appearance').append(appearance);
     const themeSelect=get('rh_ui_theme'),status=appearance.querySelector('.rh-ui-save-status');
     const modalIds=['rh_advanced_modal','rh_world_info_prompt_modal','rh_independent_tag_filter_modal'];
-    const tokenNames={background:'bg',surface:'card',text:'text',muted:'muted',accent:'primary',accentAlt:'secondary',border:'border'};
-    const hostTokens={background:'var(--SmartThemeBlurTintColor, #f5f4fb)',surface:'var(--SmartThemeBlurTintColor, #ffffff)',text:'var(--SmartThemeBodyColor, #34495d)',muted:'var(--SmartThemeBodyColor, #586b7c)',accent:'var(--SmartThemeQuoteColor, #ce729c)',accentAlt:'var(--SmartThemeQuoteColor, #58a59e)',border:'var(--SmartThemeBorderColor, #cfdae5)'};
     function applyTheme(save=false){
-        const preset=UI_THEMES.find(t=>t.id===state.mode),palette=state.mode==='custom'?state.custom:preset?.palette;
-        for(const target of [root,...modalIds.map(get).filter(Boolean)]){
-            target.dataset.rhTheme=state.mode;
-            for(const key of paletteKeys)target.style.setProperty('--rh-'+tokenNames[key],palette?.[key]||hostTokens[key]);
-            for(const [alias,key] of [['--SmartThemeBodyColor','text'],['--SmartThemeBlurTintColor','card'],['--SmartThemeBorderColor','border'],['--SmartThemeQuoteColor','primary']]){
-                if(state.mode==='host')target.style.removeProperty(alias);else target.style.setProperty(alias,`var(--rh-${key})`);
-            }
-        }
+        const preset=UI_THEMES.find(t=>t.id===state.mode);
+        for(const target of [root,...modalIds.map(get).filter(Boolean)])applyAppearanceTheme(target,state);
         themeSelect.value=state.mode;get('rh_ui_custom').hidden=state.mode!=='custom';appearance.querySelector('[data-rh-theme-label]').textContent=preset?.label||(state.mode==='host'?'跟随酒馆主题':'自定义配色');
         for(const input of appearance.querySelectorAll('[data-rh-color]')){input.value=state.custom[input.dataset.rhColor];appearance.querySelector(`[data-rh-color-value="${input.dataset.rhColor}"]`).textContent=input.value;}
         if(save){try{globalThis.localStorage.setItem(APPEARANCE_STORAGE_KEY,JSON.stringify(state));status.textContent='外观已保存到此设备。';}catch{status.textContent='当前外观已应用，但此设备未能保存；重新进入后可能恢复原设置。';}}

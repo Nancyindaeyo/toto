@@ -1,7 +1,7 @@
 import { presentationModeFields } from './presentationMode.js?rmv=1.5.53-visualquick1';
 import { getCurrentChatKey, updateLatestVisualSignature } from './storage.js?rmv=1.5.53-visualquick1';
 import { consumeInjectedFeedbackForSuccessfulRabbitMirror } from './feedbackCat.js?rmv=1.5.53-cn-boundary1';
-import { getSettings } from './settings.js?rmv=1.5.74';
+import { getSettings } from './settings.js?rmv=1.6';
 import { applyRabbitMirrorBannedWordsToDom } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
 import {
     commitRabbitMirrorFollowBatch,
@@ -1286,7 +1286,7 @@ function templateSingleFollowRoot(template) {
 
 function loadFollowBatchSanitizer() {
     if (!followBatchSanitizerModulePromise) {
-        followBatchSanitizerModulePromise = import('./outputSanitizer.js?rmv=1.5.74').catch(error => {
+        followBatchSanitizerModulePromise = import('./outputSanitizer.js?rmv=1.6').catch(error => {
             followBatchSanitizerModulePromise = null;
             console.debug('[RabbitMirror] follow multiface sanitizer unavailable:', error);
             return null;

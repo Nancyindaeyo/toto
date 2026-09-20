@@ -8,7 +8,7 @@ import {
     RECIPE_BUTTON_ATTR,
     TOOL_ENTRY_HOST_ATTR,
     isRabbitMirrorDetails,
-} from './runtime.js?rmv=1.5.74';
+} from './runtime.js?rmv=1.6';
 import {
     EXCLUSIVE_STACKED_STATE_PANEL_ATTR,
     MOBILE_INLINE_ANNOTATION_MIRROR_ATTR,
@@ -24,13 +24,13 @@ import {
     parseCheckedRulesFromText,
     repairRabbitMirrorSelectorPanelGridSpan,
     resolveTargetsForCheckedRule,
-} from './checkedStateRescue.js?rmv=1.5.74';
-import { getClassTokens } from './renderedStateRescue.js?rmv=1.5.74';
+} from './checkedStateRescue.js?rmv=1.6';
+import { getClassTokens } from './renderedStateRescue.js?rmv=1.6';
 import {
     ensurePassportDocumentRescueStyle,
     findRenderedPassportDocumentCandidates,
     markRenderedPassportDocumentCandidate,
-} from './scriptedInteractionRescue.js?rmv=1.5.74';
+} from './scriptedInteractionRescue.js?rmv=1.6';
 import {
     FEEDBACK_CAT_MENU_ATTR,
     INDEPENDENT_MOBILE_SPATIAL_CANVAS_ATTR,
@@ -80,6 +80,7 @@ import {
     VISUAL_SCENERY_MOBILE_OVERFLOW_SOURCE_ATTR,
     VISUAL_SCENERY_MOBILE_OVERFLOW_STYLE_ATTR,
     maintenanceDirectTextLength,
+    maintenanceContainerHasPositionedStackedDescendants,
     maintenanceHasIntentionalMarquee,
     maintenanceIsVisibleContentElement,
     maintenanceSafeComputedStyle,
@@ -87,7 +88,7 @@ import {
     mobileLayoutRescueStates,
     mobileMatrixPreserveStates,
     rabbitMirrorFacePositionHints,
-} from './diagnostics.js?rmv=1.5.74';
+} from './diagnostics.js?rmv=1.6';
 
 let mobileLayoutScopeCounter = 0;
 
@@ -1729,6 +1730,9 @@ function findViewportOverflowCandidates(root) {
             || element.hasAttribute?.(MOBILE_LAYOUT_STATE_ACTIVE_ATTR);
         const pointerBlocked = explicitlyActive && hasInteractive && String(style.pointerEvents || '').toLowerCase() === 'none';
         if (!clippedX && !clippedY && !pointerBlocked) continue;
+        // 含 absolute/fixed 叠放后代的容器：scrollHeight 会被叠层撑高，固定高度与
+        // overflow 裁切是作者有意的舞台边界；不能把这类外壳改造成滚动盒。
+        if ((clippedX || clippedY) && maintenanceContainerHasPositionedStackedDescendants(element)) continue;
         found.push({ element, clippedX, clippedY, pointerBlocked, reason: pointerBlocked && !clippedX && !clippedY ? 'pointer' : 'overflow' });
         if (found.length >= 24) break;
     }

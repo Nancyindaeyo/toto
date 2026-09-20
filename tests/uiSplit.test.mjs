@@ -17,10 +17,10 @@ function loadRuntime() {
 
 test('ui runtime loads without settings, independentApi, or the ui barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.76');
+    assert.equal(loaded.RUNTIME_VERSION, '1.6');
     assert.equal(loaded.SETTINGS_UI_VERSION, '1.12-layered-ui3-missingshell2-requestbudget1');
     assert.equal(loaded.escapeHtml('<a "b">'), '&lt;a &quot;b&quot;&gt;');
-    loaded.__rabbitMirrorRuntimeVersion = '1.5.76';
+    loaded.__rabbitMirrorRuntimeVersion = '1.6';
     assert.equal(loaded.isCurrentRuntime(), true);
     loaded.__rabbitMirrorRuntimeVersion = 'other';
     assert.equal(loaded.isCurrentRuntime(), false);
@@ -78,7 +78,7 @@ test('ui.js keeps mount/destroy and no longer embeds the settings dialog HTML', 
     assert.match(source, /const html = buildRabbitMirrorSettingsDialogHtml\(\);/);
     assert.doesNotMatch(source, /id="rh_visual_avoid_prompt"/);
     assert.doesNotMatch(source, /id="rh_tt_diag_start"/);
-    assert.match(source, /from '\.\/ui\/runtime\.js\?rmv=1\.5\.74'/);
+    assert.match(source, /from '\.\/ui\/runtime\.js\?rmv=1\.6'/);
 });
 
 test('index runtime stamp matches ui, independentApi, and sanitizer', () => {
@@ -88,7 +88,7 @@ test('index runtime stamp matches ui, independentApi, and sanitizer', () => {
     const ui = readFileSync(new URL('../src/ui/runtime.js', import.meta.url), 'utf8').match(/export const RUNTIME_VERSION = '([^']+)'/)?.[1];
     const independent = readFileSync(new URL('../src/independentApi/runtime.js', import.meta.url), 'utf8').match(/export const RUNTIME_VERSION = '([^']+)'/)?.[1];
     const sanitizer = readFileSync(new URL('../src/outputSanitizer/runtime.js', import.meta.url), 'utf8').match(/export const RUNTIME_VERSION = '([^']+)'/)?.[1];
-    assert.equal(golden, '1.5.76');
+    assert.equal(golden, '1.6');
     assert.equal(stamped, golden);
     assert.equal(ui, stamped);
     assert.equal(independent, stamped);

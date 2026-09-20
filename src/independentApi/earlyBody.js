@@ -1,9 +1,9 @@
 // Split from independentApi.js — earlyBody.
 
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface } from '../hostCompatibility.js?rmv=1.5.74';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface } from '../hostCompatibility.js?rmv=1.6';
 import { recordTtSurface, ttSurfaceNow } from '../ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
-import { getSettings } from '../settings.js?rmv=1.5.74';
+import { getSettings } from '../settings.js?rmv=1.6';
 import { independentGenerationTiming } from '../independentTiming.js?rmv=1.5.53-timing1';
 import { independentAdvancedOptionsSignature } from '../advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
 import {
@@ -14,7 +14,7 @@ import {
     isMissingShellTargetFloor,
     normalizeMissingShellScanRange,
     shouldRestoreMissingIndependentRetryShell,
-} from './missingRetryShell.js?rmv=1.5.74';
+} from './missingRetryShell.js?rmv=1.6';
 import {
     INDEPENDENT_GENERATION_INTENTS_KEY,
     INDEPENDENT_GENERATION_INTENT_TYPES,
@@ -24,7 +24,7 @@ import {
     currentRuntime,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.74';
+} from './runtime.js?rmv=1.6';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_POLL_INTERVAL_MS,
@@ -38,7 +38,7 @@ import {
     markAutomaticFailureStop,
     operationEpochForBase,
     pending,
-} from './flights.js?rmv=1.5.74';
+} from './flights.js?rmv=1.6';
 import {
     appendHistoryEntry,
     chatPersistenceSlot,
@@ -48,7 +48,7 @@ import {
     synchronizeIndependentChatPersistence,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.74';
+} from './persistence.js?rmv=1.6';
 import {
     activeGlobalWorldInfoCapture,
     assistantMessages,
@@ -97,7 +97,7 @@ import {
     withOwnerLockStoreBatch,
     writeActiveGlobalWorldInfoCapture,
     writeHostModule,
-} from './connection.js?rmv=1.5.74';
+} from './connection.js?rmv=1.6';
 import {
     allExternalHosts,
     externalHosts,
@@ -105,7 +105,7 @@ import {
     removeEmptyFollowExternalAnchors,
     removeEmptyInlineAnchors,
     withExternalHostSyncIndex,
-} from './request.js?rmv=1.5.74';
+} from './request.js?rmv=1.6';
 import {
     beginHostWorkTiming,
     clearExternalHostFreshSourceState,
@@ -138,7 +138,7 @@ import {
     setPlaceholderSummary,
     usableReadyDetails,
     withRestorableHtmlCacheBatch,
-} from './geometry.js?rmv=1.5.74';
+} from './geometry.js?rmv=1.6';
 import {
     INDEPENDENT_INTENT_OWNER,
     abortFlight,
@@ -192,7 +192,7 @@ import {
     serializeExternalFaceDetails,
     stampAutomaticAuthorizationEpoch,
     withHistoricalRestoreLightPass,
-} from './mount.js?rmv=1.5.74';
+} from './mount.js?rmv=1.6';
 import {
     automaticGenerationCutovers,
     hostGenerationHintStartedAt,
@@ -217,7 +217,7 @@ import {
     writeStartupHistoryFallbackRoot,
     writeSyncRunning,
     writeSyncTimer,
-} from './lifecycle.js?rmv=1.5.74';
+} from './lifecycle.js?rmv=1.6';
 
 let earlyBodyParserPromise=null;
 

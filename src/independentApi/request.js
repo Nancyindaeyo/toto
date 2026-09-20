@@ -1,8 +1,8 @@
 // Split from independentApi.js — request.
 
 import { presentationModeFields, hasExplicitTextFace } from '../presentationMode.js?rmv=1.5.53-visualquick1';
-import { getSettings } from '../settings.js?rmv=1.5.74';
-import { configuredIndependentMaxRequestChars } from '../independentRequestBudget.js?rmv=1.5.74';
+import { getSettings } from '../settings.js?rmv=1.6';
+import { configuredIndependentMaxRequestChars } from '../independentRequestBudget.js?rmv=1.6';
 import { independentGenerationTiming } from '../independentTiming.js?rmv=1.5.53-timing1';
 import {
     assertRabbitMirrorIndependentResponseBytes,
@@ -24,9 +24,9 @@ import {
 } from '../promptBuilder.js?rmv=1.5.53-image1';
 import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from '../externalWorldBook/store.js?rmv=1.5.53-text1';
 import { describeExternalWorldBookPreflightFailure } from '../externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
-import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.5.74';
+import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.6';
 import { parseMultifaceOutput, recoverableMultifaceFrames, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.74';
+import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.6';
 import {
     updateLatestVisualSignature,
     parseVisualFamilySkeleton,
@@ -45,8 +45,8 @@ import {
     byteLength,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.74';
-import { operationEpochForBase } from './flights.js?rmv=1.5.74';
+} from './runtime.js?rmv=1.6';
+import { operationEpochForBase } from './flights.js?rmv=1.6';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INDEPENDENT_MAX_APPROX_DEPTH,
@@ -61,7 +61,7 @@ import {
     normalizedConfiguredTemperature,
     readHistoryStore,
     readStore,
-} from './persistence.js?rmv=1.5.74';
+} from './persistence.js?rmv=1.6';
 import {
     API_PROFILE_ORDER,
     chatKey,
@@ -95,7 +95,7 @@ import {
     stageNextApiProfile,
     swipeId,
     validatedIndependentConnectionProfile,
-} from './connection.js?rmv=1.5.74';
+} from './connection.js?rmv=1.6';
 import {
     externalGeometryCycleSequence,
     externalGeometryLifecycleEpoch,
@@ -106,7 +106,7 @@ import {
     writeExternalGeometryCycleSequence,
     writeExternalGeometryLifecycleEpoch,
     writeExternalGeometryLifecycleReason,
-} from './geometry.js?rmv=1.5.74';
+} from './geometry.js?rmv=1.6';
 import {
     INDEPENDENT_REJECTED_PREVIEW_MAX_CHARS,
     INDEPENDENT_REJECTED_PREVIEW_MAX_ENTRIES,
@@ -122,8 +122,8 @@ import {
     writeExternalHostSyncIndex,
     writeIndependentRejectedPreviewChars,
     writeIndependentRejectedPreviewSequence,
-} from './mount.js?rmv=1.5.74';
-import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.5.74';
+} from './mount.js?rmv=1.6';
+import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.6';
 
 const NON_STREAM_PROFILE_BY_STREAM_PROFILE={
  chat_system_user_full:'chat_system_user_full_nostream',

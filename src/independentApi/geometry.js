@@ -2,8 +2,8 @@
 
 import { presentationModeFields } from '../presentationMode.js?rmv=1.5.53-visualquick1';
 import { scheduleRabbitMirrorComposerClearance } from '../composerClearance.js?rmv=1.5.58-fork1';
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorExternalPlacementParent } from '../hostCompatibility.js?rmv=1.5.74';
-import { getSettings } from '../settings.js?rmv=1.5.74';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorExternalPlacementParent } from '../hostCompatibility.js?rmv=1.6';
+import { getSettings } from '../settings.js?rmv=1.6';
 import {
     cleanRabbitMirrorOutput,
     compactTotoBlock,
@@ -17,7 +17,7 @@ import {
     clearRabbitMirrorHorizontalClipArtifacts,
     sanitizeRabbitMirrorUntrustedTemplate,
     validateRabbitMirrorRecoveredStyleAssignments,
-} from '../outputSanitizer.js?rmv=1.5.74';
+} from '../outputSanitizer.js?rmv=1.6';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
@@ -36,8 +36,8 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.74';
-import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.74';
+} from './runtime.js?rmv=1.6';
+import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.6';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INTERACTION_STATE_MIGRATION_KEY,
@@ -46,7 +46,7 @@ import {
     persistedOwnerForMessage,
     readStore,
     writeStore,
-} from './persistence.js?rmv=1.5.74';
+} from './persistence.js?rmv=1.6';
 import {
     chatKey,
     copyIndependentOwnerLineage,
@@ -63,7 +63,7 @@ import {
     savedRecordMatchesObserved,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.74';
+} from './connection.js?rmv=1.6';
 import {
     EXTERNAL_GEOMETRY_SETTLE_STEPS_MS,
     allExternalHosts,
@@ -97,7 +97,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     writeGeometryDataset,
-} from './request.js?rmv=1.5.74';
+} from './request.js?rmv=1.6';
 import {
     activeIndependentFlightForBase,
     automaticCutoverVersionToken,
@@ -120,20 +120,20 @@ import {
     serializeExternalFaceDetails,
     showMultifaceFace,
     stripIndependentTransientLayoutArtifacts,
-} from './mount.js?rmv=1.5.74';
+} from './mount.js?rmv=1.6';
 import {
     automaticHostGenerationRenderMatches,
     hasExistingFollowRabbitMirror,
     queueMessageSync,
     suppressesAutomaticGeneration,
-} from './earlyBody.js?rmv=1.5.74';
+} from './earlyBody.js?rmv=1.6';
 import {
     automaticGenerationCutovers,
     persistedInteractionMigrationHandle,
     persistedInteractionMigrationIdle,
     writePersistedInteractionMigrationHandle,
     writePersistedInteractionMigrationIdle,
-} from './lifecycle.js?rmv=1.5.74';
+} from './lifecycle.js?rmv=1.6';
 
 let externalGeometryFrame = 0;
 
