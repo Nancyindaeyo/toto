@@ -2,7 +2,7 @@ import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-vis
 import { extension_settings } from '../../../../extensions.js';
 import { saveSettingsDebounced } from '../../../../../script.js';
 import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
-import { AUTOMATIC_REROLL_DEFAULT, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.6';
+import { AUTOMATIC_REROLL_DEFAULT, AUTOMATIC_REROLL_IDLE_DEFAULT_SECONDS, normalizeAutomaticRerollIdleSeconds, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.6';
 import { DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS, normalizeIndependentMaxRequestChars } from './independentRequestBudget.js?rmv=1.6';
 import { normalizeMissingShellScanRange } from './independentApi/missingRetryShell.js?rmv=1.6';
 
@@ -130,6 +130,7 @@ export const defaultSettings = Object.freeze({
     independentApiMaxTokens: 30000,
     independentMaxRequestChars: DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS,
     independentAutomaticRerollMax: AUTOMATIC_REROLL_DEFAULT,
+    independentAutomaticRerollIdleSeconds: AUTOMATIC_REROLL_IDLE_DEFAULT_SECONDS,
     independentAdvancedEnabled: false,
     independentReasoningEffort: '',
     independentExtraParams: '',
@@ -241,6 +242,7 @@ export function getSettings() {
     settings.independentApiMaxTokens = Math.max(512, Math.min(32000, Number(settings.independentApiMaxTokens) || 30000));
     settings.independentMaxRequestChars = normalizeIndependentMaxRequestChars(settings.independentMaxRequestChars);
     settings.independentAutomaticRerollMax = normalizeAutomaticRerollMax(settings.independentAutomaticRerollMax);
+    settings.independentAutomaticRerollIdleSeconds = normalizeAutomaticRerollIdleSeconds(settings.independentAutomaticRerollIdleSeconds);
     // Keep this startup path scalar-only. Invalid stored JSON is not silently
     // truncated or repaired; opt-in request preflight validates it before send.
     settings.independentAdvancedEnabled = settings.independentAdvancedEnabled === true;
@@ -391,6 +393,9 @@ export function updateSettings(patch) {
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyChatKey')) safePatch.independentEarlyBodyChatKey = String(safePatch.independentEarlyBodyChatKey || '').slice(0, 2048);
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentAutomaticRerollMax')) {
         safePatch.independentAutomaticRerollMax = normalizeAutomaticRerollMax(safePatch.independentAutomaticRerollMax);
+    }
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'independentAutomaticRerollIdleSeconds')) {
+        safePatch.independentAutomaticRerollIdleSeconds = normalizeAutomaticRerollIdleSeconds(safePatch.independentAutomaticRerollIdleSeconds);
     }
     if (Object.prototype.hasOwnProperty.call(safePatch, 'missingShellScanRange')) {
         safePatch.missingShellScanRange = normalizeMissingShellScanRange(safePatch.missingShellScanRange);

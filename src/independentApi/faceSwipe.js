@@ -7,7 +7,7 @@ import { configuredAutomaticRerollMax } from '../automaticReroll.js?rmv=1.6';
 import { seedSwipeState, appendSuccessfulSwipe, faceSwipeStorageSlot, readFaceSwipe, mutateFaceSwipe } from '../swipeVersions.js?rmv=1.6';
 import { EPHEMERAL_FAILURE_ATTR, EPHEMERAL_FAILURE_BODY_ATTR, RUNTIME_VERSION } from './runtime.js?rmv=1.6';
 import { independentRecordWithinBudget, readStore, writePersistedOwner, writeStore } from './persistence.js?rmv=1.6';
-import { saveRecordForSlot, savedIndependentRecordForOwner } from './connection.js?rmv=1.6';
+import { chatKey, saveRecordForSlot, savedIndependentRecordForOwner, swipeId } from './connection.js?rmv=1.6';
 import { hasMultifaceMarkup, wrapIndependentFace } from './request.js?rmv=1.6';
 import { externalFaceDetails, showIndependentUnsavedOutput } from './mount.js?rmv=1.6';
 
@@ -66,6 +66,41 @@ export function seedIndependentFaceSwipes(slot,html){
  for(const face of faceDetailsListFromHtml(html)){
   mutateFaceSwipe(slot,face.index,state=>seedSwipeState(state,{html:face.detailsHtml,initialHtml:face.detailsHtml,ts:Date.now()}));
  }
+}
+
+function restorableNeighborHtml(html=''){
+ const source=String(html||'').trim();
+ return !!(source && /<details\b/i.test(source) && !/rabbit-mirror-external-placeholder/.test(source));
+}
+
+export function neighborIndependentMirrorHtml(ctx,index,msg){
+ const current=swipeId(msg);
+ const prefix=`${chatKey(ctx)}:${index}:`;
+ const store=readStore()||{};
+ const prefer=current>0?current-1:null;
+ const candidates=[];
+ for(const [slot,record] of Object.entries(store)){
+  if(!String(slot||'').startsWith(prefix)) continue;
+  const swipe=Number(String(slot).slice(prefix.length).split(':')[0]);
+  if(!Number.isInteger(swipe)||swipe===current) continue;
+  const html=String(record?.html||'');
+  if(!html||!restorableNeighborHtml(html)) continue;
+  candidates.push({swipe,html,ts:Number(record.ts||0)});
+ }
+ candidates.sort((left,right)=>{
+  if(prefer!=null&&left.swipe===prefer) return -1;
+  if(prefer!=null&&right.swipe===prefer) return 1;
+  return Number(right.ts||0)-Number(left.ts||0);
+ });
+ return candidates[0]?.html||'';
+}
+
+export function seedNeighborIndependentFaceSwipes(ctx,index,msg,currentSlot){
+ if(!currentSlot||readFaceSwipe(currentSlot,0).versions.length) return false;
+ const html=neighborIndependentMirrorHtml(ctx,index,msg);
+ if(!html) return false;
+ seedIndependentFaceSwipes(currentSlot,html);
+ return true;
 }
 
 export function seedIndependentFaceSwipesFromIdentity(identity){

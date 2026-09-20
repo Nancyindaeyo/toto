@@ -33,7 +33,15 @@ import {
     automaticRerollExhaustedNote,
     shouldAnnounceAutomaticRerollExhausted,
     isAutomaticRerollStall,
+    isQuotaInsufficientFailure,
+    isLocalPreflightFailure,
+    configuredAutomaticRerollIdleMs,
 } from '../automaticReroll.js?rmv=1.6';
+import {
+    mergeMissingIndependentFaces,
+    missingIndexesFromIndependentResult,
+    recipesCoverMissing,
+} from '../missingFaceMerge.js?rmv=1.6';
 import {
     FACE_SWIPE_FULL_MESSAGE,
     canAppendSwipe,
@@ -116,6 +124,7 @@ import {
     independentSwipeSlot,
     scrubSwipeDetailsHtml,
     seedIndependentFaceSwipes,
+    seedNeighborIndependentFaceSwipes,
     showEphemeralFaceFailure,
 } from './faceSwipe.js?rmv=1.6';
 import {
@@ -962,7 +971,7 @@ function ensureExternalUiCore(el,key,html,state='ready',source='independent',sou
    if(source==='independent') scheduleIndependentReadyPostprocess(host,key,html);
    return host;
  }
- if((state==='loading' || state==='error') && currentReady){
+ if((state==='loading' || state==='error') && (currentReady || currentFaces.some(usableReadyDetails))){
    host.dataset.rmState='ready';
    if(state==='loading') showIndependentResayStatus(host,/自动重试/.test(String(html||''))?String(html):'');
    else clearIndependentResayStatus(host);
@@ -1601,6 +1610,7 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
  if(force){
   if(previousReadyRecord?.html) seedIndependentFaceSwipes(baseSlot,previousReadyRecord.html);
  } else cancelFlightsForSlot(slot,sourceHash);
+ if(!readFaceSwipe(baseSlot,0).versions.length) seedNeighborIndependentFaceSwipes(ctx,index,msg,baseSlot);
  const dispatchLease=force ? createManualDispatchLease() : reserveAutomaticDispatchLease(baseSlot,sourceHash);
  if(!dispatchLease){
   if(!force){
@@ -1620,7 +1630,15 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
  }
  const runId=++generationSequence; let stale=false;
  const operationEpoch=Number(dispatchLease?.epoch||operationEpochForBase(baseSlot));
- const flight={task:null,runId,key,slot,index,sourceHash,revision,manual:!!force,manualBodyOwner,cancelled:false,controller:new AbortController(),baseSlot,operationEpoch,flightKey,dispatchLease,timedOut:false,stalled:false,timeoutError:null,deadline:null,loadingHost,previousReadyRecord,uiSettled:false,batchPlan:null,automaticRerollCount:0};
+ const expectedFaceCount=(()=>{
+  if(multifaceResay){
+   const previous=parseMultifaceOutput(String(previousReadyRecord?.html||''));
+   return previous.ok?previous.faces.length:1;
+  }
+  const count=Number(st.rabbitMirrorFaceCount);
+  return Number.isInteger(count)&&count>=1?count:1;
+ })();
+ const flight={task:null,runId,key,slot,index,sourceHash,revision,manual:!!force,manualBodyOwner,cancelled:false,controller:new AbortController(),baseSlot,operationEpoch,flightKey,dispatchLease,timedOut:false,stalled:false,timeoutError:null,deadline:null,loadingHost,previousReadyRecord,uiSettled:false,batchPlan:null,automaticRerollCount:0,expectedFaceCount,retainedHtml:'',missingIndexes:[],faceRecipes:Array.isArray(multifaceResay?.faces)?multifaceResay.faces:[]};
  if(earlyBodyOwner){flight.earlyBodyOwner=earlyBodyOwner;earlyBodyOwner.flight=flight;}
  const currentIdentityForFlight=()=>{
   const live=currentGenerationIdentity(index); const active=pending.get(slot);
@@ -1650,8 +1668,9 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
    else flight.timedOut=true;
    flight.timeoutError=error;
    timeoutReject?.(error);
-  });
-  const apiTask=callIndependentApi(ctx,index,msg,flight.controller.signal,{manualRetry:force&&!manualBodyOwner?.firstGeneration,slot,dispatchLease,multifaceResay:multifaceResay||singlePresentationResay,earlyBodyOwner,manualBodyOwner,isPromptOwnerCurrent:stillCurrent,currentBatchPlan:()=>flight.batchPlan,onProgress:()=>flight.deadline?.progress?.(),onBatchPlan:plan=>{ flight.batchPlan=plan||null; }});
+  },{idleMs:configuredAutomaticRerollIdleMs(getSettings())});
+  const missingRetry=recipesCoverMissing(flight.faceRecipes,flight.missingIndexes)?{indexes:flight.missingIndexes,faces:flight.faceRecipes}:null;
+  const apiTask=callIndependentApi(ctx,index,msg,flight.controller.signal,{manualRetry:force&&!manualBodyOwner?.firstGeneration,slot,dispatchLease,multifaceResay:missingRetry?null:(multifaceResay||singlePresentationResay),missingFaceRetry:missingRetry,earlyBodyOwner,manualBodyOwner,isPromptOwnerCurrent:stillCurrent,currentBatchPlan:()=>flight.batchPlan,onProgress:()=>flight.deadline?.progress?.(),onBatchPlan:plan=>{ flight.batchPlan=plan||null; }});
   return Promise.race([apiTask,timeoutPromise]);
  };
  const settleSuccessfulIndependentResult=async result=>{
@@ -1697,7 +1716,7 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
    let html=String(result?.html||'');
    let replacementVisualHtml='';
    let replacementPreviousRecord=null;
-   if(multifaceResay){
+   if(multifaceResay && !result?.mergedFromMissingRetry){
     const liveEl=messageElement(index);
     const liveHost=liveEl?collapseDuplicateIdentityHosts(liveEl,settledKey,'independent',settledSourceHash):null;
     const liveRecord=mountedIndependentReadyHostMatchesObserved(liveHost,settledCtx,index,settledMsg,settledIdentity,settledKey)
@@ -1749,7 +1768,12 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
      if(prior.versions.length && !readFaceSwipe(swipeSlot,resayFaceIndex).versions.length) writeFaceSwipe(swipeSlot,resayFaceIndex,prior);
     }
     appendIndependentFaceSwipe(swipeSlot,resayFaceIndex,faceHtml);
-   } else seedIndependentFaceSwipes(messageBaseSlotKey(settledCtx,index,settledMsg)||baseSlot,completed.html);
+   } else {
+    const swipeSlot=messageBaseSlotKey(settledCtx,index,settledMsg)||baseSlot;
+    if(readFaceSwipe(swipeSlot,0).versions.length){
+     for(const face of faceDetailsListFromHtml(completed.html)) appendIndependentFaceSwipe(swipeSlot,face.index,face.detailsHtml);
+    } else seedIndependentFaceSwipes(swipeSlot,completed.html);
+   }
    const next=readStore(); saveRecordForSlot(next,settledSlot,completed); writeStore(next);
    setOwnerLockForBase(baseSlot,settledSlot,settledSourceHash);
    writePersistedOwner(settledCtx,index,settledMsg,completed,{overwrite:true});
@@ -1818,7 +1842,7 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
   const failedPosts=Math.max(Number(dispatchLease?.consumeCount?.()||0), Number(flight.automaticRerollCount||0));
   let failureMessage=String(err?.message||err||'generation-failed');
   const rerollMax=independentRerollMax();
-  if(shouldAnnounceAutomaticRerollExhausted({manual:!!force,faceResay:!!(multifaceResay||singlePresentationResay),usableReadyFace:keptReady,failedPosts,max:rerollMax})){
+  if(shouldAnnounceAutomaticRerollExhausted({complete:false,failedPosts,max:rerollMax,cancelled:!!flight.cancelled})){
    failureMessage=`${failureMessage} ${automaticRerollExhaustedNote(rerollMax)}`;
   }
   const terminalDiagnostic=republishIndependentTerminalFailure(failedIdentity.ctx,index,failedIdentity.msg,failedHash,baseSlot,operationEpoch,err,dispatchLease);
@@ -1862,33 +1886,106 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
    }
   }
  };
+ const captureRecipes=(result,err)=>{
+  const faces=result?.requestDiagnostic?.faces||err?.rabbitMirrorRequestDiagnostic?.faces;
+  if(!Array.isArray(faces)||!faces.length) return;
+  if(!flight.faceRecipes?.length){ flight.faceRecipes=faces; return; }
+  if(flight.missingIndexes?.length && faces.length===flight.missingIndexes.length){
+   const next=flight.faceRecipes.slice();
+   flight.missingIndexes.forEach((original,local)=>{ if(faces[local]) next[original]=faces[local]; });
+   flight.faceRecipes=next;
+  }
+ };
+ const independentDiagnostic=(err,result)=>result?.requestDiagnostic||err?.rabbitMirrorRequestDiagnostic||{};
+ const canReroll=(err,result,missing)=>{
+  const diagnostic=independentDiagnostic(err,result);
+  const failedPosts=Math.max(1, Number(dispatchLease?.consumeCount?.()||0));
+  flight.automaticRerollCount=failedPosts;
+  return shouldAutomaticReroll({
+   complete:!missing.length,
+   failedPosts,
+   max:independentRerollMax(),
+   timedOut:!!flight.timedOut,
+   cancelled:!!flight.cancelled,
+   stale:!stillCurrent(),
+   preflight:isLocalPreflightFailure(err,diagnostic),
+   quotaInsufficient:isQuotaInsufficientFailure(err,diagnostic),
+  }) && stillCurrent();
+ };
+ const beginAutomaticReroll=(missing,html,identity,statusHost)=>{
+  flight.missingIndexes=missing;
+  if(html) flight.retainedHtml=html;
+  try{ flight.deadline?.clear?.(); }catch{}
+  try{ flight.controller=new AbortController(); }catch{}
+  flight.stalled=false; flight.timedOut=false; flight.timeoutError=null;
+  const liveEl=statusHost||messageElement(index);
+  if(liveEl && identity){
+   if(html) ensureExternalUi(liveEl,identity.key,html,'ready','independent',identity.sourceHash);
+   const status=automaticRerollStatusText(flight.automaticRerollCount,independentRerollMax(),missing.length);
+   flight.loadingHost=ensureExternalUi(liveEl,identity.key,status,'loading','independent',identity.sourceHash);
+  }
+ };
  const task=(async()=>{
   while(true){
    try{
-    return await settleSuccessfulIndependentResult(await dispatchAttempt());
+    const result=await dispatchAttempt();
+    captureRecipes(result,null);
+    if(result?.skipped) return await settleSuccessfulIndependentResult(result);
+    let merged=result;
+    if(flight.retainedHtml && flight.missingIndexes?.length){
+     merged={...result,...mergeMissingIndependentFaces(flight.retainedHtml,flight.expectedFaceCount,flight.missingIndexes,result)};
+     if(Array.isArray(result?.requestDiagnostic?.faces) && result.requestDiagnostic.faces.length===flight.missingIndexes.length){
+      const oldFaces=Array.isArray(merged.requestDiagnostic?.faces)?merged.requestDiagnostic.faces:flight.faceRecipes;
+      merged.requestDiagnostic={
+       ...(result.requestDiagnostic||{}),
+       faces:oldFaces?.length===flight.expectedFaceCount
+        ? oldFaces.map((face,index)=>flight.missingIndexes.includes(index)?{...face,...result.requestDiagnostic.faces[flight.missingIndexes.indexOf(index)]}:face)
+        : oldFaces,
+       faceCount:flight.expectedFaceCount,
+       partial:!!merged.failedFaces?.length,
+       failedFaces:merged.failedFaces,
+       completedFaces:merged.completedFaces,
+      };
+     }
+    } else if(Array.isArray(result?.failedFaces) && result.failedFaces.length && flight.expectedFaceCount>1){
+     flight.retainedHtml=String(result.html||'');
+    }
+    const missing=missingIndexesFromIndependentResult(merged,flight.expectedFaceCount,flight.missingIndexes||[]);
+    if(missing.length){
+     if(canReroll(null,merged,missing)){
+      beginAutomaticReroll(missing,merged.html,currentIdentityForFlight());
+      continue;
+     }
+     if((merged.completedFaces||0)>0 || /<details\b/i.test(String(merged.html||''))){
+      return await settleSuccessfulIndependentResult(merged);
+     }
+    }
+    return await settleSuccessfulIndependentResult(merged);
    }catch(err){
-    if((flight.timedOut || flight.stalled) && stillCurrent()){
-     err=flight.timeoutError || err;
-    } else if(flight.controller.signal.aborted || !stillCurrent()){
+    if(flight.cancelled || !stillCurrent()){
      stale=true;
      settleCancelledIndependentFlightUi(flight,flight.cancelReason||'stale-owner');
      return;
     }
+    if(flight.timedOut || flight.stalled) err=flight.timeoutError || err;
+    captureRecipes(null,err);
     const failedIdentity=currentIdentityForFlight();
     if(!failedIdentity){ stale=true; settleCancelledIndependentFlightUi(flight,'stale-owner'); return; }
-    const liveEl=messageElement(index);
-    const liveHost=liveEl?collapseDuplicateIdentityHosts(liveEl,failedIdentity.key,'independent',failedIdentity.sourceHash):null;
-    const usableReadyFace=!!readyDetailsFromHost(liveHost);
-    const failedPosts=Math.max(1, Number(dispatchLease?.consumeCount?.()||0));
-    flight.automaticRerollCount=failedPosts;
-    if(shouldAutomaticReroll({manual:!!force,faceResay:!!(multifaceResay||singlePresentationResay),usableReadyFace,failedPosts,max:independentRerollMax(),timedOut:!!flight.timedOut,aborted:false,stale:!stillCurrent()}) && stillCurrent()){
-     try{ flight.deadline?.clear?.(); }catch{}
-     try{ flight.controller=new AbortController(); }catch{}
-     if(liveEl){
-      const status=automaticRerollStatusText(failedPosts,independentRerollMax());
-      flight.loadingHost=ensureExternalUi(liveEl,failedIdentity.key,status,'loading','independent',failedIdentity.sourceHash);
-     }
+    const missing=flight.missingIndexes?.length
+     ? flight.missingIndexes
+     : Array.from({length:flight.expectedFaceCount},(_,index)=>index);
+    if(canReroll(err,null,missing)){
+     beginAutomaticReroll(missing,flight.retainedHtml,failedIdentity);
      continue;
+    }
+    if(flight.retainedHtml && /<details\b/i.test(flight.retainedHtml)){
+     return await settleSuccessfulIndependentResult({
+      html:flight.retainedHtml,
+      requestDiagnostic:independentDiagnostic(err,null),
+      failedFaces:missing.map(faceIndex=>({faceIndex,status:'failed',code:String(err?.code||'incomplete-face')})),
+      completedFaces:Math.max(0,flight.expectedFaceCount-missing.length),
+      mergedFromMissingRetry:true,
+     });
     }
     settleIndependentFailure(err);
     return;

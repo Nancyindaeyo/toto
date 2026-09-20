@@ -1683,7 +1683,13 @@ function bindIndependentPromptBatch(owner,plan=null){
 
 export async function callIndependentApi(ctx,index,msg,signal=null,requestOptions={}){
  const currentSettings=getSettings();
- const st=requestOptions.multifaceResay ? {...currentSettings,rabbitMirrorFaceCount:1} : currentSettings;
+ const missingRetry=requestOptions.missingFaceRetry;
+ const missingIndexes=Array.isArray(missingRetry?.indexes)?missingRetry.indexes.filter(index=>Number.isInteger(index)&&index>=0&&index<=4):[];
+ const resay=missingIndexes.length?null:requestOptions.multifaceResay;
+ const st=missingIndexes.length
+  ? {...currentSettings,rabbitMirrorFaceCount:missingIndexes.length}
+  : resay ? {...currentSettings,rabbitMirrorFaceCount:1}
+  : currentSettings;
  // Preserve exact settings across optional asynchronous worldbook/reference
  // reads. No JSON parsing on the stream hot path, and no draft data in Prompt.
  const advancedSettings=Object.freeze({independentAdvancedEnabled:currentSettings.independentAdvancedEnabled===true,
@@ -1728,13 +1734,16 @@ export async function callIndependentApi(ctx,index,msg,signal=null,requestOption
  const generationContext={
   chat:boundedDirectiveChat,
   batchIdentity:{mesid:index,swipeId:swipeId(msg),sourceHash:messageSourceFingerprint(msg)},
-  ...(requestOptions.multifaceResay?{multifaceResay:requestOptions.multifaceResay}:{}),
+  ...(missingIndexes.length?{missingFaceRetry:{indexes:missingIndexes,faces:missingRetry.faces}}:{}),
+  ...(resay?{multifaceResay:resay}:{}),
  };
  const externalEnabled=(st.externalWorldBookRandomEnabled===true&&String(st.externalWorldBookMixMode||'builtin-only')!=='builtin-only')||hasExplicitTextFace(st);
  const appearanceEnabled=st.appearanceReferenceEnabled===true;
  const memoryWorldBookEnabled=st.memoryScanEnabled===true&&st.memoryWorldBookEnabled===true&&!!String(st.memoryWorldBookId||'').trim();
- const resayFace=requestOptions.multifaceResay?.faces?.[requestOptions.multifaceResay?.faceIndex];
- const externalResay=[...(Array.isArray(resayFace?.themeIds)?resayFace.themeIds:[]),...(Array.isArray(resayFace?.formatIds)?resayFace.formatIds:[]),...(Array.isArray(resayFace?.textIds)?resayFace.textIds:[])].some(id=>typeof id==='string'&&id.startsWith('ext:'));
+ const retryFaces=missingIndexes.length
+  ? missingIndexes.map(index=>missingRetry?.faces?.[index]).filter(Boolean)
+  : [resay?.faces?.[resay?.faceIndex]].filter(Boolean);
+ const externalResay=retryFaces.some(resayFace=>[...(Array.isArray(resayFace?.themeIds)?resayFace.themeIds:[]),...(Array.isArray(resayFace?.formatIds)?resayFace.formatIds:[]),...(Array.isArray(resayFace?.textIds)?resayFace.textIds:[])].some(id=>typeof id==='string'&&id.startsWith('ext:')));
  let details; let promptOwner=null;
  if(externalEnabled||externalResay||appearanceEnabled||memoryWorldBookEnabled||earlyBody){
   promptOwner=captureIndependentPromptOwner(ctx,index,msg,signal,requestOptions,generationScopeKey);

@@ -45,7 +45,8 @@ export const QUICK_START_GROUPS = [
         mirror('copyhtml', '复制本面 HTML', '单独保存这一面的代码和样式；不含诊断，依赖插件脚本的交互不会随之导出。', '该镜面标题 → 维修兔 → 复制本面 HTML（含样式）'),
         mirror('inspect', '只巡检不修改', '检查该镜面的问题，保留当前成品。', '该镜面 → 维修兔 → 只巡逻，不修改'),
         mirror('resetinteraction', '恢复到初始', '丢掉这一版上的维修和交互改动，回到刚生成时的整面 HTML；不会删掉 swipe 格子。', '该镜面 → 维修兔 → 恢复到初始'),
-        setting('reroll', '自动重 roll 次数', '副 API 没有可用鲜兔镜时自动再发几次，默认 2。', '#rh_independent_automatic_reroll'),
+        setting('reroll', '自动重 roll 次数', '副 API 空回、报错、掉格式或缺面时自动再发几次，默认 2，没有上限。', '#rh_independent_automatic_reroll'),
+        setting('reroll-idle', '无进度中止秒数', '连续这么多秒没有新进度就中止本轮再试，默认 90。', '#rh_independent_automatic_reroll_idle'),
         setting('patrol', '自动安全巡检（实验性）', '按需启用自动检查，复杂问题仍需手动处理。', '#rh_maintenance_auto_safe', 'repair'),
     ] },
     { name: '配置与维护', items: [

@@ -1237,8 +1237,14 @@ export function planRabbitMirrorPromptDetails(settings, generationType = 'normal
     const requestedFaceCount = Number.isSafeInteger(settings.rabbitMirrorFaceCount) && settings.rabbitMirrorFaceCount >= 1 && settings.rabbitMirrorFaceCount <= 5
         ? settings.rabbitMirrorFaceCount : 1;
     const resay = generationContext?.multifaceResay || null;
+    const missingRetry = generationContext?.missingFaceRetry || null;
+    const missingIndexes = Array.isArray(missingRetry?.indexes)
+        ? missingRetry.indexes.filter(index => Number.isInteger(index) && index >= 0 && index <= 4)
+        : [];
     let selections;
-    if (resay) {
+    if (missingIndexes.length) {
+        selections = missingIndexes.map(index => pickCombinationForMultifaceResay(settings, { faceIndex: index, faces: missingRetry.faces }));
+    } else if (resay) {
         selections = [pickCombinationForMultifaceResay(settings, resay)];
     } else if (requestedFaceCount > 1) {
         const operation = generationContext?.batchIdentity ? null : generationContext?.batchOperation || {

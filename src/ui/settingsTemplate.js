@@ -106,7 +106,7 @@ export function buildRabbitMirrorSettingsDialogHtml() {
               <label><input name="rh_independent_display" type="radio" value="external_then_inline"> ② 外置后内嵌</label>
             </div>
               <div style="opacity:.66;font-size:11px;line-height:1.45;margin-top:6px;">只决定副 API 成品显示在哪里，不改变提示词、美化规则或模型。</div>
-              <div style="opacity:.72;font-size:11px;line-height:1.5;margin-top:8px;">副 API 本轮若没有可用鲜兔镜，会按「自动重 roll 次数」自动再发（默认 2 次，合计请求 = 1 + 该次数）。0 表示失败后不再自动重发。已出的 ready 镜面不会被失败卡盖掉。</div>
+              <div style="opacity:.72;font-size:11px;line-height:1.5;margin-top:8px;">副 API 空回、报错、掉格式、净化失败或缺面时，会按「自动重 roll 次数」再发（默认 2，合计请求 = 1 + 该次数）。多面只补缺的面。连续没有新进度达到「无进度中止秒数」（默认 90）会中止本轮再试。401 / 429 会重试；额度不足、发送前拦截、点停止、切聊天、正文被换掉不会。正文 swipe 会跟着重新生成，旧镜保留成 2/2。0 表示失败后不再自动重发。</div>
             </div>
             <div style="padding:9px 10px;border:1px solid color-mix(in srgb, currentColor 16%, transparent);border-radius:9px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:7px;">连接与模型</div>
@@ -140,7 +140,8 @@ export function buildRabbitMirrorSettingsDialogHtml() {
             <div class="flex-container" style="gap:8px;flex-wrap:wrap;align-items:center;padding:9px 10px;border:1px solid color-mix(in srgb,currentColor 14%,transparent);border-radius:9px;">
               <label>温度 <input id="rh_independent_temperature" class="text_pole" type="number" min="0" max="2" step="0.1" style="width:82px;"></label>
               <label>整批最大输出 <input id="rh_independent_max_tokens" class="text_pole" type="number" min="512" max="32000" step="256" style="width:110px;"></label>
-              <label>自动重 roll 次数 <input id="rh_independent_automatic_reroll" class="text_pole" type="number" min="0" max="10" step="1" style="width:72px;"></label>
+              <label>自动重 roll 次数 <input id="rh_independent_automatic_reroll" class="text_pole" type="number" min="0" step="1" style="width:72px;"></label>
+              <label>无进度中止秒数 <input id="rh_independent_automatic_reroll_idle" class="text_pole" type="number" min="1" step="1" style="width:72px;"></label>
               <label>完整请求字符预算 <input id="rh_independent_max_request_chars" class="text_pole" type="number" min="8000" step="1000" style="width:120px;"></label>
             </div>
             <p class="rh-independent-generation-params-note" style="opacity:.72;font-size:11px;line-height:1.5;margin:6px 0 0;">规则、执行锁与上下文合计的本地预检上限，默认 50000，可按模型上下文自行调大。超限不会发送网络请求。</p>

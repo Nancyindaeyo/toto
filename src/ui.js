@@ -407,6 +407,7 @@ export function initRabbitMirrorUI() {
     $('#rh_independent_max_tokens').val(settings.independentApiMaxTokens ?? 30000);
     $('#rh_independent_max_request_chars').val(settings.independentMaxRequestChars ?? DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS);
     $('#rh_independent_automatic_reroll').val(settings.independentAutomaticRerollMax ?? 2);
+    $('#rh_independent_automatic_reroll_idle').val(settings.independentAutomaticRerollIdleSeconds ?? 90);
     checked('#rh_independent_advanced_enabled', settings.independentAdvancedEnabled === true);
     $('#rh_independent_reasoning_effort').val(settings.independentReasoningEffort || '');
     $('#rh_independent_extra_params').val(typeof settings.independentExtraParams === 'string' ? settings.independentExtraParams : '');
@@ -1067,6 +1068,7 @@ export function initRabbitMirrorUI() {
         const maxTokens=Number($('#rh_independent_max_tokens').val());
         const maxRequestChars=Number($('#rh_independent_max_request_chars').val());
         const rerollMax=Number($('#rh_independent_automatic_reroll').val());
+        const rerollIdle=Number($('#rh_independent_automatic_reroll_idle').val());
         const contextLayers=Number($('#rh_independent_context_layers').val());
         updateSettings({
             independentConnectionProfileId:'',
@@ -1077,6 +1079,7 @@ export function initRabbitMirrorUI() {
             independentApiMaxTokens:Number.isFinite(maxTokens)&&maxTokens>0?maxTokens:30000,
             independentMaxRequestChars:Number.isFinite(maxRequestChars)&&maxRequestChars>0?maxRequestChars:DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS,
             independentAutomaticRerollMax:Number.isFinite(rerollMax)?rerollMax:2,
+            independentAutomaticRerollIdleSeconds:Number.isFinite(rerollIdle)?rerollIdle:90,
             independentContextMaxLayers:Number.isFinite(contextLayers)&&contextLayers>0?contextLayers:20,
         });
         syncIndependentProfileSelector('');
@@ -1091,6 +1094,7 @@ export function initRabbitMirrorUI() {
         const maxTokens = Number($('#rh_independent_max_tokens').val());
         const maxRequestChars = Number($('#rh_independent_max_request_chars').val());
         const rerollMax = Number($('#rh_independent_automatic_reroll').val());
+        const rerollIdle = Number($('#rh_independent_automatic_reroll_idle').val());
         const contextLayers = Number($('#rh_independent_context_layers').val());
         updateSettings({
             independentApiBaseUrl: $('#rh_independent_base').val(),
@@ -1100,6 +1104,7 @@ export function initRabbitMirrorUI() {
             independentApiMaxTokens: Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : 30000,
             independentMaxRequestChars: Number.isFinite(maxRequestChars) && maxRequestChars > 0 ? maxRequestChars : DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS,
             independentAutomaticRerollMax: Number.isFinite(rerollMax) ? rerollMax : 2,
+            independentAutomaticRerollIdleSeconds: Number.isFinite(rerollIdle) ? rerollIdle : 90,
             independentContextMaxLayers: Number.isFinite(contextLayers) && contextLayers > 0 ? contextLayers : 20,
         });
     };
@@ -1191,7 +1196,7 @@ export function initRabbitMirrorUI() {
     // Do not serialize the whole extension settings object on every mobile input event.
     // Safari may emit repeated input/autofill events as the drawer opens, which made the UI stutter.
     $('#rh_independent_base, #rh_independent_key, #rh_independent_model').on('change blur', saveIndependentFields);
-    $('#rh_independent_temperature, #rh_independent_max_tokens, #rh_independent_max_request_chars, #rh_independent_automatic_reroll, #rh_independent_context_layers').on('change', saveIndependentFields);
+    $('#rh_independent_temperature, #rh_independent_max_tokens, #rh_independent_max_request_chars, #rh_independent_automatic_reroll, #rh_independent_automatic_reroll_idle, #rh_independent_context_layers').on('change', saveIndependentFields);
     let independentModelListSource=null;
     const independentProfileSourceRevision = () => Number(globalThis.__rabbitMirrorIndependentProfileSourceRevision||0);
     const syncIndependentProfileSelector = profileId => {
