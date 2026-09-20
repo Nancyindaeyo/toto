@@ -1,13 +1,14 @@
-import { installMirrorToolMenu, fitMirrorToolPanel } from './mirrorToolMenu.js?rmv=1.5.57-fork1';
+import { installMirrorToolMenu, fitMirrorToolPanel } from './mirrorToolMenu.js?rmv=1.5.58-fork1';
 import { isTextPresentation } from './presentationMode.js?rmv=1.5.53-visualquick1';
-import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.57-fork1';
-import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.57-fork1';
+import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.58-fork1';
+import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.58-fork1';
 import { recordTtSurface, ttSurfaceNow, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
 import { getSettings, syncExternalReferenceVisibility } from './settings.js?rmv=1.5.53-image1';
 import { applyRabbitMirrorBannedWordsToDom, filterRabbitMirrorVisibleTextValue, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { getCurrentChatKey } from './storage.js?rmv=1.5.53-visualquick1';
 import { getSanitizedRabbitMirrorFaceProof } from './multifaceProof.js?rmv=1.5.53-visualquick1';
-import { captureTheaterFavoriteFromRoot, saveTheaterFavorite } from './theaterFavorites.js?rmv=1.5.57-fork1';
+import { captureTheaterFavoriteFromRoot, openTheaterFavoriteLibrary, saveTheaterFavorite } from './theaterFavorites.js?rmv=1.5.58-fork1';
+import { collectRevealedClipHosts, shouldRelaxRevealedClipPanel, REVEALED_CLIP_RESCUE_ATTR } from './revealedClipRepair.js?rmv=1.5.58-fork1';
 import {
     FEEDBACK_CAT_TYPES,
     clearActiveFeedbackForCurrentChat,
@@ -24,7 +25,7 @@ import { FAVORITE_MULTIPLIER_MAX, FAVORITE_MULTIPLIER_MIN, RECIPE_RECORDED_EVENT
 import { analyzeStylelessControlKinds, collectBoundedElementDescendants, countMeaningfulStateVisualRules, semanticEnsembleScalePlan } from './presentationQuality.js?rmv=1.5.53-cn-boundary1';
 
 
-const RUNTIME_VERSION = '1.5.57';
+const RUNTIME_VERSION = '1.5.58';
 const RUNTIME_VERSION_ATTR = 'data-rabbit-mirror-runtime-version';
 
 const FEEDBACK_CAT_RUNTIME_STYLE_ID = 'rabbit-mirror-feedback-cat-runtime-style';
@@ -12725,6 +12726,7 @@ function diagnosticContentSnapshot(root) {
 const TEXT_CLIPPING_REPAIR_ATTR = 'data-rabbit-mirror-text-clipping-repair';
 const TEXT_CLIPPING_ITEM_ATTR = 'data-rm-text-clipping-item';
 const TEXT_CLIPPING_BASELINE_ATTR = 'data-rm-text-clipping-baseline';
+const lastRevealedInteractionByRoot = new WeakMap();
 
 function maintenanceSafeComputedStyle(element) {
     try {
@@ -13110,6 +13112,108 @@ function repairMaintenanceTextClipping(root, { highConfidenceOnly = false, maxCa
     }
     if (repaired > 0) root.setAttribute(TEXT_CLIPPING_REPAIR_ATTR, String(repaired));
     return repaired;
+}
+
+function outerRabbitMirrorDetails(root) {
+    if (!root) return null;
+    if (root.matches?.('details') && isRabbitMirrorDetails(root)) return root;
+    const nested = root.querySelector?.(':scope > details') || root.querySelector?.('details');
+    return nested && isRabbitMirrorDetails(nested) ? nested : null;
+}
+
+function bindRevealedInteractionMemory(root) {
+    if (!root || root.dataset?.rmRevealClipMemory === 'true') return;
+    root.dataset.rmRevealClipMemory = 'true';
+    const remember = event => {
+        const target = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
+        if (!target || !root.contains?.(target) || diagnosticIsInternalUiNode(target)) return;
+        const outer = outerRabbitMirrorDetails(root);
+        if (outer?.querySelector?.(':scope > summary')?.contains(target)) return;
+        lastRevealedInteractionByRoot.set(root, target);
+    };
+    root.addEventListener('change', remember, true);
+    root.addEventListener('click', remember, true);
+}
+
+function revealedClipHostOptions(root) {
+    const outer = outerRabbitMirrorDetails(root);
+    return {
+        isInternal: diagnosticIsInternalUiNode,
+        isOuterDetails: node => node === outer || node === root,
+        isVisible: element => {
+            try { return maintenanceIsVisibleContentElement(element); }
+            catch { return Number(element?.clientHeight || 0) > 1; }
+        },
+        lastControl: lastRevealedInteractionByRoot.get(root) || null,
+    };
+}
+
+function inspectRevealedDrawerClipping(root) {
+    const hosts = collectRevealedClipHosts(root, revealedClipHostOptions(root));
+    let clipped = 0;
+    for (const host of hosts) {
+        const style = maintenanceSafeComputedStyle(host);
+        const overflowY = String(style?.overflowY || style?.overflow || host.style?.getPropertyValue?.('overflow-y') || '');
+        if (shouldRelaxRevealedClipPanel({
+            maxHeightPx: maintenanceCssPixelValue(style?.maxHeight),
+            heightPx: maintenanceCssPixelValue(style?.height),
+            overflowY,
+            clientHeight: Number(host.clientHeight || 0),
+            scrollHeight: Number(host.scrollHeight || 0),
+            protectedSurface: maintenanceHasIntentionalMarquee(host),
+        })) clipped += 1;
+    }
+    return { hostCount: hosts.length, clipped };
+}
+
+function repairRevealedDrawerClipping(root) {
+    const hosts = collectRevealedClipHosts(root, revealedClipHostOptions(root));
+    if (!hosts.length) return { repaired: 0, reason: 'none-open' };
+    let repaired = 0;
+    const marked = new Set();
+    const relax = element => {
+        if (!element?.style || marked.has(element) || diagnosticIsInternalUiNode(element)) return 0;
+        if (element === root || element === outerRabbitMirrorDetails(root)) return 0;
+        if (maintenanceHasIntentionalMarquee(element)) return 0;
+        const style = maintenanceSafeComputedStyle(element);
+        const overflowY = String(style?.overflowY || style?.overflow || '');
+        if (!shouldRelaxRevealedClipPanel({
+            maxHeightPx: maintenanceCssPixelValue(style?.maxHeight),
+            heightPx: maintenanceCssPixelValue(style?.height),
+            overflowY,
+            clientHeight: Number(element.clientHeight || 0),
+            scrollHeight: Number(element.scrollHeight || 0),
+            protectedSurface: false,
+        })) return 0;
+        encodeTextClippingBaseline(element, ['height', 'max-height', 'min-height', 'overflow', 'overflow-y', 'overflow-x']);
+        element.style.setProperty('height', 'auto', 'important');
+        element.style.setProperty('max-height', 'none', 'important');
+        if (/(?:hidden|clip)/.test(overflowY.toLowerCase())) {
+            element.style.setProperty('overflow-y', 'visible', 'important');
+            const overflowX = String(style?.overflowX || '').toLowerCase();
+            if (!/(?:auto|scroll|hidden|clip)/.test(overflowX)) {
+                element.style.setProperty('overflow', 'visible', 'important');
+            }
+        }
+        element.setAttribute(REVEALED_CLIP_RESCUE_ATTR, 'true');
+        marked.add(element);
+        return 1;
+    };
+    for (const host of hosts) {
+        repaired += relax(host);
+        let ancestor = host.parentElement;
+        let hops = 0;
+        while (ancestor && ancestor !== root && hops < 8) {
+            if (ancestor === outerRabbitMirrorDetails(root)) break;
+            repaired += relax(ancestor);
+            ancestor = ancestor.parentElement;
+            hops += 1;
+        }
+        repaired += repairMaintenanceTextClipping(host, { highConfidenceOnly: false, maxCandidates: 12 });
+    }
+    repaired += repairNestedDetailsPopupClipping(root, { requireOpen: true });
+    if (repaired > 0) root.setAttribute(REVEALED_CLIP_RESCUE_ATTR, String(repaired));
+    return { repaired, reason: repaired ? 'repaired' : 'no-clip' };
 }
 
 let maintenanceHighConfidenceTextCheckedRoots = new WeakSet();
@@ -22556,8 +22660,8 @@ function runMaintenanceUserRepair(root, button, mode) {
         const labels = {
         auto: '正在自动判断并维修当前兔子镜',
         source: '正在恢复当前兔子镜的代码／纯文字显示',
-        interaction: '正在尝试修复当前兔子镜的交互',
-        text: '正在修复当前兔子镜的手机端排版与内容显示',
+        interaction: '正在尝试接上当前兔子镜的开关',
+        text: '正在修复当前兔子镜的其他排版问题',
         code: '正在尝试恢复当前兔子镜的代码显示',
         plainText: '正在尝试恢复当前兔子镜的纯文字显示',
         style: '正在尝试修复当前兔子镜的显示样式',
@@ -22638,6 +22742,16 @@ function runMaintenanceUserRepair(root, button, mode) {
                 if (after.full?.sourceTruncationNoticeInstalled) {
                     afterButton.removeAttribute(MAINTENANCE_REPAIR_ATTR);
                     setMaintenanceRabbitState(afterButton, MAINTENANCE_STATES.unknown, '本次生成不完整，未计为修复成功；请重新生成该条');
+                } else if (effectiveMode === 'interaction') {
+                    const clip = inspectRevealedDrawerClipping(afterRoot);
+                    if (clip.clipped > 0) {
+                        setMaintenanceRabbitState(afterButton, MAINTENANCE_STATES.repairable, '状态已切上，但展开内容仍被裁切。请改用「展开后文字被裁」。');
+                    } else if (!actualRepairApplied) {
+                        afterButton.removeAttribute(MAINTENANCE_REPAIR_ATTR);
+                        setMaintenanceRabbitState(afterButton, MAINTENANCE_STATES.unknown, '没接到开关：看起来像按钮，但当前没有可保持的第二层。可用挨打猫重说。');
+                    } else {
+                        setMaintenanceRabbitState(afterButton, MAINTENANCE_STATES.idle, '已接上开关：点了应能保持打开。请实际点一下确认。');
+                    }
                 } else if (after.state === MAINTENANCE_STATES.repairable) {
                     afterButton.removeAttribute(MAINTENANCE_REPAIR_ATTR);
                     setMaintenanceRabbitState(afterButton, MAINTENANCE_STATES.repairable, `已尝试维修，请实际确认；仍检测到：${after.reason}`);
@@ -22698,7 +22812,7 @@ async function runMaintenanceNarrowFaceRepair(root, button) {
         if (rejectOversizedMaintenanceRepair(root, button, '窄面电击')) return false;
         if (!maintenanceRepairRunIsCurrent(repairRun)) return false;
         setMaintenanceRabbitState(button, MAINTENANCE_STATES.checking, '⚡ 正在重新测量并恢复这面兔子镜的宽度');
-        const adapter = await import('./independentApi.js?rmv=1.5.57-fork1');
+        const adapter = await import('./independentApi.js?rmv=1.5.58-fork1');
         // Loading the adapter is the sole async boundary. Never apply a delayed
         // click to a new chat, Swipe, source revision, face or replacement node.
         if (!root.isConnected || !details.isConnected || !button.isConnected
@@ -22729,6 +22843,43 @@ async function runMaintenanceNarrowFaceRepair(root, button) {
     } catch (error) {
         console.debug('[RabbitMirror] narrow face repair failed:', error);
         failMaintenanceRabbit(button, '窄面电击未完成，请生成全链路诊断');
+        return false;
+    } finally {
+        finishMaintenanceRepairRun(repairRun);
+    }
+}
+
+function runMaintenanceRevealClipRepair(root, button) {
+    if (!root?.isConnected || !button?.isConnected) return false;
+    const repairRun = beginMaintenanceRepairRun(root, button);
+    if (!repairRun) return false;
+    try {
+        if (rejectOversizedMaintenanceRepair(root, button, '展开后解裁')) return false;
+        invalidateRabbitMirrorInteractionResetSnapshot(root);
+        const captured = captureMaintenancePreRepairSnapshot(root);
+        if (captured) {
+            root = captured.root || root;
+            button = captured.button || root.querySelector?.(`[${MAINTENANCE_RABBIT_ATTR}]`) || button;
+        }
+        setMaintenanceRabbitState(button, MAINTENANCE_STATES.checking, '正在按当前已打开的抽屉测量并放开裁切');
+        const result = repairRevealedDrawerClipping(root);
+        if (result.reason === 'none-open') {
+            button.removeAttribute(MAINTENANCE_REPAIR_ATTR);
+            setMaintenanceRabbitState(button, MAINTENANCE_STATES.idle, '请先点开那个抽屉或选项，再使用「展开后文字被裁」。');
+            return false;
+        }
+        if (!result.repaired) {
+            button.removeAttribute(MAINTENANCE_REPAIR_ATTR);
+            setMaintenanceRabbitState(button, MAINTENANCE_STATES.unknown, '当前打开的块没有高置信裁切祖先。若文字其实不在画面里，请用挨打猫重说。');
+            return false;
+        }
+        button.setAttribute(MAINTENANCE_REPAIR_ATTR, 'true');
+        setMaintenanceRabbitState(button, MAINTENANCE_STATES.idle, '已放开刚才展开的内容，请看最后一行是否完整。可用「返回修复前」撤销。');
+        notifyIndependentRepairPersistence(root);
+        return true;
+    } catch (error) {
+        console.debug('[RabbitMirror] revealed clip repair failed:', error);
+        failMaintenanceRabbit(button, '展开后解裁未完成，请生成全链路诊断');
         return false;
     } finally {
         finishMaintenanceRepairRun(repairRun);
@@ -22784,12 +22935,13 @@ function showMaintenanceRabbitMenu(root, button) {
     // so only run it after the user explicitly chooses auto/patrol/diagnostic.
     panel.innerHTML = `
       <div class="rabbit-mirror-maintenance-menu-title">🐇 这面兔子镜哪里不对？</div>
-      <div class="rabbit-mirror-maintenance-recommendation" data-rm-recommended-action="manual">请选择问题类型；“自动判断”会在执行时检测当前镜面。</div>
-      <button type="button" data-rm-maintenance-action="auto">✨ 自动判断并维修（推荐）</button>
-      <button type="button" data-rm-maintenance-action="patrol">🔍 只巡逻，不修改</button>
+      <div class="rabbit-mirror-maintenance-recommendation" data-rm-recommended-action="manual">请先点出有问题的交互，再选对应修复。不会自动改你没打开的内容。</div>
       <button type="button" data-rm-maintenance-action="interaction">🖱️ 点了没有反应</button>
+      <button type="button" data-rm-maintenance-action="reveal-clip">📖 展开后文字被裁／显示不全</button>
       <button type="button" data-rm-maintenance-action="narrow-width">⚡ 强效电击：恢复窄面</button>
-      <button type="button" data-rm-maintenance-action="text">📱 排版不适配／内容显示不全</button>
+      <button type="button" data-rm-maintenance-action="auto">✨ 自动判断并维修</button>
+      <button type="button" data-rm-maintenance-action="patrol">🔍 只巡逻，不修改</button>
+      <button type="button" data-rm-maintenance-action="text">📱 其他排版不适配</button>
       <button type="button" data-rm-maintenance-action="source">📄 空白或显示代码、纯文字</button>
       <button type="button" data-rm-maintenance-action="style">🎨 样子不对</button>
       <button type="button" data-rm-maintenance-action="all">🔧 全部试试（仅当前兔子镜）</button>
@@ -22834,6 +22986,10 @@ function showMaintenanceRabbitMenu(root, button) {
         if (action === 'close') return;
         if (action === 'narrow-width') {
             void runMaintenanceNarrowFaceRepair(root, button);
+            return;
+        }
+        if (action === 'reveal-clip') {
+            runMaintenanceRevealClipRepair(root, button);
             return;
         }
         if (action === 'reset-interaction') {
@@ -23333,6 +23489,11 @@ function installUnifiedMirrorTools(root) {
         void loadMirrorImageModule().then(module => { if (root.isConnected) return module.openMirrorImagePanel(root, { opener }); })
             .catch(() => globalThis.toastr?.warning?.('生图面板未能打开，请重新打开后再试。'));
     } });
+    actions.push({ id: 'theater-favorite-library', label: '📖 打开收藏夹', run: () => {
+        void import('./independentApi.js?rmv=1.5.58-fork1').then(module =>
+            openTheaterFavoriteLibrary((container, record) => module.hydrateIndependentFavoriteHtml(container, record)))
+            .catch(error => globalThis.toastr?.warning?.(String(error?.message || '无法打开收藏夹。')));
+    } });
     actions.push({ id: 'theater-favorite', label: '⭐ 收藏本面', run: () => {
         void (async () => {
             try {
@@ -23342,7 +23503,7 @@ function installUnifiedMirrorTools(root) {
                     return;
                 }
                 await saveTheaterFavorite(captured);
-                globalThis.toastr?.success?.('已收入兔子镜收藏夹。打开时保留交互，不写入主楼 Prompt。');
+                globalThis.toastr?.success?.('已收入兔子镜收藏夹。可在设置「兔子镜收藏夹」或工具菜单「打开收藏夹」回看。');
             } catch (error) {
                 globalThis.toastr?.warning?.(String(error?.message || '收藏失败。'));
             }
@@ -23371,6 +23532,7 @@ function installMaintenanceRabbitsInScopeCore(scope, { allowGlobalRemoval = fals
     getRenderedRabbitMirrorInteractionRoots(scope).forEach(root => {
         if (!isInsideChatMessage(root)) return;
         armRabbitMirrorFirstUseInteraction(root);
+        bindRevealedInteractionMemory(root);
         // Migrate cached/serialized mirrors created by the short-lived inline reset
         // control. Recovery snapshots stay intact and remain reachable from Maintenance Rabbit.
         removeRabbitMirrorInteractionHomeControls(root);

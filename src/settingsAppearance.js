@@ -167,6 +167,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
         draw:['play','怎么挑选题材和形式','先决定是一起抽题材与形式，还是只抽呈现形式。'],
         library:['play','导入小剧场世界书','导入你的题材或呈现模板。不导入，也可以使用内置玩法。'],
         favorites:['play','让喜欢的更常出现','收藏能提高抽取权重；不是锁定每轮都出现。'],
+        theaterFavorites:['play','回看收藏的兔子镜','按角色卡查看已收藏成品，打开时保留交互。'],
         blacklist:['play','不想抽到哪些内容','把不喜欢的项目放进抽签黑名单。'],
         look:['play','调整画面与写法','说清楚你想要什么，再按需要补充参考。'],
         visualText:['play','你想要什么画面','告诉它你喜欢的效果，也可以明确哪些不要。'],
@@ -225,7 +226,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     for(const [key,title,desc,glyph] of [
         ['faces','一次想看几面','现在每轮生成 1 面；想多看几种内容时再开启多面。'],
         ['draw','怎么挑选题材和形式'],['look','调整画面与写法',null,'palette'],
-        ['library','导入小剧场世界书',null,'book'],['favorites','让喜欢的更常出现'],['blacklist','不想抽到哪些内容']])row('play',key,title,desc,glyph);
+        ['library','导入小剧场世界书',null,'book'],['theaterFavorites','回看收藏的兔子镜'],['favorites','让喜欢的更常出现'],['blacklist','不想抽到哪些内容']])row('play',key,title,desc,glyph);
     for(const key of ['help','mirror','usage','diagnosis','regex','cleanup','update'])row('tools',key);
     const choice = (input,title,description,extra='') => {
         const old = input.closest('label'); const label = make('label','rh-ui-choice');
@@ -266,8 +267,9 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     const visualSaveProxy=button('保存并从下一面生效',()=>get('rh_visual_prompt_save').click(),'menu_button');body('visualRules').append(visualSaveProxy);
     move('rh_advanced_page_replacement','replacement');move('rh_advanced_page_external','library');
     move(get('rh_blacklist_enabled').closest('label').parentElement,'blacklist');move(get('rh_favorite_summary').parentElement,'favorites');
+    move(get('rh_theater_favorite_section')?.querySelector('.rabbit-mirror-section-content'),'theaterFavorites');
     move('rh_advanced_page_repair','mirror');
-    note('mirror','每面兔子镜的标题旁都有对应工具。挨打猫用于反馈、重说和查看历史；维修兔用于检查、修复、复制本面 HTML 与生成全链路诊断。');
+    note('mirror','每面兔子镜的标题旁都有对应工具。挨打猫用于反馈、重说和查看历史；维修兔用于检查、修复、复制本面 HTML；收藏夹用于回看已收藏成品。');
     move('rh_manual_entry_diag','diagnosis');
     move('rh_token_meter','usage');move(get('rh_copy_regex').closest('.rabbit-mirror-regex-helper'),'regex');
     move(get('rh_clear_last').parentElement,'cleanup');move(get('rh_external_diag_status').parentElement,'diagnosis');

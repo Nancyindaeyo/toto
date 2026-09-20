@@ -98,3 +98,23 @@ test('real maintenance menu routes narrow-width to dedicated action, not generic
     handler({target:{closest:()=>({getAttribute:()=> 'narrow-width'})},preventDefault(){},stopPropagation(){}});
     assert.equal(dedicated,1); assert.equal(generic,0);
 });
+test('real maintenance menu routes reveal-clip to dedicated action, not generic repair', () => {
+    let handler, dedicated=0, generic=0;
+    const panel={setAttribute(){},querySelector(){return null;},style:{},offsetHeight:400,
+        addEventListener(type,fn){ if(type==='click') handler=fn; }};
+    const root={isConnected:true}, button={isConnected:true,getBoundingClientRect:()=>({left:20,bottom:30})};
+    const context=vm.createContext({
+        document:{createElement:()=>panel,body:{appendChild(){}}},innerWidth:390,innerHeight:844,
+        closeFeedbackCatMenu(){},closeMaintenanceRabbitMenu(){},
+        MAINTENANCE_MENU_ATTR:'data-menu',hasRabbitMirrorInteractionResetSnapshot:()=>false,
+        maintenancePreRepairSnapshots:new Map(),maintenanceSnapshotKey:()=>'',bindMaintenanceOutsideClose(){},
+        runMaintenanceNarrowFaceRepair:()=>{},
+        runMaintenanceRevealClipRepair:(r,b)=>{assert.equal(r,root);assert.equal(b,button);dedicated++;},
+        runMaintenanceUserRepair:()=>generic++,
+    });
+    vm.runInContext(menuSource,context);
+    assert.equal(context.showMaintenanceRabbitMenu(root,button),true);
+    assert.match(panel.innerHTML,/data-rm-maintenance-action="reveal-clip">📖 展开后文字被裁／显示不全/);
+    handler({target:{closest:()=>({getAttribute:()=> 'reveal-clip'})},preventDefault(){},stopPropagation(){}});
+    assert.equal(dedicated,1); assert.equal(generic,0);
+});

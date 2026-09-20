@@ -1,29 +1,29 @@
 import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-visualquick1';
 import { DEFAULT_INDEPENDENT_CONTEXT_EXCLUDED_TAGS, DEFAULT_VISUAL_PROMPT, INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT, RABBIT_MIRROR_BANNED_WORD_MAX_COUNT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, normalizeRabbitMirrorBannedWords, updateSettings, resetSettings } from './settings.js?rmv=1.5.53-image1';
 import { startTtSurfaceDiagnostics, stopTtSurfaceDiagnostics, isTtSurfaceDiagnosticsActive, buildTtSurfaceReport, recordTtSurface, registerTtSurfaceCleanup, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorHostCompatibilityStatus } from './hostCompatibility.js?rmv=1.5.57-fork1';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorHostCompatibilityStatus } from './hostCompatibility.js?rmv=1.5.58-fork1';
 import { clearLastCombo, getCurrentChatKey } from './storage.js?rmv=1.5.53-visualquick1';
 import { normalizeEarlyBodyTags } from './earlyBodyTags.js?rmv=1.5.53-cn-boundary1';
 import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
-import { applyRabbitMirrorHostSurface } from './hostCompatibility.js?rmv=1.5.57-fork1';
+import { applyRabbitMirrorHostSurface } from './hostCompatibility.js?rmv=1.5.58-fork1';
 import { BEHAVIOR_RULE_MAX_CHARS, DEFAULT_BEHAVIOR_RULE_TEXT, resolveBehaviorRuleText } from './behaviorRules.js?rmv=1.5.53-cn-boundary1';
 import { clearRecentIndependentTransportDiagnostics } from './transportDiagnostics.js?rmv=1.5.53-cn-boundary1';
 import { parseIndependentAdvancedOptions } from './advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
 import { parseRabbitMirrorReplacementLines, formatRabbitMirrorReplacementLines } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { clearRabbitMirrorPrompt, startManualEntryDiagnostic, stopManualEntryDiagnostic, getManualEntryDiagnosticState } from './injector.js?rmv=1.5.53-image1';
 import { clearFeedbackCatExtensionPrompt, getActiveFeedbackForCurrentChat, syncFeedbackCatExtensionPrompt } from './feedbackCat.js?rmv=1.5.53-cn-boundary1';
-import { configureMaintenanceAutoSafeMode, refreshMaintenanceRabbits } from './outputSanitizer.js?rmv=1.5.57-fork1';
+import { configureMaintenanceAutoSafeMode, refreshMaintenanceRabbits } from './outputSanitizer.js?rmv=1.5.58-fork1';
 import { scanMemoryPlugins, testMemoryProvider } from './memoryScanner.js?rmv=1.5.53-cn-boundary1';
 import { getLastRabbitMirrorTokenRecordForSource, TOKEN_METER_EVENT } from './tokenMeter.js?rmv=1.5.53-visualquick1';
-import { API_REQUEST_DIAGNOSTIC_EVENT, WORLD_INFO_BOOKS_CHANGED_EVENT, fetchIndependentModels, fetchWorldInfoBooks, getIndependentConnectionProfiles, getIndependentSavedModels, getLastIndependentApiRequestDiagnostic, getLastIndependentModelListDiagnostic, getObservedWorldInfoBooks, hydrateIndependentFavoriteHtml, importCurrentSillyTavernConnection, refreshRabbitMirrorGenerationMode, scanCurrentChatIndependentContextTags, testIndependentConnection } from './independentApi.js?rmv=1.5.57-fork1';
+import { API_REQUEST_DIAGNOSTIC_EVENT, WORLD_INFO_BOOKS_CHANGED_EVENT, fetchIndependentModels, fetchWorldInfoBooks, getIndependentConnectionProfiles, getIndependentSavedModels, getLastIndependentApiRequestDiagnostic, getLastIndependentModelListDiagnostic, getObservedWorldInfoBooks, hydrateIndependentFavoriteHtml, importCurrentSillyTavernConnection, refreshRabbitMirrorGenerationMode, scanCurrentChatIndependentContextTags, testIndependentConnection } from './independentApi.js?rmv=1.5.58-fork1';
 import { configureRabbitMirrorNoSendRegex, inspectRabbitMirrorNoSendRegex, openSillyTavernRegexSettings } from './regexConfigurator.js?rmv=1.5.53-cn-boundary1';
 import { BLACKLIST_CHANGED_EVENT, blacklistEntries, blacklistPoolStats, clearBlacklist, removeBlacklistItem, setBlacklistEnabled, favoriteEntries, removeFavoriteItem, setFavoriteMultiplier, clearFavorites } from './blacklist.js?rmv=1.5.53-image1';
-import { THEATER_FAVORITES_CHANGED_EVENT, deleteTheaterFavorite, listTheaterFavorites, openTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.57-fork1';
+import { THEATER_FAVORITES_CHANGED_EVENT, deleteTheaterFavorite, groupTheaterFavoritesByCharacter, listTheaterFavorites, openTheaterFavoriteLibrary, openTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.58-fork1';
 
 import { mountSettingsAppearance, destroySettingsAppearance } from './settingsAppearance.js?rmv=1.5.53-image1';
 
-const SETTINGS_UI_VERSION = '1.12-layered-ui3-manualdiag1';
-const RUNTIME_VERSION = '1.5.57';
+const SETTINGS_UI_VERSION = '1.12-layered-ui3-favlib1';
+const RUNTIME_VERSION = '1.5.58';
 
 function isCurrentRuntime() {
     return globalThis.__rabbitMirrorRuntimeVersion === RUNTIME_VERSION;
@@ -153,14 +153,18 @@ async function renderTheaterFavoriteSettings() {
     try {
         const rows = await listTheaterFavorites();
         if (!target.length) return;
-        if (!rows.length) {
-            target.html('<div style="opacity:.55;font-size:11px;padding:3px 0;">暂无成品收藏。可在兔子镜工具菜单点「收藏本面」。</div>');
+        const groups = groupTheaterFavoritesByCharacter(rows);
+        if (!groups.length) {
+            target.html('<div style="opacity:.55;font-size:11px;padding:3px 0;">暂无成品收藏。可在兔子镜工具菜单点「收藏本面」，再从这里或「打开收藏夹」回看。</div>');
             return;
         }
-        target.html(rows.map(item => `<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent);">
+        target.html(groups.map(group => `<div style="margin-top:8px;">
+      <div style="font-weight:700;font-size:11px;opacity:.8;margin-bottom:4px;">${escapeHtml(group.characterName)}（${group.items.length}）</div>
+      ${group.items.map(item => `<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent);">
       <span style="min-width:0;flex:1;overflow-wrap:anywhere;">${escapeHtml(item.title)} <small style="opacity:.62;">${escapeHtml(item.mode)}</small></span>
       <button type="button" class="menu_button rh-theater-favorite-open" data-id="${escapeHtml(item.id)}" style="padding:2px 7px;min-height:28px;">打开</button>
       <button type="button" class="menu_button rh-theater-favorite-remove" data-id="${escapeHtml(item.id)}" style="padding:2px 7px;min-height:28px;">删除</button>
+    </div>`).join('')}
     </div>`).join(''));
     } catch (error) {
         target.html(`<div style="opacity:.7;font-size:11px;">${escapeHtml(error?.message || '收藏夹无法读取。')}</div>`);
@@ -1160,8 +1164,17 @@ export function initRabbitMirrorUI() {
         </div>
       </details>
 
+      <details id="rh_theater_favorite_section" class="rabbit-mirror-section">
+        <summary><span>🐇 兔子镜收藏夹</span><span class="rabbit-mirror-section-note">回看成品</span></summary>
+        <div class="rabbit-mirror-section-content">
+          <div class="rabbit-mirror-subnote" style="opacity:.76;font-size:12px;line-height:1.5;margin-bottom:7px;">这里回看已经收藏的兔子镜成品，按角色卡分组。打开时走原挂载管线并保留交互，不写入主楼 Prompt。聊天里也可在镜面工具菜单点「打开收藏夹」。与下方「收藏室」（只调抽签权重）不是同一件事。</div>
+          <div id="rh_theater_favorite_summary" style="padding:8px 9px;border:1px solid color-mix(in srgb,currentColor 16%,transparent);border-radius:8px;font-size:11px;line-height:1.45;"><div style="opacity:.6;">展开后显示兔子镜收藏夹。</div></div>
+          <button id="rh_theater_favorite_open_library" class="menu_button" type="button" style="margin-top:7px;">打开收藏夹面板</button>
+        </div>
+      </details>
+
       <details id="rh_random_preference_section" class="rabbit-mirror-section">
-        <summary><span>收藏与黑名单</span><span class="rabbit-mirror-section-note">随机偏好</span></summary>
+        <summary><span>抽签收藏与黑名单</span><span class="rabbit-mirror-section-note">随机权重</span></summary>
         <div class="rabbit-mirror-section-content">
           <div style="padding-bottom:10px;border-bottom:1px solid color-mix(in srgb,currentColor 12%,transparent);">
             <label class="checkbox_label" style="font-weight:700;"><input id="rh_blacklist_enabled" type="checkbox"> 🚫 启用抽签黑名单</label>
@@ -1171,13 +1184,9 @@ export function initRabbitMirrorUI() {
           </div>
           <div style="margin-top:11px;">
             <div style="font-weight:700;margin-bottom:6px;">⭐ 收藏室</div>
+            <div class="rabbit-mirror-subnote" style="opacity:.76;font-size:12px;line-height:1.5;margin-bottom:7px;">只提高之后抽到该主题／形式的权重，不是回看成品的地方。</div>
             <div id="rh_favorite_summary" style="padding:8px 9px;border:1px solid color-mix(in srgb,currentColor 16%,transparent);border-radius:8px;font-size:11px;line-height:1.45;"><div style="opacity:.6;">展开后显示收藏室。</div></div>
             <button id="rh_favorite_clear" class="menu_button" type="button" style="margin-top:7px;">清空全部收藏</button>
-          </div>
-          <div style="margin-top:14px;padding-top:11px;border-top:1px solid color-mix(in srgb,currentColor 12%,transparent);">
-            <div style="font-weight:700;margin-bottom:6px;">🐇 兔子镜收藏夹</div>
-            <div class="rabbit-mirror-subnote" style="opacity:.76;font-size:12px;line-height:1.5;margin-bottom:7px;">保存已净化的单面成品，打开时走原挂载管线并保留交互。不写入主楼 Prompt，也不接入七日历坐标。与上方「收藏室」（抽签权重）不是同一件事。</div>
-            <div id="rh_theater_favorite_summary" style="padding:8px 9px;border:1px solid color-mix(in srgb,currentColor 16%,transparent);border-radius:8px;font-size:11px;line-height:1.45;"><div style="opacity:.6;">展开后显示兔子镜收藏夹。</div></div>
           </div>
         </div>
       </details>
@@ -1399,7 +1408,7 @@ export function initRabbitMirrorUI() {
         status.textContent = '正在向酒馆请求更新当前兔子镜，请稍候。不会更新其他扩展，也不会删除本地数据。';
         reload.hidden = true;
         try {
-            const updater = await import('./extensionUpdater.js?rmv=1.5.57-fork1');
+            const updater = await import('./extensionUpdater.js?rmv=1.5.58-fork1');
             const result = await updater.requestRabbitMirrorUpdate();
             if (!status.isConnected) return;
             status.textContent = result.status === 'current'
@@ -1670,7 +1679,7 @@ export function initRabbitMirrorUI() {
     globalThis.__rabbitMirrorWorldInfoBooksUiCleanup = () => globalThis.removeEventListener?.(WORLD_INFO_BOOKS_CHANGED_EVENT, worldInfoBooksListener);
     try { globalThis.__rabbitMirrorBlacklistUiCleanup?.(); } catch {}
     const blacklistListener = event => { checked('#rh_blacklist_enabled', getSettings().blacklistEnabled !== false); if (event?.detail?.action === 'enabled') scheduleSettingsToolsRefresh(); if (document.getElementById('rh_random_preference_section')?.open) { renderBlacklistSettings(); renderFavoriteSettings(); void renderTheaterFavoriteSettings(); } };
-    const theaterFavoriteListener = () => { if (document.getElementById('rh_random_preference_section')?.open) void renderTheaterFavoriteSettings(); };
+    const theaterFavoriteListener = () => { void renderTheaterFavoriteSettings(); };
     globalThis.addEventListener?.(BLACKLIST_CHANGED_EVENT, blacklistListener);
     document.addEventListener(THEATER_FAVORITES_CHANGED_EVENT, theaterFavoriteListener);
     globalThis.__rabbitMirrorBlacklistUiCleanup = () => {
@@ -2626,8 +2635,12 @@ export function initRabbitMirrorUI() {
         if (!this.open) return;
         renderBlacklistSettings();
         renderFavoriteSettings();
+    });
+    $('#rh_theater_favorite_section').on('toggle', function () {
+        if (!this.open) return;
         void renderTheaterFavoriteSettings();
     });
+    void renderTheaterFavoriteSettings();
     $('#rh_blacklist_enabled').on('change', e => {
         setBlacklistEnabled(e.target.checked);
         renderBlacklistSettings();
@@ -2667,6 +2680,13 @@ export function initRabbitMirrorUI() {
         renderFavoriteSettings();
         scheduleSettingsToolsRefresh();
         toastr?.success?.('已清空全部收藏');
+    });
+    $('#rh_theater_favorite_open_library').on('click', async () => {
+        try {
+            await openTheaterFavoriteLibrary((container, record) => hydrateIndependentFavoriteHtml(container, record));
+        } catch (error) {
+            toastr?.warning?.(String(error?.message || '无法打开收藏夹。'));
+        }
     });
     $('#rh_theater_favorite_summary').on('click', '.rh-theater-favorite-open', async function () {
         const id = String($(this).data('id') || '');
