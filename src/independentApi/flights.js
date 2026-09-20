@@ -2,8 +2,8 @@
 
 import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
 import { configuredAutomaticRerollMax } from '../automaticReroll.js?rmv=1.5.60-fork1';
-import { baseSlotOf } from './connection.js?rmv=1.5.64';
-import { automaticGenerationCutovers } from './lifecycle.js?rmv=1.5.64';
+import { baseSlotOf } from './connection.js?rmv=1.5.65';
+import { automaticGenerationCutovers } from './lifecycle.js?rmv=1.5.65';
 
 export const pending = new Map();
 // A failed automatic generation owns its exact chat+mesid+swipe+sourceHash until

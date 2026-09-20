@@ -17,7 +17,7 @@ import {
     clearRabbitMirrorHorizontalClipArtifacts,
     sanitizeRabbitMirrorUntrustedTemplate,
     validateRabbitMirrorRecoveredStyleAssignments,
-} from '../outputSanitizer.js?rmv=1.5.64';
+} from '../outputSanitizer.js?rmv=1.5.65';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
@@ -36,8 +36,8 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.64';
-import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.64';
+} from './runtime.js?rmv=1.5.65';
+import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.65';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INTERACTION_STATE_MIGRATION_KEY,
@@ -46,7 +46,7 @@ import {
     persistedOwnerForMessage,
     readStore,
     writeStore,
-} from './persistence.js?rmv=1.5.64';
+} from './persistence.js?rmv=1.5.65';
 import {
     chatKey,
     copyIndependentOwnerLineage,
@@ -63,7 +63,7 @@ import {
     savedRecordMatchesObserved,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.64';
+} from './connection.js?rmv=1.5.65';
 import {
     EXTERNAL_GEOMETRY_SETTLE_STEPS_MS,
     allExternalHosts,
@@ -97,7 +97,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     writeGeometryDataset,
-} from './request.js?rmv=1.5.64';
+} from './request.js?rmv=1.5.65';
 import {
     activeIndependentFlightForBase,
     automaticCutoverVersionToken,
@@ -119,20 +119,20 @@ import {
     runtimeMode,
     serializeExternalFaceDetails,
     stripIndependentTransientLayoutArtifacts,
-} from './mount.js?rmv=1.5.64';
+} from './mount.js?rmv=1.5.65';
 import {
     automaticHostGenerationRenderMatches,
     hasExistingFollowRabbitMirror,
     queueMessageSync,
     suppressesAutomaticGeneration,
-} from './earlyBody.js?rmv=1.5.64';
+} from './earlyBody.js?rmv=1.5.65';
 import {
     automaticGenerationCutovers,
     persistedInteractionMigrationHandle,
     persistedInteractionMigrationIdle,
     writePersistedInteractionMigrationHandle,
     writePersistedInteractionMigrationIdle,
-} from './lifecycle.js?rmv=1.5.64';
+} from './lifecycle.js?rmv=1.5.65';
 
 let externalGeometryFrame = 0;
 
@@ -1596,7 +1596,11 @@ export function ensureExternalTools(host){
  // General layout rescue remains explicit Maintenance Rabbit work. The only
  // automatic write here is the guarded Safari auto-root correction scheduled
  // once after a pure-external mirror is actually opened.
- try{ refreshRabbitMirrorToolsInScope(host,{historyRestoreLight}); }catch(error){ console.debug('[RabbitMirror] external tool preparation skipped:',error); }
+ if(host.dataset?.rmFavorite==='true' || host.dataset?.rmSource==='favorite'){
+  host.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-face-swipe-bar], [data-rm-face-favorite-star]').forEach(node=>node.remove());
+ }else{
+  try{ refreshRabbitMirrorToolsInScope(host,{historyRestoreLight}); }catch(error){ console.debug('[RabbitMirror] external tool preparation skipped:',error); }
+ }
  removeIndependentResayButtons(host);
 }
 

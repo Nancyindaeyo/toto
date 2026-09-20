@@ -165,11 +165,77 @@ const FAVORITE_RUNTIME_UI_SELECTOR = [
     '[data-rm-image-portal]',
     '[data-rabbit-mirror-maintenance-rabbit]',
     '[data-rabbit-mirror-feedback-cat]',
+    '[data-rabbit-mirror-recipe]',
     '[data-rabbit-mirror-resay]',
+    '[data-rm-tool-menu-button]',
     '[data-rm-ephemeral-failure-body]',
     '[data-rm-face-swipe-bar]',
     '[data-rm-face-favorite-star]',
 ].join(', ');
+
+export function sanitizeTheaterFavoriteTitle(title) {
+    return String(title || '')
+        .replace(/[‹<]\s*\d+\s*\/\s*\d+\s*[›>]/g, '')
+        .replace(/[×✕]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 120);
+}
+
+export function theaterFavoriteTitleFromDetails(details) {
+    const summary = details?.querySelector?.(':scope > summary') || details?.querySelector?.('summary');
+    if (!summary) return '';
+    const clone = summary.cloneNode(true);
+    clone.querySelectorAll?.(FAVORITE_RUNTIME_UI_SELECTOR)?.forEach(node => node.remove());
+    return sanitizeTheaterFavoriteTitle(clone.textContent);
+}
+
+export function theaterFavoriteDisplayTitle(record) {
+    const html = String(record?.html || '').trim();
+    if (html && typeof document !== 'undefined') {
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        const fromHtml = theaterFavoriteTitleFromDetails(template.content.querySelector('details') || template.content);
+        if (fromHtml) return fromHtml;
+    }
+    return sanitizeTheaterFavoriteTitle(record?.title) || '未命名兔子镜';
+}
+
+export function stripTheaterFavoriteRuntimeUi(scope) {
+    if (!scope?.querySelectorAll) return;
+    scope.querySelectorAll(FAVORITE_RUNTIME_UI_SELECTOR).forEach(node => node.remove());
+}
+
+async function copyTextToClipboard(text) {
+    const value = String(text || '');
+    if (!value) return false;
+    try {
+        await navigator.clipboard.writeText(value);
+        return true;
+    } catch {
+        try {
+            const field = document.createElement('textarea');
+            field.value = value;
+            field.setAttribute('readonly', '');
+            field.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+            document.body.append(field);
+            field.select();
+            const ok = document.execCommand('copy');
+            field.remove();
+            return !!ok;
+        } catch {
+            return false;
+        }
+    }
+}
+
+export async function copyTheaterFavoriteHtml(record) {
+    const html = scrubTheaterFavoriteHtml(record?.html);
+    if (!html) throw new Error('这面收藏没有可复制的 HTML。');
+    const copied = await copyTextToClipboard(html);
+    if (!copied) throw new Error('复制失败，当前收藏没有改变。');
+    return html;
+}
 
 export function scrubTheaterFavoriteHtml(html) {
     const source = String(html || '').trim();
@@ -256,7 +322,7 @@ export function captureTheaterFavoriteFromRoot(root, owner = {}) {
     if (!details || details.classList?.contains('rabbit-mirror-external-placeholder')) return null;
     const html = scrubTheaterFavoriteHtml(details.outerHTML);
     if (!html) return null;
-    const title = String(details.querySelector?.(':scope > summary')?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+    const title = theaterFavoriteTitleFromDetails(details) || String(details.querySelector?.(':scope > summary')?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);
     const character = currentTheaterFavoriteCharacter();
     return {
         id: theaterFavoriteToggleId(html),
@@ -349,14 +415,28 @@ export async function openTheaterFavoriteViewer(id, hydrate) {
     const header = document.createElement('div');
     header.style.cssText = 'display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px;';
     const title = document.createElement('strong');
-    title.textContent = record.title;
-    title.style.cssText = 'min-width:0;font-size:15px;';
+    title.textContent = theaterFavoriteDisplayTitle(record);
+    title.style.cssText = 'min-width:0;flex:1;font-size:15px;';
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:6px;flex:0 0 auto;';
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.className = 'menu_button';
+    copy.textContent = '复制 HTML';
+    copy.addEventListener('click', () => {
+        void copyTheaterFavoriteHtml(record).then(() => {
+            globalThis.toastr?.success?.('已复制这面收藏的 HTML。');
+        }).catch(error => {
+            globalThis.toastr?.warning?.(String(error?.message || '复制失败。'));
+        });
+    });
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'menu_button';
     close.textContent = '关闭';
     close.addEventListener('click', () => closeTheaterFavoriteViewer());
-    header.append(title, close);
+    actions.append(copy, close);
+    header.append(title, actions);
     const note = document.createElement('p');
     note.style.cssText = 'margin:0 0 10px;opacity:.7;font-size:11px;line-height:1.45;';
     note.textContent = record.characterName
@@ -383,6 +463,7 @@ export async function openTheaterFavoriteViewer(id, hydrate) {
     }
     try {
         await hydrate(stage, record);
+        stripTheaterFavoriteRuntimeUi(stage);
     } catch (error) {
         closeTheaterFavoriteViewer();
         throw error;
@@ -427,7 +508,7 @@ export async function openTheaterFavoriteLibrary(hydrate) {
                 row.style.cssText = 'display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent);';
                 const label = document.createElement('span');
                 label.style.cssText = 'min-width:0;flex:1;overflow-wrap:anywhere;';
-                label.textContent = item.title;
+                label.textContent = theaterFavoriteDisplayTitle(item);
                 const open = document.createElement('button');
                 open.type = 'button';
                 open.className = 'menu_button';

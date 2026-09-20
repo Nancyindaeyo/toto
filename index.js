@@ -12,8 +12,8 @@ initRabbitMirrorHostCompatibility();
 // SecurityFix2 leaves only the prompt interceptor and request guard in the parser-critical
 // graph. The 1.8 MiB UI/sanitizer/independent runtime graph is imported after the host has
 // received a paint/idle opportunity, or immediately after explicit RabbitMirror intent.
-const GOLDEN_MERGE_VERSION = '1.5.64';
-const RABBIT_MIRROR_RUNTIME_VERSION = '1.5.64';
+const GOLDEN_MERGE_VERSION = '1.5.65';
+const RABBIT_MIRROR_RUNTIME_VERSION = '1.5.65';
 const earlyBootstrap = getRabbitMirrorEarlyBootstrap();
 let runtimeCancelled = earlyBootstrap?.cancelled === true || (!!globalThis.__rabbitMirrorTtBootstrap && !earlyBootstrap);
 let runtimeClaimed = !runtimeCancelled;
@@ -76,11 +76,11 @@ async function ensureDeferredCoreRuntime(reason = 'scheduled-idle') {
     if (deferredRuntimeModules) return deferredRuntimeModules;
     if (deferredRuntimePromise) return deferredRuntimePromise;
     deferredRuntimePromise = Promise.all([
-        import('./src/outputSanitizer.js?rmv=1.5.64'),
-        import('./src/visualScanner.js?rmv=1.5.64'),
-        import('./src/independentApi.js?rmv=1.5.64'),
+        import('./src/outputSanitizer.js?rmv=1.5.65'),
+        import('./src/visualScanner.js?rmv=1.5.65'),
+        import('./src/independentApi.js?rmv=1.5.65'),
         import('./src/touchTheater.js?rmv=1.5.56-extfloor1'),
-        import('./src/ui.js?rmv=1.5.64'),
+        import('./src/ui.js?rmv=1.5.65'),
         import('./src/composerClearance.js?rmv=1.5.58-fork1'),
     ]).then(async ([output, visual, independent, touch, ui, clearance]) => {
         if (!runtimeIsActive()) return null;
@@ -336,7 +336,7 @@ function loadMirrorVisualCompat() {
     if (!deferredRuntimeModules) return Promise.resolve(null);
     return Promise.all([
         loadOptional('checkedSelectorRepair', './src/checkedSelectorRepair.js?rmv=1.5.53-cn-boundary1', mod => mod.initRabbitMirrorCheckedSelectorRepair?.()),
-        loadOptional('renderedVisualFeedback', './src/renderedVisualFeedbackHotfix.js?rmv=1.5.64', mod => mod.initRabbitMirrorRenderedVisualFeedbackHotfix?.()),
+        loadOptional('renderedVisualFeedback', './src/renderedVisualFeedbackHotfix.js?rmv=1.5.65', mod => mod.initRabbitMirrorRenderedVisualFeedbackHotfix?.()),
     ]);
 }
 
@@ -370,6 +370,7 @@ function installSettingsWandEntry() {
     entry.id = 'rabbit_mirror_wand_bootstrap';
     entry.type = 'button';
     entry.className = 'list-group-item flex-container flexGap5';
+    entry.style.cssText = 'background:transparent;background-color:transparent;color:inherit;border:0;box-shadow:none;appearance:none;-webkit-appearance:none;';
     entry.innerHTML = '<span class="rabbit-mirror-wand-icon" aria-hidden="true"><svg viewBox="0 0 32 32" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 16C4 2 11 1 14 14M18 14C20 1 27 2 23 16M9 16c-7 11 3 15 9 14s13-8 5-14c-4-3-10-3-14 0Z"/><path d="M12 22h1m6 0h1m-6 4 2 1 2-1"/></svg></span><span>兔子镜</span>';
     entry.setAttribute('aria-haspopup', 'dialog');
     entry.addEventListener('click', async () => {

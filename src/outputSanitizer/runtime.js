@@ -2,7 +2,7 @@
 
 import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
 
-export const RUNTIME_VERSION = '1.5.64';
+export const RUNTIME_VERSION = '1.5.65';
 
 export const RUNTIME_VERSION_ATTR = 'data-rabbit-mirror-runtime-version';
 
@@ -76,7 +76,7 @@ summary span[${MIRROR_TITLE_PART_ATTR}] > span[${MIRROR_TITLE_SOURCE_ATTR}][${MI
     position: relative !important;
     z-index: 2147483000 !important;
     width: auto !important;
-    min-width: 0 !important;
+    min-width: max-content !important;
     height: auto !important;
     min-height: 0 !important;
     max-width: none !important;
@@ -98,6 +98,17 @@ summary span[${MIRROR_TITLE_PART_ATTR}] > span[${MIRROR_TITLE_SOURCE_ATTR}][${MI
     font: inherit !important;
     line-height: 1 !important;
     isolation: isolate !important;
+}
+@media (max-width: 720px) {
+[${TOOL_ENTRY_HOST_ATTR}][${TOOL_ENTRY_HOST_ATTR}] {
+    float: none !important;
+    display: flex !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    flex: 1 1 auto !important;
+    margin: 2px 0 0 !important;
+    margin-inline-start: 0 !important;
+}
 }
 [${TOOL_ENTRY_HOST_ATTR}] > button[${MAINTENANCE_RABBIT_ATTR}],
 [${TOOL_ENTRY_HOST_ATTR}] > button[${FEEDBACK_CAT_ATTR}],
@@ -297,7 +308,7 @@ export function isInsideChatMessage(node) {
     if (!root || !node || !root.contains(node)) return false;
     // 只允许修聊天区，绝不碰扩展设置页/弹窗，避免再次影响其他插件勾选。
     // 注意：不要用 .drawer-content 做全局排除，部分主题/插件会把聊天消息也包在 drawer 类容器里。
-    if (node.closest('#extensions_settings, #extensions_settings2, #rm_extensions_block, #extensionsMenu, .popup, .modal, .ui-dialog')) return false;
+    if (node.closest('#extensions_settings, #extensions_settings2, #rm_extensions_block, #extensionsMenu, .popup, .modal, .ui-dialog, [data-rm-theater-favorite-viewer], [data-rm-theater-favorite-library], [data-rm-theater-favorite-stage], [data-rm-theater-favorite-host]')) return false;
     const messageScope = node.closest('.mes, [mesid], .mes_text, [data-message-id], [data-messageid], .swipe_right, .swipe_left');
     return !!messageScope || root === node.closest('#chat') || root === node.closest('#chat_block');
 }

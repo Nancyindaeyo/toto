@@ -386,7 +386,7 @@ toto[data-rabbit-mirror="true"] summary {
   position: relative !important;
   z-index: 2147483000 !important;
   width: auto !important;
-  min-width: 0 !important;
+  min-width: max-content !important;
   height: auto !important;
   min-height: 0 !important;
   max-width: none !important;
@@ -413,6 +413,7 @@ toto[data-rabbit-mirror="true"] summary {
 .rabbit-mirror-face-swipe-bar {
   display: inline-flex !important;
   align-items: center !important;
+  flex: 0 0 auto !important;
   gap: 2px !important;
   margin: 0 4px 0 0 !important;
   padding: 0 2px !important;
@@ -420,6 +421,7 @@ toto[data-rabbit-mirror="true"] summary {
   font: 12px/1 sans-serif !important;
   pointer-events: auto !important;
   vertical-align: middle !important;
+  white-space: nowrap !important;
 }
 .rabbit-mirror-face-swipe-bar button {
   all: unset !important;
@@ -432,6 +434,10 @@ toto[data-rabbit-mirror="true"] summary {
   border-radius: 8px !important;
   cursor: pointer !important;
   color: inherit !important;
+  font: inherit !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
   opacity: .88 !important;
 }
 .rabbit-mirror-face-swipe-bar button:disabled {
@@ -479,6 +485,30 @@ toto[data-rabbit-mirror="true"] summary {
   border-radius: 10px !important;
   cursor: pointer !important;
 }
+@media (max-width: 720px) {
+  [data-rabbit-mirror-tool-entry-host] {
+    float: none !important;
+    display: flex !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    flex: 1 1 auto !important;
+    margin: 2px 0 0 !important;
+    margin-inline-start: 0 !important;
+    justify-content: flex-end !important;
+  }
+}
+
+#extensionsMenu #rabbit_mirror_wand_entry,
+#extensionsMenu #rabbit_mirror_wand_bootstrap {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
 .rabbit-mirror-wand-icon {
   display: inline-flex !important;
   align-items: center !important;

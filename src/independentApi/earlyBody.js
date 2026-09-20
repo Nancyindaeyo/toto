@@ -14,7 +14,7 @@ import {
     currentRuntime,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.64';
+} from './runtime.js?rmv=1.5.65';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_POLL_INTERVAL_MS,
@@ -28,7 +28,7 @@ import {
     markAutomaticFailureStop,
     operationEpochForBase,
     pending,
-} from './flights.js?rmv=1.5.64';
+} from './flights.js?rmv=1.5.65';
 import {
     appendHistoryEntry,
     chatPersistenceSlot,
@@ -38,7 +38,7 @@ import {
     synchronizeIndependentChatPersistence,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.64';
+} from './persistence.js?rmv=1.5.65';
 import {
     activeGlobalWorldInfoCapture,
     assistantMessages,
@@ -87,14 +87,14 @@ import {
     withOwnerLockStoreBatch,
     writeActiveGlobalWorldInfoCapture,
     writeHostModule,
-} from './connection.js?rmv=1.5.64';
+} from './connection.js?rmv=1.5.65';
 import {
     allExternalHosts,
     externalHosts,
     removeEmptyFollowExternalAnchors,
     removeEmptyInlineAnchors,
     withExternalHostSyncIndex,
-} from './request.js?rmv=1.5.64';
+} from './request.js?rmv=1.5.65';
 import {
     beginHostWorkTiming,
     clearExternalHostFreshSourceState,
@@ -127,7 +127,7 @@ import {
     setPlaceholderSummary,
     usableReadyDetails,
     withRestorableHtmlCacheBatch,
-} from './geometry.js?rmv=1.5.64';
+} from './geometry.js?rmv=1.5.65';
 import {
     INDEPENDENT_INTENT_OWNER,
     abortFlight,
@@ -181,7 +181,7 @@ import {
     serializeExternalFaceDetails,
     stampAutomaticAuthorizationEpoch,
     withHistoricalRestoreLightPass,
-} from './mount.js?rmv=1.5.64';
+} from './mount.js?rmv=1.5.65';
 import {
     automaticGenerationCutovers,
     hostGenerationHintStartedAt,
@@ -206,7 +206,7 @@ import {
     writeStartupHistoryFallbackRoot,
     writeSyncRunning,
     writeSyncTimer,
-} from './lifecycle.js?rmv=1.5.64';
+} from './lifecycle.js?rmv=1.5.65';
 
 let earlyBodyParserPromise=null;
 

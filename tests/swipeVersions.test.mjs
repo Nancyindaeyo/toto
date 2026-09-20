@@ -11,6 +11,7 @@ import {
     deleteCurrentSwipe,
     updateCurrentSwipeHtml,
     restoreCurrentSwipeInitial,
+    faceSwipeBarIntent,
 } from '../src/swipeVersions.js';
 
 function stack(...htmls) {
@@ -100,4 +101,19 @@ test('repair updates current html and restore returns birth html', () => {
     const restored = restoreCurrentSwipeInitial(repaired.state);
     assert.equal(restored.state.versions[0].html, '<details>birth</details>');
     assert.equal(restored.state.versions.length, 1);
+});
+
+test('title arrows resay at the ends and switch in the middle', () => {
+    const first = { currentIndex: 0, canNext: false, canDelete: false, canResay: true, overlay: false };
+    assert.deepEqual(faceSwipeBarIntent(first, 'next'), { type: 'resay' });
+    assert.deepEqual(faceSwipeBarIntent(first, 'prev'), { type: 'resay' });
+    const mid = { currentIndex: 1, canNext: true, canDelete: true, canResay: true, overlay: false };
+    assert.deepEqual(faceSwipeBarIntent(mid, 'prev'), { type: 'select', index: 0 });
+    assert.deepEqual(faceSwipeBarIntent(mid, 'next'), { type: 'select', index: 2 });
+    const lastFull = { currentIndex: 4, canNext: false, canDelete: true, canResay: false, overlay: false };
+    assert.deepEqual(faceSwipeBarIntent(lastFull, 'next'), { type: 'noop' });
+    assert.deepEqual(faceSwipeBarIntent(lastFull, 'prev'), { type: 'select', index: 3 });
+    const overlay = { currentIndex: 0, canNext: false, canDelete: false, canResay: true, overlay: true };
+    assert.deepEqual(faceSwipeBarIntent(overlay, 'prev'), { type: 'select', index: 0 });
+    assert.deepEqual(faceSwipeBarIntent(overlay, 'next'), { type: 'resay' });
 });

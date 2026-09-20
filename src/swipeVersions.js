@@ -63,6 +63,23 @@ export function swipeFullMessage() {
     return FACE_SWIPE_FULL_MESSAGE;
 }
 
+// Title ‹ › at the ends mean 重说, not a dead control. Overlay prev remounts
+// the last success; next at the last slot (or 1/1) pays for a new version.
+export function faceSwipeBarIntent(view, action) {
+    if (!view || !action) return { type: 'noop' };
+    if (action === 'delete') return view.canDelete ? { type: 'delete' } : { type: 'noop' };
+    if (action === 'prev') {
+        if (view.overlay) return { type: 'select', index: view.currentIndex };
+        if (view.currentIndex > 0) return { type: 'select', index: view.currentIndex - 1 };
+        return view.canResay ? { type: 'resay' } : { type: 'noop' };
+    }
+    if (action === 'next') {
+        if (view.canNext) return { type: 'select', index: view.currentIndex + 1 };
+        return view.canResay ? { type: 'resay' } : { type: 'noop' };
+    }
+    return { type: 'noop' };
+}
+
 export function seedSwipeState(state, entry) {
     const normalized = normalizeSwipeState(state);
     if (normalized.versions.length) return { ok: true, seeded: false, state: normalized };

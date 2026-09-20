@@ -2,7 +2,7 @@
 
 import { startTtSurfaceDiagnostics, stopTtSurfaceDiagnostics, isTtSurfaceDiagnosticsActive, buildTtSurfaceReport, recordTtSurface, registerTtSurfaceCleanup, nextTtSurfaceClickSeq } from '../ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
 import { getRabbitMirrorHostCompatibilityStatus } from '../hostCompatibility.js?rmv=1.5.58-fork1';
-import { RUNTIME_VERSION, isCurrentRuntime } from './runtime.js?rmv=1.5.64';
+import { RUNTIME_VERSION, isCurrentRuntime } from './runtime.js?rmv=1.5.65';
 
 let retainedTtDiagnosticReport = '';
 

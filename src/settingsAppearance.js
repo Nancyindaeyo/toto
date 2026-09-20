@@ -1,6 +1,6 @@
 // UI palettes from the user-provided Hearttrace source, by Toto.
 // Presentation only: no generation settings, Prompt, content storage, or network.
-import { closeTheaterFavoriteLibrary, closeTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.60-fork1';
+import { closeTheaterFavoriteLibrary, closeTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.65';
 export const UI_THEMES = Object.freeze([
   {
     "id": "default",
@@ -430,6 +430,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     const entry=make('button','list-group-item flex-container flexGap5');
     entry.type='button';
     entry.id='rabbit_mirror_wand_entry';
+    entry.style.cssText='background:transparent;background-color:transparent;color:inherit;border:0;box-shadow:none;appearance:none;-webkit-appearance:none;';
     entry.innerHTML='<span class="rabbit-mirror-wand-icon" aria-hidden="true"><svg viewBox="0 0 32 32" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 16C4 2 11 1 14 14M18 14C20 1 27 2 23 16M9 16c-7 11 3 15 9 14s13-8 5-14c-4-3-10-3-14 0Z"/><path d="M12 22h1m6 0h1m-6 4 2 1 2-1"/></svg></span><span>兔子镜</span>';
     entry.setAttribute('aria-haspopup','dialog');entry.setAttribute('aria-controls',root.id);
     listen(entry,'click',()=>setOpen(true));

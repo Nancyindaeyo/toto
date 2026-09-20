@@ -11,7 +11,8 @@ import {
     openTheaterFavoriteLibrary,
     toggleTheaterFavorite,
     isTheaterFavoriteHtml,
-} from '../theaterFavorites.js?rmv=1.5.60-fork1';
+} from '../theaterFavorites.js?rmv=1.5.65';
+import { FACE_SWIPE_FULL_MESSAGE, faceSwipeBarIntent } from '../swipeVersions.js?rmv=1.5.65';
 import {
     FEEDBACK_CAT_TYPES,
     clearActiveFeedbackForCurrentChat,
@@ -21,7 +22,7 @@ import {
     getFeedbackCatLastReceiptForCurrentChat,
     setActiveFeedbackForCurrentChat,
 } from '../feedbackCat.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.64';
+import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.65';
 import {
     FAVORITE_MULTIPLIER_MAX,
     FAVORITE_MULTIPLIER_MIN,
@@ -64,10 +65,10 @@ import {
     isInsideChatMessage,
     isMaintenanceRabbitEnabled,
     isRabbitMirrorDetails,
-} from './runtime.js?rmv=1.5.64';
-import { getAvailableHostChat } from './scriptedInteractionRescue.js?rmv=1.5.64';
-import { armNestedDetailsReplacementContainment, installNestedDetailsReplacementContainment } from './fallbackRescue.js?rmv=1.5.64';
-import { armRabbitMirrorFirstUseInteraction, repairRabbitMirrorScopedClassAliasesInScope } from './idsAndRearm.js?rmv=1.5.64';
+} from './runtime.js?rmv=1.5.65';
+import { getAvailableHostChat } from './scriptedInteractionRescue.js?rmv=1.5.65';
+import { armNestedDetailsReplacementContainment, installNestedDetailsReplacementContainment } from './fallbackRescue.js?rmv=1.5.65';
+import { armRabbitMirrorFirstUseInteraction, repairRabbitMirrorScopedClassAliasesInScope } from './idsAndRearm.js?rmv=1.5.65';
 import {
     FEEDBACK_CAT_MENU_ATTR,
     FEEDBACK_HISTORY_EVENT,
@@ -87,8 +88,8 @@ import {
     rabbitMirrorLanguageBalance,
     scheduleCurrentHighConfidenceTextRepair,
     setMaintenanceRabbitState,
-} from './diagnostics.js?rmv=1.5.64';
-import { clearOrphanedStructuredStaticDisclosureArtifacts } from './choiceRescue.js?rmv=1.5.64';
+} from './diagnostics.js?rmv=1.5.65';
+import { clearOrphanedStructuredStaticDisclosureArtifacts } from './choiceRescue.js?rmv=1.5.65';
 import {
     MAINTENANCE_FINDING_STAGE_LABELS,
     beginMaintenanceRepairRun,
@@ -106,19 +107,19 @@ import {
     runMaintenanceRevealClipRepair,
     runMaintenanceUserRepair,
     triggerDiagnosticForMaintenanceRoot,
-} from './maintenanceInspect.js?rmv=1.5.64';
+} from './maintenanceInspect.js?rmv=1.5.65';
 import {
     getRabbitMirrorFacePosition,
     installMaintenanceHorizontalClipOpenRescue,
     repairLegacyMaintenanceMobileStateRows,
-} from './layoutRescue.js?rmv=1.5.64';
+} from './layoutRescue.js?rmv=1.5.65';
 import {
     getMessageIndexFromMirrorNode,
     installMaintenanceAutoSafeOpenPatrol,
     installManagedRabbitMirrorTools,
     pruneMaintenanceAutoSafeOpenBindings,
     scheduleMaintenanceAutoSafeForRoot,
-} from './lifecycle.js?rmv=1.5.64';
+} from './lifecycle.js?rmv=1.5.65';
 
 let recipeOutsideCloseCleanup = null;
 
@@ -1331,6 +1332,14 @@ function setImportantStyle(element, property, value) {
 }
 
 
+function toolHostShouldStack() {
+    return typeof matchMedia === 'function' && matchMedia('(max-width: 720px)').matches;
+}
+
+function isTheaterFavoriteSurface(node) {
+    return !!node?.closest?.('[data-rm-theater-favorite-host], [data-rm-theater-favorite-stage], [data-rm-theater-favorite-viewer], [data-rm-theater-favorite-library]');
+}
+
 function normalizeRabbitMirrorToolHost(host) {
     if (!host) return false;
     host.hidden = false;
@@ -1339,11 +1348,14 @@ function normalizeRabbitMirrorToolHost(host) {
     host.setAttribute(RUNTIME_VERSION_ATTR, RUNTIME_VERSION);
     host.setAttribute('role', 'group');
     host.setAttribute('aria-label', '兔子镜工具');
+    const stack = toolHostShouldStack();
     const styles = {
         all: 'initial', display: 'inline-flex', 'align-items': 'center', 'justify-content': 'flex-end', gap: '2px',
-        float: 'inline-end', flex: '0 0 auto', position: 'relative', 'z-index': '2147483000', width: 'auto',
-        'min-width': '0', height: 'auto', 'min-height': '0', 'max-width': 'none', 'max-height': 'none',
-        margin: '0 0 0 6px', 'margin-inline-start': 'auto', padding: '0', overflow: 'visible', visibility: 'visible', opacity: '1',
+        float: stack ? 'none' : 'inline-end', flex: stack ? '1 1 auto' : '0 0 auto', position: 'relative',
+        'z-index': '2147483000', width: stack ? '100%' : 'auto',
+        'min-width': stack ? '100%' : 'max-content', height: 'auto', 'min-height': '0', 'max-width': 'none', 'max-height': 'none',
+        margin: stack ? '2px 0 0' : '0 0 0 6px', 'margin-inline-start': stack ? '0' : 'auto', padding: '0',
+        overflow: 'visible', visibility: 'visible', opacity: '1',
         'pointer-events': 'auto', transform: 'none', filter: 'none', clip: 'auto', 'clip-path': 'none',
         'white-space': 'nowrap', 'vertical-align': 'middle', color: 'inherit', font: 'inherit', 'line-height': '1',
         isolation: 'isolate',
@@ -1412,6 +1424,10 @@ function ensureRabbitMirrorToolHost(summary) {
     }
     normalizeRabbitMirrorToolHost(host);
     containRabbitMirrorTitleToolFloat(summary);
+    if (summary) {
+        setImportantStyle(summary, 'overflow', 'visible');
+        setImportantStyle(summary, 'overflow-x', 'visible');
+    }
     return host;
 }
 
@@ -1814,18 +1830,10 @@ function installFaceSwipeBar(root, host, before) {
             const live = independentActionBridge();
             const current = live?.swipeView?.(root);
             if (!current) return;
-            if (action === 'prev') {
-                const target = current.overlay ? current.currentIndex : current.currentIndex - 1;
-                if (target < 0) return;
-                live.selectSwipe?.(root, target);
-                return;
-            }
-            if (action === 'next') {
-                if (!current.canNext) return;
-                live.selectSwipe?.(root, current.currentIndex + 1);
-                return;
-            }
-            if (action === 'delete') live.deleteSwipe?.(root);
+            const intent = faceSwipeBarIntent(current, action);
+            if (intent.type === 'select') live.selectSwipe?.(root, intent.index);
+            else if (intent.type === 'resay') live.resay?.(root);
+            else if (intent.type === 'delete') live.deleteSwipe?.(root);
         }, true);
     }
     if (before?.parentElement === host) host.insertBefore(bar, before);
@@ -1835,14 +1843,22 @@ function installFaceSwipeBar(root, host, before) {
     const prev = bar.querySelector('[data-rm-face-swipe="prev"]');
     const next = bar.querySelector('[data-rm-face-swipe="next"]');
     const remove = bar.querySelector('[data-rm-face-swipe="delete"]');
-    if (prev) prev.disabled = !view.canPrev;
-    if (next) next.disabled = !view.canNext;
+    if (prev) {
+        prev.disabled = !(view.canPrev || view.canResay);
+        prev.title = view.canPrev ? '上一版' : (view.canResay ? '重说这一面' : '已经是第一版');
+        prev.setAttribute('aria-label', prev.title);
+    }
+    if (next) {
+        next.disabled = !(view.canNext || view.canResay);
+        next.title = view.canNext ? '下一版' : (view.canResay ? '重说这一面' : FACE_SWIPE_FULL_MESSAGE);
+        next.setAttribute('aria-label', next.title);
+    }
     if (remove) {
         remove.disabled = !view.canDelete;
-        remove.hidden = view.count < 1;
+        remove.hidden = false;
         remove.title = view.canDelete ? '删除当前这一版' : (view.overlay ? '失败这一格不会保存，切回上一版即可清掉' : '只剩一版时不能删除');
     }
-    bar.title = view.overlay ? '这一版生成失败，可切回上一版' : (view.full ? '已满五版，删一版后才能重说' : '切换这一面的重说版本');
+    bar.title = view.overlay ? '这一版生成失败，可切回上一版' : (view.full ? FACE_SWIPE_FULL_MESSAGE : '左右箭头可切换版本；到头后点一下就是重说');
     return bar;
 }
 
@@ -1852,10 +1868,20 @@ function installFaceTitleChrome(root, host) {
     installFaceSwipeBar(root, host, star || rabbit);
 }
 
+function stripTheaterFavoriteTitleChrome(scope) {
+    if (!scope?.querySelectorAll) return;
+    scope.querySelectorAll(`[${TOOL_ENTRY_HOST_ATTR}], [data-rm-face-swipe-bar], [data-rm-face-favorite-star], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [data-rm-tool-menu-button]`).forEach(node => node.remove());
+}
+
 function installUnifiedMirrorTools(root) {
     const details = root.matches?.('details') ? root : root.querySelector(':scope > details') || root.querySelector('details');
     const summary = details?.querySelector(':scope > summary');
     if (!summary) return;
+    if (isTheaterFavoriteSurface(root)) {
+        stripTheaterFavoriteTitleChrome(root);
+        void loadMirrorImageModule().then(module => { if (root.isConnected) return module.mountMirrorImage(root); }).catch(() => {});
+        return;
+    }
     const host = ensureRabbitMirrorToolHost(summary);
     const actions = [];
     const add = (attr, enabled, id, label, handler) => {
@@ -1871,7 +1897,7 @@ function installUnifiedMirrorTools(root) {
             .catch(() => globalThis.toastr?.warning?.('生图面板未能打开，请重新打开后再试。'));
     } });
     actions.push({ id: 'theater-favorite-library', label: '📖 打开收藏夹', run: () => {
-        void import('../independentApi.js?rmv=1.5.64').then(module =>
+        void import('../independentApi.js?rmv=1.5.65').then(module =>
             openTheaterFavoriteLibrary((container, record) => module.hydrateIndependentFavoriteHtml(container, record)))
             .catch(error => globalThis.toastr?.warning?.(String(error?.message || '无法打开收藏夹。')));
     } });
@@ -1899,7 +1925,7 @@ function installMaintenanceRabbitsInScopeCore(scope, { allowGlobalRemoval = fals
     if (allowGlobalRemoval && !feedbackEnabled) removeFeedbackCatsInChatDom();
 
     getRenderedRabbitMirrorInteractionRoots(scope).forEach(root => {
-        if (!isInsideChatMessage(root)) return;
+        if (isTheaterFavoriteSurface(root) || !isInsideChatMessage(root)) return;
         armRabbitMirrorFirstUseInteraction(root);
         bindRevealedInteractionMemory(root);
         // Migrate cached/serialized mirrors created by the short-lived inline reset
