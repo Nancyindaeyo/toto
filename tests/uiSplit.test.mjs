@@ -17,10 +17,10 @@ function loadRuntime() {
 
 test('ui runtime loads without settings, independentApi, or the ui barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.73');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.74');
     assert.equal(loaded.SETTINGS_UI_VERSION, '1.12-layered-ui3-missingshell2-requestbudget1');
     assert.equal(loaded.escapeHtml('<a "b">'), '&lt;a &quot;b&quot;&gt;');
-    loaded.__rabbitMirrorRuntimeVersion = '1.5.73';
+    loaded.__rabbitMirrorRuntimeVersion = '1.5.74';
     assert.equal(loaded.isCurrentRuntime(), true);
     loaded.__rabbitMirrorRuntimeVersion = 'other';
     assert.equal(loaded.isCurrentRuntime(), false);
@@ -78,5 +78,5 @@ test('ui.js keeps mount/destroy and no longer embeds the settings dialog HTML', 
     assert.match(source, /const html = buildRabbitMirrorSettingsDialogHtml\(\);/);
     assert.doesNotMatch(source, /id="rh_visual_avoid_prompt"/);
     assert.doesNotMatch(source, /id="rh_tt_diag_start"/);
-    assert.match(source, /from '\.\/ui\/runtime\.js\?rmv=1\.5\.73'/);
+    assert.match(source, /from '\.\/ui\/runtime\.js\?rmv=1\.5\.74'/);
 });

@@ -8,7 +8,7 @@ import {
     RECIPE_BUTTON_ATTR,
     TOOL_ENTRY_HOST_ATTR,
     isRabbitMirrorDetails,
-} from './runtime.js?rmv=1.5.73';
+} from './runtime.js?rmv=1.5.74';
 import {
     EXCLUSIVE_STACKED_STATE_PANEL_ATTR,
     MOBILE_INLINE_ANNOTATION_MIRROR_ATTR,
@@ -24,13 +24,13 @@ import {
     parseCheckedRulesFromText,
     repairRabbitMirrorSelectorPanelGridSpan,
     resolveTargetsForCheckedRule,
-} from './checkedStateRescue.js?rmv=1.5.73';
-import { getClassTokens } from './renderedStateRescue.js?rmv=1.5.73';
+} from './checkedStateRescue.js?rmv=1.5.74';
+import { getClassTokens } from './renderedStateRescue.js?rmv=1.5.74';
 import {
     ensurePassportDocumentRescueStyle,
     findRenderedPassportDocumentCandidates,
     markRenderedPassportDocumentCandidate,
-} from './scriptedInteractionRescue.js?rmv=1.5.73';
+} from './scriptedInteractionRescue.js?rmv=1.5.74';
 import {
     FEEDBACK_CAT_MENU_ATTR,
     INDEPENDENT_MOBILE_SPATIAL_CANVAS_ATTR,
@@ -87,7 +87,7 @@ import {
     mobileLayoutRescueStates,
     mobileMatrixPreserveStates,
     rabbitMirrorFacePositionHints,
-} from './diagnostics.js?rmv=1.5.73';
+} from './diagnostics.js?rmv=1.5.74';
 
 let mobileLayoutScopeCounter = 0;
 

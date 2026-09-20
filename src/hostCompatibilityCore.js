@@ -427,11 +427,14 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         },
         externalPlacementParent(message) {
             initialize();
-            // Managed ChatSurface forbids #chat siblings. `.mes_text` / `.mes_block`
-            // are rewritten on content commit and by calendar UIs, so a host in
-            // that lane disappears. Keep 纯外置 as the last child of `.mes`;
-            // width comes from flex-wrap, not leftover space in the avatar row.
+            // Managed ChatSurface forbids #chat siblings. `.mes` is a horizontal
+            // flex row (avatar + block), so a host appended there shrinks into the
+            // leftover slot on the right. Put 纯外置 after `.mes_text` in `.mes_block`.
             if (!managed || !message) return null;
+            const body = message.querySelector?.('.mes_text');
+            if (body?.parentElement && message.contains(body.parentElement)) return body.parentElement;
+            const block = message.querySelector?.('.mes_block');
+            if (block && message.contains(block)) return block;
             return message;
         },
         applySurface(element, surface) {

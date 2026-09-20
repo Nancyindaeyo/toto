@@ -2,8 +2,8 @@
 
 import { presentationModeFields } from '../presentationMode.js?rmv=1.5.53-visualquick1';
 import { scheduleRabbitMirrorComposerClearance } from '../composerClearance.js?rmv=1.5.58-fork1';
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorExternalPlacementParent } from '../hostCompatibility.js?rmv=1.5.73';
-import { getSettings } from '../settings.js?rmv=1.5.73';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorExternalPlacementParent } from '../hostCompatibility.js?rmv=1.5.74';
+import { getSettings } from '../settings.js?rmv=1.5.74';
 import {
     cleanRabbitMirrorOutput,
     compactTotoBlock,
@@ -17,7 +17,7 @@ import {
     clearRabbitMirrorHorizontalClipArtifacts,
     sanitizeRabbitMirrorUntrustedTemplate,
     validateRabbitMirrorRecoveredStyleAssignments,
-} from '../outputSanitizer.js?rmv=1.5.73';
+} from '../outputSanitizer.js?rmv=1.5.74';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
@@ -36,8 +36,8 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.73';
-import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.73';
+} from './runtime.js?rmv=1.5.74';
+import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.74';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INTERACTION_STATE_MIGRATION_KEY,
@@ -46,7 +46,7 @@ import {
     persistedOwnerForMessage,
     readStore,
     writeStore,
-} from './persistence.js?rmv=1.5.73';
+} from './persistence.js?rmv=1.5.74';
 import {
     chatKey,
     copyIndependentOwnerLineage,
@@ -63,7 +63,7 @@ import {
     savedRecordMatchesObserved,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.73';
+} from './connection.js?rmv=1.5.74';
 import {
     EXTERNAL_GEOMETRY_SETTLE_STEPS_MS,
     allExternalHosts,
@@ -97,7 +97,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     writeGeometryDataset,
-} from './request.js?rmv=1.5.73';
+} from './request.js?rmv=1.5.74';
 import {
     activeIndependentFlightForBase,
     automaticCutoverVersionToken,
@@ -120,20 +120,20 @@ import {
     serializeExternalFaceDetails,
     showMultifaceFace,
     stripIndependentTransientLayoutArtifacts,
-} from './mount.js?rmv=1.5.73';
+} from './mount.js?rmv=1.5.74';
 import {
     automaticHostGenerationRenderMatches,
     hasExistingFollowRabbitMirror,
     queueMessageSync,
     suppressesAutomaticGeneration,
-} from './earlyBody.js?rmv=1.5.73';
+} from './earlyBody.js?rmv=1.5.74';
 import {
     automaticGenerationCutovers,
     persistedInteractionMigrationHandle,
     persistedInteractionMigrationIdle,
     writePersistedInteractionMigrationHandle,
     writePersistedInteractionMigrationIdle,
-} from './lifecycle.js?rmv=1.5.73';
+} from './lifecycle.js?rmv=1.5.74';
 
 let externalGeometryFrame = 0;
 
@@ -509,17 +509,24 @@ export function placeExternalHost(el,host,key='',source='independent'){
  const managedParent=getRabbitMirrorExternalPlacementParent(el);
  const parent=managedParent || el.parentElement;
  if(!parent) return false;
- const needsReanchor = managedParent ? host.parentElement!==managedParent : host.parentElement!==parent
+ const managedBody=managedParent ? messageBody(el) : null;
+ const managedMisplaced=!!(managedParent && (
+  host.parentElement!==managedParent
+  || (managedBody && managedParent===managedBody.parentElement && host.previousElementSibling!==managedBody)
+ ));
+ const needsReanchor = managedParent
+  ? managedMisplaced
+  : (host.parentElement!==parent
    || el.contains(host)
    || externalHostAppearsBeforeOwner(el,host)
-   || host.dataset.rmExternalPlacementEstablished!=='true';
+   || host.dataset.rmExternalPlacementEstablished!=='true');
  const placementChanged=previousPlacement!=='external';
  host.dataset.rmPlacement='external';
  if(source==='independent' && (needsReanchor || placementChanged)) clearExternalShellIntegration(host);
  if(needsReanchor){
   if(managedParent){
-   const clearance=managedParent.querySelector?.(':scope > .rabbit-mirror-composer-clearance');
-   if(clearance) managedParent.insertBefore(host,clearance);
+   const body=messageBody(el);
+   if(body && managedParent===body.parentElement) body.insertAdjacentElement('afterend',host);
    else managedParent.append(host);
   }
   else parent.insertBefore(host,el.nextSibling);

@@ -19,7 +19,7 @@ function loadRuntime() {
 
 test('independentApi runtime loads without flights, connection, or the barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.73');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.74');
     assert.equal(loaded.MAX_INDEPENDENT_REQUEST_CHARS, 50000);
     assert.equal(typeof loaded.byteLength, 'function');
     assert.equal(typeof loaded.flightIdentity, 'undefined');

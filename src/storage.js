@@ -1,6 +1,6 @@
 import { presentationModeFields } from './presentationMode.js?rmv=1.5.53-visualquick1';
 import { packBatchPlanText, unpackBatchPlanText } from './batchPlanCodec.js?rmv=1.5.53-cn-boundary1';
-import { compactFaceSwipeStoreForQuota } from './swipeVersions.js?rmv=1.5.73';
+import { compactFaceSwipeStoreForQuota } from './swipeVersions.js?rmv=1.5.74';
 
 const STORAGE_KEY = 'rabbit_mirror_theater:last_combo:v11';
 const PENDING_KEY = 'rabbit_mirror_theater:pending_combo:v11';
