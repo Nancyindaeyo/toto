@@ -124,3 +124,22 @@ export function replaceFollowPartialResultFace(chat, index, expectedOwner, {expe
     if(!valid(record)||!persistRecord(record)) return null;
     return readFollowPartialResult(chat,index);
 }
+
+export function saveFollowCompletedRetryResult(chat, index, expectedOwner, html, appliedRules) {
+    const identity=owner(chat,index);
+    if(!sameOwner(identity,expectedOwner)||chat[index]!==expectedOwner?.message) return null;
+    const parsed=parseMultifaceOutput(String(html||''));
+    if(!parsed.ok || String(html||'').includes(MULTIFACE_FAILURE_ATTR)) return null;
+    const record={
+        ...identity,
+        html:String(html||''),
+        failedFaces:[],
+        completedAfterRetry:true,
+        ts:Date.now(),
+        textReplacementReceipts:parsed.faces.map(face=>Array.isArray(appliedRules)
+            ? createRabbitMirrorTextReplacementReceipt(face.html,appliedRules,followPartialResultFaceOwnerKey(identity,face.index))
+            : null),
+    };
+    if(!valid(record)||!persistRecord(record)) return null;
+    return readFollowPartialResult(chat,index);
+}

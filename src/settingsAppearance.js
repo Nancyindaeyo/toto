@@ -178,7 +178,8 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
         display:['settings','兔子镜显示模式','选择兔子镜的显示模式。'],
         connection:['settings','给兔子镜连接模型','副 API 生成时，兔子镜会使用这里的连接。'],
         manual:['settings','自己填写接口','使用兼容 OpenAI 的接口地址、密钥与模型。'],
-        parameters:['settings','生成参数','调整副 API 的温度、整批最大输出、自动重 roll，以及完整请求字符预算。'],
+        parameters:['settings','生成参数','调整副 API 的温度、整批最大输出和完整请求字符预算。'],
+        reroll:['settings','自动重 roll','空回、报错或缺面时自动再试；跟随正文 API 和副 API 共用。'],
         request:['settings','请求参数','默认关闭。只有你的模型需要这些参数时，才启用并配置。'],
         read:['settings','它可以参考什么','决定兔子镜副 API 生成时，可以读取哪些资料。'],
         chat:['settings','参考聊天正文','读取层数，以及角色卡和你的 Persona 摘要。'],
@@ -245,6 +246,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     const change=button('更改 ›',()=>navigate('mode'),'rh-ui-text-link');change.dataset.rhRoute='mode';modeSummary.append(change);enable.append(modeSummary);
     const connectionNudge=row('settings','connection','还没有配置副 API 模型','选择连接和模型，供兔子镜单独使用。','memory');
     const displayRow=row('settings','display','兔子镜显示模式');
+    row('settings','reroll','自动重 roll','空回、报错或缺面时自动再试。关闭后只在手动重说或重新生成正文时再出兔子镜。');
     row('settings','image','镜面生图','连接柏宝绘、选择提示词格式。','palette');
     move('rh_image_settings','image');
     row('settings','appearance','主题与外观','调整这个面板的颜色。','palette');row('settings','read','它可以参考什么','聊天正文、角色资料、世界书和共同回忆。','memory');
@@ -270,7 +272,9 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     for(const input of followDisplay.querySelectorAll('input'))choice(input,input.value==='inline'?'放在正文下方':'外置展示',input.value==='inline'?'翻到这条回复，就能看到对应的小剧场。':outer);
     for(const input of indDisplay.querySelectorAll('input'))choice(input,input.value==='external'?'外置展示':'跟随正文内嵌',input.value==='external'?outer:inner);
     for(const node of [followDisplay,indDisplay]){node.removeAttribute('style');node.className='rh-ui-display-options';}
-    move('rh_independent_manual_legacy','manual');move(get('rh_independent_temperature').closest('.rh-independent-generation-params')||get('rh_independent_temperature').closest('.flex-container'),'parameters');move('rh_independent_request_advanced','request');
+    move('rh_independent_manual_legacy','manual');
+    move('rh_automatic_reroll_block','reroll');
+    move(get('rh_independent_temperature').closest('.rh-independent-generation-params')||get('rh_independent_temperature').closest('.flex-container'),'parameters');move('rh_independent_request_advanced','request');
     get('rh_independent_advanced_open').closest('.rabbit-mirror-independent-advanced-row').hidden=true;
     const apiFields=get('rh_independent_api_fields');
     // The emptied display wrapper is presentation only. Connection/profile hooks retain their original parent card.
@@ -335,6 +339,9 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
         modeSummary.querySelector('[data-rh-source-description]').textContent=follow?'使用聊天正在用的模型，不需要另外连接。':timing==='manual'?'先显示待生成外置框，等你点击“生成”才请求模型。':timing==='off'?'当前不生成兔子镜，已保存内容仍保留。':'按原有规则自动请求你配置的模型。';
         body('help').querySelector('[data-rh-timing-guide]').textContent=follow?'保持“随聊天生成小剧场”开启。按选好的生成与显示模式使用兔子镜。':timing==='manual'?'回到聊天，先看到待生成外置框。你判断正文完成后，点击框内“生成”。':timing==='off'?'副 API 当前关闭。需要生成时，先在“怎么生成兔子镜”选择自动生成或手动生成。':'回到聊天，发一条消息。兔子镜按原有自动规则生成。';
         connectionNudge.hidden=follow;nextConnection.hidden=follow;
+        const rerollOn=get('rh_automatic_reroll_enabled').checked===true;
+        const rerollFields=get('rh_automatic_reroll_fields');
+        if(rerollFields) rerollFields.hidden=!rerollOn;
         connectionNudge.querySelector('strong').textContent=get('rh_independent_model').value?'连接与模型':'还没有配置副 API 模型';
         followDisplay.hidden=!follow;indDisplay.hidden=follow;
         const selected=(follow?followDisplay:indDisplay).querySelector('input:checked')?.value;

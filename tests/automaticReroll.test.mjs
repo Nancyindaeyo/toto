@@ -15,6 +15,7 @@ import {
     stallTimeoutError,
     isAutomaticRerollStall,
     isQuotaInsufficientFailure,
+    automaticRerollEnabled,
     isLocalPreflightFailure,
 } from '../src/automaticReroll.js';
 
@@ -81,4 +82,11 @@ test('settings keep 0 as no extra automatic posts', () => {
     assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 1, max: 0 }), false);
     assert.equal(shouldAutomaticReroll({ failedPosts: 3, max: 4 }), true);
     assert.equal(shouldAutomaticReroll({ failedPosts: 5, max: 4 }), false);
+});
+
+test('master switch disables extra posts for both APIs', () => {
+    assert.equal(automaticRerollEnabled({}), true);
+    assert.equal(automaticRerollEnabled({ automaticRerollEnabled: false }), false);
+    assert.equal(configuredAutomaticRerollMax({ automaticRerollEnabled: false, independentAutomaticRerollMax: 8 }), 0);
+    assert.equal(shouldAutomaticReroll({ enabled: false, failedPosts: 1, max: 8 }), false);
 });

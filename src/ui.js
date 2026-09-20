@@ -408,6 +408,8 @@ export function initRabbitMirrorUI() {
     $('#rh_independent_max_request_chars').val(settings.independentMaxRequestChars ?? DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS);
     $('#rh_independent_automatic_reroll').val(settings.independentAutomaticRerollMax ?? 2);
     $('#rh_independent_automatic_reroll_idle').val(settings.independentAutomaticRerollIdleSeconds ?? 90);
+    checked('#rh_automatic_reroll_enabled', settings.automaticRerollEnabled !== false);
+    $('#rh_automatic_reroll_fields').prop('hidden', settings.automaticRerollEnabled === false);
     checked('#rh_independent_advanced_enabled', settings.independentAdvancedEnabled === true);
     $('#rh_independent_reasoning_effort').val(settings.independentReasoningEffort || '');
     $('#rh_independent_extra_params').val(typeof settings.independentExtraParams === 'string' ? settings.independentExtraParams : '');
@@ -1078,6 +1080,7 @@ export function initRabbitMirrorUI() {
             independentApiTemperature:Number.isFinite(temperature)?temperature:0.8,
             independentApiMaxTokens:Number.isFinite(maxTokens)&&maxTokens>0?maxTokens:30000,
             independentMaxRequestChars:Number.isFinite(maxRequestChars)&&maxRequestChars>0?maxRequestChars:DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS,
+            automaticRerollEnabled:$('#rh_automatic_reroll_enabled').prop('checked')===true,
             independentAutomaticRerollMax:Number.isFinite(rerollMax)?rerollMax:2,
             independentAutomaticRerollIdleSeconds:Number.isFinite(rerollIdle)?rerollIdle:90,
             independentContextMaxLayers:Number.isFinite(contextLayers)&&contextLayers>0?contextLayers:20,
@@ -1103,6 +1106,7 @@ export function initRabbitMirrorUI() {
             independentApiTemperature: Number.isFinite(temperature) ? temperature : 0.8,
             independentApiMaxTokens: Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : 30000,
             independentMaxRequestChars: Number.isFinite(maxRequestChars) && maxRequestChars > 0 ? maxRequestChars : DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS,
+            automaticRerollEnabled: $('#rh_automatic_reroll_enabled').prop('checked') === true,
             independentAutomaticRerollMax: Number.isFinite(rerollMax) ? rerollMax : 2,
             independentAutomaticRerollIdleSeconds: Number.isFinite(rerollIdle) ? rerollIdle : 90,
             independentContextMaxLayers: Number.isFinite(contextLayers) && contextLayers > 0 ? contextLayers : 20,
@@ -1197,6 +1201,11 @@ export function initRabbitMirrorUI() {
     // Safari may emit repeated input/autofill events as the drawer opens, which made the UI stutter.
     $('#rh_independent_base, #rh_independent_key, #rh_independent_model').on('change blur', saveIndependentFields);
     $('#rh_independent_temperature, #rh_independent_max_tokens, #rh_independent_max_request_chars, #rh_independent_automatic_reroll, #rh_independent_automatic_reroll_idle, #rh_independent_context_layers').on('change', saveIndependentFields);
+    $('#rh_automatic_reroll_enabled').on('change', () => {
+        const enabled = $('#rh_automatic_reroll_enabled').prop('checked') === true;
+        $('#rh_automatic_reroll_fields').prop('hidden', !enabled);
+        updateSettings({ automaticRerollEnabled: enabled });
+    });
     let independentModelListSource=null;
     const independentProfileSourceRevision = () => Number(globalThis.__rabbitMirrorIndependentProfileSourceRevision||0);
     const syncIndependentProfileSelector = profileId => {

@@ -17,6 +17,7 @@ import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbi
 import {
     FOLLOW_MULTIFACE_COMMITTED_EVENT,
     FOLLOW_MULTIFACE_REJECTED_EVENT,
+    FOLLOW_GENERATION_SETTLED_EVENT,
     getRabbitMirrorFollowBatchFailure,
 } from '../visualScanner.js?rmv=1.6';
 import { commitPendingComboBatch, releasePendingComboBatch } from '../storage.js?rmv=1.5.53-visualquick1';
@@ -2510,10 +2511,23 @@ function handleFollowMultifaceCommitted(event){
  return true;
 }
 
+function followAutomaticRerollDeps(){
+ return {
+  getContext,
+  hostBusy:hostGenerationLooksActive,
+  maxRequestChars:configuredIndependentMaxRequestChars(getSettings()),
+  followBatchFailure:getRabbitMirrorFollowBatchFailure,
+  messageElement,
+  replaceExternalFace:replaceExternalMultifaceFace,
+  context:(ctx,index)=>{const snapshot=globalWorldInfoSnapshotFor(ctx,index,ctx.chat[index]);return contextBundle(ctx,index,snapshot,globalWorldInfoContextView(snapshot),CONTEXT_TOTAL_BUDGET,createIndependentVisibleTextReader(index));},
+ };
+}
+
 export function installFollowMultifaceCommitListener(){
  if(followMultifaceCommitListenerInstalled) return;
  globalThis.addEventListener?.(FOLLOW_MULTIFACE_COMMITTED_EVENT,handleFollowMultifaceCommitted);
  globalThis.addEventListener?.(FOLLOW_MULTIFACE_REJECTED_EVENT,handleFollowMultifaceRejected);
+ globalThis.addEventListener?.(FOLLOW_GENERATION_SETTLED_EVENT,handleFollowGenerationSettled);
  followMultifaceCommitListenerInstalled=true;
 }
 
@@ -2521,6 +2535,7 @@ export function removeFollowMultifaceCommitListener(){
  if(!followMultifaceCommitListenerInstalled) return;
  globalThis.removeEventListener?.(FOLLOW_MULTIFACE_COMMITTED_EVENT,handleFollowMultifaceCommitted);
  globalThis.removeEventListener?.(FOLLOW_MULTIFACE_REJECTED_EVENT,handleFollowMultifaceRejected);
+ globalThis.removeEventListener?.(FOLLOW_GENERATION_SETTLED_EVENT,handleFollowGenerationSettled);
  followMultifaceCommitListenerInstalled=false;
 }
 
@@ -2531,6 +2546,20 @@ function handleFollowMultifaceRejected(event){
  const failure=getRabbitMirrorFollowBatchFailure(ctx?.chat,index);
  if(!failure || failure.batchId!==event?.detail?.batchId) return false;
  queueMessageSync([index]);
+ void import('../followAutomaticReroll.js?rmv=1.6').then(({maybeAutomaticFollowReroll})=>maybeAutomaticFollowReroll(index,followAutomaticRerollDeps()));
+ return true;
+}
+
+function handleFollowGenerationSettled(event){
+ const index=Number(event?.detail?.messageIndex);
+ if(!Number.isInteger(index)||index<0) return false;
+ if(event?.detail?.cancelled===true){
+  void import('../followAutomaticReroll.js?rmv=1.6').then(({markFollowAutomaticRerollCancelled})=>{
+   markFollowAutomaticRerollCancelled(getContext(),index);
+  });
+  return true;
+ }
+ void import('../followAutomaticReroll.js?rmv=1.6').then(({maybeAutomaticFollowReroll})=>maybeAutomaticFollowReroll(index,followAutomaticRerollDeps()));
  return true;
 }
 

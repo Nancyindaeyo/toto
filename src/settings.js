@@ -131,6 +131,7 @@ export const defaultSettings = Object.freeze({
     independentMaxRequestChars: DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS,
     independentAutomaticRerollMax: AUTOMATIC_REROLL_DEFAULT,
     independentAutomaticRerollIdleSeconds: AUTOMATIC_REROLL_IDLE_DEFAULT_SECONDS,
+    automaticRerollEnabled: true,
     independentAdvancedEnabled: false,
     independentReasoningEffort: '',
     independentExtraParams: '',
@@ -243,6 +244,7 @@ export function getSettings() {
     settings.independentMaxRequestChars = normalizeIndependentMaxRequestChars(settings.independentMaxRequestChars);
     settings.independentAutomaticRerollMax = normalizeAutomaticRerollMax(settings.independentAutomaticRerollMax);
     settings.independentAutomaticRerollIdleSeconds = normalizeAutomaticRerollIdleSeconds(settings.independentAutomaticRerollIdleSeconds);
+    settings.automaticRerollEnabled = settings.automaticRerollEnabled !== false;
     // Keep this startup path scalar-only. Invalid stored JSON is not silently
     // truncated or repaired; opt-in request preflight validates it before send.
     settings.independentAdvancedEnabled = settings.independentAdvancedEnabled === true;
@@ -391,6 +393,9 @@ export function updateSettings(patch) {
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyEnabled')) safePatch.independentEarlyBodyEnabled = safePatch.independentEarlyBodyEnabled === true;
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyTags')) safePatch.independentEarlyBodyTags = normalizeIndependentEarlyBodyTags(safePatch.independentEarlyBodyTags);
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyChatKey')) safePatch.independentEarlyBodyChatKey = String(safePatch.independentEarlyBodyChatKey || '').slice(0, 2048);
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'automaticRerollEnabled')) {
+        safePatch.automaticRerollEnabled = safePatch.automaticRerollEnabled !== false;
+    }
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentAutomaticRerollMax')) {
         safePatch.independentAutomaticRerollMax = normalizeAutomaticRerollMax(safePatch.independentAutomaticRerollMax);
     }
