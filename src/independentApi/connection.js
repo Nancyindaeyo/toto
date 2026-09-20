@@ -18,8 +18,8 @@ import {
     RUNTIME_VERSION,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.60-split2';
-import { HOST_GENERATION_EVENT_HINT_MS, operationEpochForBase } from './flights.js?rmv=1.5.60-split2';
+} from './runtime.js?rmv=1.5.62';
+import { HOST_GENERATION_EVENT_HINT_MS, operationEpochForBase } from './flights.js?rmv=1.5.62';
 import {
     OWNER_LOCK_STORE_KEY,
     apiProfileKey,
@@ -31,12 +31,12 @@ import {
     writeApiProfileStore,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.60-split2';
+} from './persistence.js?rmv=1.5.62';
 import {
     hasExplicitSourceReplacementEvidence,
     independentStoredHtmlLightRestorable,
     independentStoredHtmlRestorable,
-} from './geometry.js?rmv=1.5.60-split2';
+} from './geometry.js?rmv=1.5.62';
 import {
     activeIndependentFlightForBase,
     messageSourceRevisions,
@@ -44,13 +44,13 @@ import {
     passiveObservedIdentity,
     runtimeMode,
     showIndependentUnsavedOutput,
-} from './mount.js?rmv=1.5.60-split2';
+} from './mount.js?rmv=1.5.62';
 import {
     hostGenerationHintStartedAt,
     hostGenerationInProgress,
     writeHostGenerationHintStartedAt,
     writeHostGenerationInProgress,
-} from './lifecycle.js?rmv=1.5.60-split2';
+} from './lifecycle.js?rmv=1.5.62';
 
 export const API_PROFILE_STORE_KEY = 'rabbit_mirror_independent_api_profiles_v1';
 
@@ -339,7 +339,6 @@ export function publishIndependentApiRequestDiagnostic(value){
 }
 
 export function getLastIndependentApiRequestDiagnostic(){ return readLastIndependentApiRequestDiagnostic(); }
-export { API_REQUEST_DIAGNOSTIC_EVENT, scanCurrentChatIndependentContextTags };
 
 export function normalizeIndependentConnectionText(value,max=1000){ return String(value??'').replace(/\r\n?/g,'\n').replace(/\u0000/g,'').trim().slice(0,max); }
 

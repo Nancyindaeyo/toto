@@ -18,7 +18,7 @@ import {
     getRabbitMirrorLocalStyleElements,
     getRenderedRabbitMirrorInteractionRoots,
     isRabbitMirrorDetails,
-} from './runtime.js?rmv=1.5.60-split1';
+} from './runtime.js?rmv=1.5.62';
 import {
     CHANGE_PSEUDO_RESCUE_ATTR,
     DETACHED_CHECKED_HAS_RULE_COUNT_ATTR,
@@ -55,7 +55,7 @@ import {
     reversibleStyleBaselineStates,
     reversibleTextBaselineStates,
     syncCrossParentCheckedRuleFallback,
-} from './checkedStateRescue.js?rmv=1.5.60-split1';
+} from './checkedStateRescue.js?rmv=1.5.62';
 import {
     EXISTING_INTERACTIVE_SELECTOR,
     PSEUDO_INTERACTION_HINT_RE,
@@ -77,8 +77,8 @@ import {
     resolveCheckedRelativeElementExpression,
     resolveScopedPseudoId,
     sanitizeRecoveredInteractionStyleAssignments,
-} from './renderedStateRescue.js?rmv=1.5.60-split1';
-import { cancelLabeledCheckedTransitionVerification, setRescuedCheckedState } from './fallbackRescue.js?rmv=1.5.60-split1';
+} from './renderedStateRescue.js?rmv=1.5.62';
+import { cancelLabeledCheckedTransitionVerification, setRescuedCheckedState } from './fallbackRescue.js?rmv=1.5.62';
 import {
     DISABLED_ONLY_CHOICE_RESCUE_ATTR,
     FILL_IN_CHOICE_COUNT_ATTR,
@@ -89,7 +89,7 @@ import {
     SELECTION_ONLY_FALLBACK_ATTR,
     STATIC_CHOICE_SELECTION_COUNT_ATTR,
     STRUCTURED_STATIC_DISCLOSURE_COUNT_ATTR,
-} from './diagnostics.js?rmv=1.5.60-split1';
+} from './diagnostics.js?rmv=1.5.62';
 import {
     checkedDeclarationCreatesContentReveal,
     getRenderedMessageElement,
@@ -97,14 +97,14 @@ import {
     isIndependentMaintenanceRoot,
     maintenanceMessageSourceCandidates,
     normalizeMaintenanceSummaryText,
-} from './maintenanceInspect.js?rmv=1.5.60-split1';
+} from './maintenanceInspect.js?rmv=1.5.62';
 import {
     decodeHtmlEntities,
     normalizeMirrorAttribute,
     rescueDamagedDataUriRabbitMirrorOutput,
     validateRabbitMirrorMarkupLexicalBudget,
-} from './markup.js?rmv=1.5.60-split1';
-import { getMessageIndexFromMirrorNode, hostScriptModule, messageUsesDistinctDisplaySource } from './lifecycle.js?rmv=1.5.60-split1';
+} from './markup.js?rmv=1.5.62';
+import { getMessageIndexFromMirrorNode, hostScriptModule, messageUsesDistinctDisplaySource } from './lifecycle.js?rmv=1.5.62';
 
 export const RAW_RADIO_RESET_RESCUE_ATTR = 'data-rabbit-mirror-radio-reset-rescue';
 

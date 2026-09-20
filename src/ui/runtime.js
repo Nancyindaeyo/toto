@@ -1,7 +1,7 @@
 // Split from ui.js — runtime.
 
 export const SETTINGS_UI_VERSION = '1.12-layered-ui3-swipe1';
-export const RUNTIME_VERSION = '1.5.61';
+export const RUNTIME_VERSION = '1.5.62';
 
 export function isCurrentRuntime() {
     return globalThis.__rabbitMirrorRuntimeVersion === RUNTIME_VERSION;

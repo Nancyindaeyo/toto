@@ -17,7 +17,7 @@ import {
     clearRabbitMirrorHorizontalClipArtifacts,
     sanitizeRabbitMirrorUntrustedTemplate,
     validateRabbitMirrorRecoveredStyleAssignments,
-} from '../outputSanitizer.js?rmv=1.5.61';
+} from '../outputSanitizer.js?rmv=1.5.62';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
@@ -36,8 +36,8 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.60-split2';
-import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.60-split2';
+} from './runtime.js?rmv=1.5.62';
+import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.62';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INTERACTION_STATE_MIGRATION_KEY,
@@ -46,7 +46,7 @@ import {
     persistedOwnerForMessage,
     readStore,
     writeStore,
-} from './persistence.js?rmv=1.5.60-split2';
+} from './persistence.js?rmv=1.5.62';
 import {
     chatKey,
     copyIndependentOwnerLineage,
@@ -63,7 +63,7 @@ import {
     savedRecordMatchesObserved,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.60-split2';
+} from './connection.js?rmv=1.5.62';
 import {
     EXTERNAL_GEOMETRY_SETTLE_STEPS_MS,
     allExternalHosts,
@@ -97,7 +97,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     writeGeometryDataset,
-} from './request.js?rmv=1.5.60-split2';
+} from './request.js?rmv=1.5.62';
 import {
     activeIndependentFlightForBase,
     automaticCutoverVersionToken,
@@ -119,20 +119,20 @@ import {
     runtimeMode,
     serializeExternalFaceDetails,
     stripIndependentTransientLayoutArtifacts,
-} from './mount.js?rmv=1.5.60-split2';
+} from './mount.js?rmv=1.5.62';
 import {
     automaticHostGenerationRenderMatches,
     hasExistingFollowRabbitMirror,
     queueMessageSync,
     suppressesAutomaticGeneration,
-} from './earlyBody.js?rmv=1.5.60-split2';
+} from './earlyBody.js?rmv=1.5.62';
 import {
     automaticGenerationCutovers,
     persistedInteractionMigrationHandle,
     persistedInteractionMigrationIdle,
     writePersistedInteractionMigrationHandle,
     writePersistedInteractionMigrationIdle,
-} from './lifecycle.js?rmv=1.5.60-split2';
+} from './lifecycle.js?rmv=1.5.62';
 
 let externalGeometryFrame = 0;
 

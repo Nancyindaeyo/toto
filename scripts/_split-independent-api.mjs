@@ -637,6 +637,9 @@ function pieceFor(decl) {
     let text = decl.text;
     const shouldExport = exportedByModule.get(moduleOf.get(decl.name)).has(decl.name);
     if (shouldExport && !/^\s*export\s/.test(text)) text = `export ${text}`;
+    // Late `export { name }` lists are glued onto the previous decl. Strip them
+    // so adding `export` on the real function/const does not duplicate names.
+    text = text.replace(/\nexport \{[^}]+\};?\s*$/g, '\n');
     return text.endsWith('\n') ? text : `${text}\n`;
 }
 

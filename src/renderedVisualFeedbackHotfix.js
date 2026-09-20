@@ -1,4 +1,4 @@
-import { scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.61';
+import { scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.62';
 import { updateLatestVisualSignature } from './storage.js?rmv=1.5.53-visualquick1';
 
 const VERSION = '1.5.53';

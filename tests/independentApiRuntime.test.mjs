@@ -19,7 +19,7 @@ function loadRuntime() {
 
 test('independentApi runtime loads without flights, connection, or the barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.61');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.62');
     assert.equal(typeof loaded.byteLength, 'function');
     assert.equal(typeof loaded.flightIdentity, 'undefined');
     assert.equal(typeof loaded.initIndependentRabbitMirror, 'undefined');
@@ -42,6 +42,10 @@ test('connection profile helpers stay with the documented connection cut', () =>
     assert.match(source, /export function profileTokenField\(/);
     assert.doesNotMatch(source, /export function initIndependentRabbitMirror/);
     assert.doesNotMatch(source, /export function repairRabbitMirrorFaceAutoWidth/);
+    assert.doesNotMatch(source, /export \{[^}]*scanCurrentChatIndependentContextTags/);
+    assert.doesNotMatch(source, /export \{[^}]*API_REQUEST_DIAGNOSTIC_EVENT/);
+    assert.match(source, /export async function scanCurrentChatIndependentContextTags\(/);
+    assert.match(source, /export const API_REQUEST_DIAGNOSTIC_EVENT/);
 });
 
 test('geometry module owns face auto-width and remeasure', () => {
