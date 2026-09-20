@@ -471,7 +471,7 @@ for (const decl of decls) {
 }
 
 function assignsIdent(text, name) {
-    return new RegExp(`(?:^|[^.\\w$])${name}\\s*(?:\\+\\+|--|\\+=|-=|=(?!=))`).test(text);
+    return new RegExp(`(?:(?:^|[^.\\w$])(?:\\+\\+|--)${name}\\b|(?:^|[^.\\w$])${name}\\s*(?:\\+\\+|--|\\+=|-=|=(?!=)))`).test(text);
 }
 
 for (const decl of decls) {
@@ -730,8 +730,11 @@ function rewriteImportedAssigns(body, name) {
     const fn = setterName(name);
     return body
         .replace(new RegExp(`(?<![.\\w$])\\+\\+${name}\\b`, 'g'), `${fn}(${name}+1)`)
+        .replace(new RegExp(`(?<![.\\w$])--${name}\\b`, 'g'), `${fn}(${name}-1)`)
         .replace(new RegExp(`(?<![.\\w$])${name}\\+\\+`, 'g'), `${fn}(${name}+1)`)
+        .replace(new RegExp(`(?<![.\\w$])${name}--`, 'g'), `${fn}(${name}-1)`)
         .replace(new RegExp(`(?<![.\\w$])${name}\\s*\\+=\\s*([^;\\n]+)`, 'g'), `${fn}(${name}+($1))`)
+        .replace(new RegExp(`(?<![.\\w$])${name}\\s*-=\\s*([^;\\n]+)`, 'g'), `${fn}(${name}-($1))`)
         .replace(new RegExp(`(?<![.\\w$])${name}\\s*=(?!=)\\s*([^;\\n]+)`, 'g'), (all, rhs) => {
             const trimmed = String(rhs).replace(/\r$/, '').trimEnd();
             if (/[({[]$/.test(trimmed)) {

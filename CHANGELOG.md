@@ -1,3 +1,8 @@
+# 1.5.64 · 拆分后挂载小剧场会把只读绑定 ++ 崩掉
+
+- 1.5.61 拆分只给 `name =` 加了 setter，漏了前缀 `++name` / `name -=`。挂载外置小剧场时 `++externalGeometryCycleSequence` 抛 “Assignment to constant variable”，当前楼卡在「正在生成中」，历史小剧场回挂失败。
+- 改走 `writeExternalGeometryCycleSequence` / `writeIndependentRejectedPreviewSequence`，缓存戳升到 1.5.64。覆盖安装后请完整刷新，确认运行版本 1.5.64。
+
 # 1.5.63 · 拆分 setter 包行把挂载脚本写坏
 
 - 1.5.61 拆分把跨行赋值改成 `writeX(...)` 时只包了第一行，`mount.js` / `earlyBody.js` 出现 `setTimeout(()=>{)` 这种语法错误，延迟核心再次加载失败。

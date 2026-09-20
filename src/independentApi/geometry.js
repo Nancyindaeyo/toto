@@ -17,7 +17,7 @@ import {
     clearRabbitMirrorHorizontalClipArtifacts,
     sanitizeRabbitMirrorUntrustedTemplate,
     validateRabbitMirrorRecoveredStyleAssignments,
-} from '../outputSanitizer.js?rmv=1.5.63';
+} from '../outputSanitizer.js?rmv=1.5.64';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
@@ -36,8 +36,8 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.63';
-import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.63';
+} from './runtime.js?rmv=1.5.64';
+import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.64';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INTERACTION_STATE_MIGRATION_KEY,
@@ -46,7 +46,7 @@ import {
     persistedOwnerForMessage,
     readStore,
     writeStore,
-} from './persistence.js?rmv=1.5.63';
+} from './persistence.js?rmv=1.5.64';
 import {
     chatKey,
     copyIndependentOwnerLineage,
@@ -63,7 +63,7 @@ import {
     savedRecordMatchesObserved,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.63';
+} from './connection.js?rmv=1.5.64';
 import {
     EXTERNAL_GEOMETRY_SETTLE_STEPS_MS,
     allExternalHosts,
@@ -97,7 +97,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     writeGeometryDataset,
-} from './request.js?rmv=1.5.63';
+} from './request.js?rmv=1.5.64';
 import {
     activeIndependentFlightForBase,
     automaticCutoverVersionToken,
@@ -119,20 +119,20 @@ import {
     runtimeMode,
     serializeExternalFaceDetails,
     stripIndependentTransientLayoutArtifacts,
-} from './mount.js?rmv=1.5.63';
+} from './mount.js?rmv=1.5.64';
 import {
     automaticHostGenerationRenderMatches,
     hasExistingFollowRabbitMirror,
     queueMessageSync,
     suppressesAutomaticGeneration,
-} from './earlyBody.js?rmv=1.5.63';
+} from './earlyBody.js?rmv=1.5.64';
 import {
     automaticGenerationCutovers,
     persistedInteractionMigrationHandle,
     persistedInteractionMigrationIdle,
     writePersistedInteractionMigrationHandle,
     writePersistedInteractionMigrationIdle,
-} from './lifecycle.js?rmv=1.5.63';
+} from './lifecycle.js?rmv=1.5.64';
 
 let externalGeometryFrame = 0;
 
@@ -143,6 +143,8 @@ let externalGeometryLastSignature = '';
 let externalGeometryListenersInstalled = false;
 
 export let externalGeometryCycleSequence = 0;
+
+export function writeExternalGeometryCycleSequence(value){ externalGeometryCycleSequence = value; return value; }
 
 export let externalGeometryLifecycleEpoch = 1;
 

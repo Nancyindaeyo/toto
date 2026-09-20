@@ -83,7 +83,7 @@ const worldInfoFns = sliceExclusive(
 const worldInfoBooksJs = `// Split from ui.js — worldbook list rendering and visibility.
 
 import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
-import { WORLD_INFO_BOOKS_CHANGED_EVENT, fetchWorldInfoBooks, getObservedWorldInfoBooks } from '../independentApi.js?rmv=1.5.63';
+import { WORLD_INFO_BOOKS_CHANGED_EVENT, fetchWorldInfoBooks, getObservedWorldInfoBooks } from '../independentApi.js?rmv=1.5.64';
 import { escapeHtml, isCurrentRuntime } from './runtime.js?rmv=${STAMP}';
 
 let pulledWorldInfoBooks = [];
@@ -139,7 +139,7 @@ const tokenMeterJs = `// Split from ui.js — Prompt meter and latest independen
 
 import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
 import { getLastRabbitMirrorTokenRecordForSource, TOKEN_METER_EVENT } from '../tokenMeter.js?rmv=1.5.53-visualquick1';
-import { API_REQUEST_DIAGNOSTIC_EVENT, getLastIndependentApiRequestDiagnostic } from '../independentApi.js?rmv=1.5.63';
+import { API_REQUEST_DIAGNOSTIC_EVENT, getLastIndependentApiRequestDiagnostic } from '../independentApi.js?rmv=1.5.64';
 import { escapeHtml } from './runtime.js?rmv=${STAMP}';
 
 ${profileLabel}${diagnosticAndMeter}

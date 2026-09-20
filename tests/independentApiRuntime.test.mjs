@@ -19,7 +19,7 @@ function loadRuntime() {
 
 test('independentApi runtime loads without flights, connection, or the barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.63');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.64');
     assert.equal(typeof loaded.byteLength, 'function');
     assert.equal(typeof loaded.flightIdentity, 'undefined');
     assert.equal(typeof loaded.initIndependentRabbitMirror, 'undefined');
@@ -63,5 +63,37 @@ test('imported setter wraps do not leave a stray paren after an opening brace', 
         const source = readFileSync(new URL(name, dir), 'utf8');
         assert.doesNotMatch(source, /\{\r\)/, `${name} has a first-line setter wrap leftover`);
         assert.doesNotMatch(source, /write[A-Z][A-Za-z]*\([^;\n]*\{\s*\)/, `${name} has a broken setter wrap`);
+    }
+});
+
+test('imported lets are not mutated with ++/--/+=/-=', () => {
+    const dir = new URL('../src/independentApi/', import.meta.url);
+    const files = readdirSync(dir).filter(file => file.endsWith('.js'));
+    const exportedLets = new Map();
+    const importRe = /import\s+\{([\s\S]*?)\}\s*from\s*['"]\.\/([A-Za-z]+)\.js\?rmv=[^'"]+['"]/g;
+    for (const name of files) {
+        const source = readFileSync(new URL(name, dir), 'utf8');
+        for (const match of source.matchAll(/^export let ([A-Za-z_$][\w$]*)\s*=/gm)) {
+            exportedLets.set(`${name.replace(/\.js$/, '')}:${match[1]}`, true);
+        }
+    }
+    for (const name of files) {
+        const source = readFileSync(new URL(name, dir), 'utf8');
+        const localModule = name.replace(/\.js$/, '');
+        for (const match of source.matchAll(importRe)) {
+            const from = match[2];
+            if (from === localModule) continue;
+            for (const part of match[1].split(',')) {
+                const piece = part.trim();
+                if (!piece) continue;
+                const alias = piece.match(/^(?:([A-Za-z_$][\w$]*)\s+as\s+)?([A-Za-z_$][\w$]*)$/);
+                if (!alias) continue;
+                const exported = alias[1] || alias[2];
+                const local = alias[2];
+                if (!exportedLets.has(`${from}:${exported}`)) continue;
+                const mutated = new RegExp(`(?:(?:^|[^.\\w$])(?:\\+\\+|--)${local}\\b|(?:^|[^.\\w$])${local}\\s*(?:\\+\\+|--|\\+=|-=|=(?!=)))`);
+                assert.equal(mutated.test(source), false, `${name} mutates imported let ${local} from ${from}.js`);
+            }
+        }
     }
 });

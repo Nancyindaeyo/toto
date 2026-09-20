@@ -23,9 +23,9 @@ import {
 } from '../promptBuilder.js?rmv=1.5.53-image1';
 import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from '../externalWorldBook/store.js?rmv=1.5.53-text1';
 import { describeExternalWorldBookPreflightFailure } from '../externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
-import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.5.63';
+import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.5.64';
 import { parseMultifaceOutput, recoverableMultifaceFrames, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.63';
+import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.64';
 import {
     updateLatestVisualSignature,
     parseVisualFamilySkeleton,
@@ -45,8 +45,8 @@ import {
     byteLength,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.63';
-import { operationEpochForBase } from './flights.js?rmv=1.5.63';
+} from './runtime.js?rmv=1.5.64';
+import { operationEpochForBase } from './flights.js?rmv=1.5.64';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INDEPENDENT_MAX_APPROX_DEPTH,
@@ -61,7 +61,7 @@ import {
     normalizedConfiguredTemperature,
     readHistoryStore,
     readStore,
-} from './persistence.js?rmv=1.5.63';
+} from './persistence.js?rmv=1.5.64';
 import {
     API_PROFILE_ORDER,
     chatKey,
@@ -95,7 +95,7 @@ import {
     stageNextApiProfile,
     swipeId,
     validatedIndependentConnectionProfile,
-} from './connection.js?rmv=1.5.63';
+} from './connection.js?rmv=1.5.64';
 import {
     externalGeometryCycleSequence,
     externalGeometryLifecycleEpoch,
@@ -103,9 +103,10 @@ import {
     externalGeometryOwnerNodes,
     prepareIndependentReadyHtml,
     readyDetailsFromHost,
+    writeExternalGeometryCycleSequence,
     writeExternalGeometryLifecycleEpoch,
     writeExternalGeometryLifecycleReason,
-} from './geometry.js?rmv=1.5.63';
+} from './geometry.js?rmv=1.5.64';
 import {
     INDEPENDENT_REJECTED_PREVIEW_MAX_CHARS,
     INDEPENDENT_REJECTED_PREVIEW_MAX_ENTRIES,
@@ -120,8 +121,9 @@ import {
     resayIndependentMirror,
     writeExternalHostSyncIndex,
     writeIndependentRejectedPreviewChars,
-} from './mount.js?rmv=1.5.63';
-import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.5.63';
+    writeIndependentRejectedPreviewSequence,
+} from './mount.js?rmv=1.5.64';
+import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.5.64';
 
 const NON_STREAM_PROFILE_BY_STREAM_PROFILE={
  chat_system_user_full:'chat_system_user_full_nostream',
@@ -1415,10 +1417,10 @@ function cacheIndependentRejectedFacePreview(html=''){
  if(!html || html.length>INDEPENDENT_REJECTED_PREVIEW_MAX_CHARS) return '';
  while(independentRejectedFacePreviews.size && (independentRejectedFacePreviews.size>=INDEPENDENT_REJECTED_PREVIEW_MAX_ENTRIES || independentRejectedPreviewChars+html.length>INDEPENDENT_REJECTED_PREVIEW_MAX_CHARS)){
   const oldest=independentRejectedFacePreviews.keys().next().value;
-  independentRejectedPreviewChars-=independentRejectedFacePreviews.get(oldest).length;
+  writeIndependentRejectedPreviewChars(independentRejectedPreviewChars-independentRejectedFacePreviews.get(oldest).length);
   independentRejectedFacePreviews.delete(oldest);
  }
- const id=`rejected-${Date.now().toString(36)}-${++independentRejectedPreviewSequence}`;
+ const id=`rejected-${Date.now().toString(36)}-${writeIndependentRejectedPreviewSequence(independentRejectedPreviewSequence+(1))}`;
  independentRejectedFacePreviews.set(id,html); writeIndependentRejectedPreviewChars(independentRejectedPreviewChars+(html.length));
  return id;
 }
@@ -2369,7 +2371,7 @@ export function markExternalGeometryLifecycle(reason='lifecycle-refresh'){
 
 export function beginExternalHostGeometryCycle(host,reason='geometry-refresh',el=null){
  if(!host?.dataset || host.dataset.rmSource!=='independent' || String(host.dataset.rmPlacement||'external')!=='external') return '';
- const cycleId=String(++externalGeometryCycleSequence);
+ const cycleId=String(writeExternalGeometryCycleSequence(externalGeometryCycleSequence+(1)));
  host.dataset.rmGeometryCycleId=cycleId;
  host.dataset.rmGeometryCycleVersion=EXTERNAL_GEOMETRY_CYCLE_VERSION;
  host.dataset.rmGeometryCycleReason=String(reason||'geometry-refresh');
