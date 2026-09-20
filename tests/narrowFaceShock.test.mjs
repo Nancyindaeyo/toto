@@ -7,11 +7,19 @@ import vm from 'node:vm';
 // deliberately simulated DOM/geometry boundary. They are not browser rendering,
 // Safari or TT device tests. The 227/366 fixture is the historical narrow-face
 // geometry recorded by the project's independentExternalAutoRootWidth test.
-const source = readFileSync(new URL('../src/independentApi.js', import.meta.url), 'utf8');
-function sourceBlock(startMarker, endMarker) {
+function readIndependentApiSource(name) {
+    return readFileSync(new URL(`../src/independentApi/${name}`, import.meta.url), 'utf8');
+}
+const geometrySource = readIndependentApiSource('geometry.js');
+const connectionSource = readIndependentApiSource('connection.js');
+const requestSource = readIndependentApiSource('request.js');
+const persistedRuntimeUiSelector = geometrySource.match(/^const PERSISTED_RUNTIME_UI_SELECTOR = .*;$/m);
+assert.ok(persistedRuntimeUiSelector, 'PERSISTED_RUNTIME_UI_SELECTOR missing from geometry.js');
+function sourceBlock(source, startMarker, endMarker) {
     const start = source.indexOf(startMarker);
-    const end = source.indexOf(endMarker, start);
-    assert.ok(start >= 0 && end > start, `${startMarker} source block missing`);
+    assert.ok(start >= 0, `${startMarker} source block missing`);
+    const end = endMarker == null ? source.length : source.indexOf(endMarker, start + startMarker.length);
+    assert.ok(end > start, `${endMarker || 'EOF'} end marker missing after ${startMarker}`);
     return source.slice(start, end).replace(/^export /gm, '');
 }
 
@@ -177,14 +185,17 @@ function fixture({ placement = 'external', authoredStyle = 'padding: 12px;', bod
     vm.createContext(sandbox);
     vm.runInContext([
         "const SOURCE_ATTR='data-rabbit-mirror-external-source';",
-        source.match(/^const PERSISTED_RUNTIME_UI_SELECTOR = .*;$/m)[0],
+        persistedRuntimeUiSelector[0],
         'let externalGeometryCycleSequence=0, externalGeometryLifecycleEpoch=0, externalGeometryLifecycleReason="";',
         'const externalGeometryOwnerNodes=new WeakMap();',
-        sourceBlock('function messageBaseSlotKey(', '\nfunction legacyMessageSourceFingerprints('),
-        sourceBlock('function recordKey(', '\nfunction baseSlotOf('),
-        sourceBlock('function clearExternalHostGeometryTokens(', '\nfunction scheduleExternalHostGeometryFinalConfirm('),
-        sourceBlock('export function remeasureRabbitMirrorFaceGeometry(', '\nfunction externalHostGeometrySettledForOwner('),
-        sourceBlock('const INDEPENDENT_CONTENT_WIDTH_RESCUE_ATTR=', '\nfunction stripIndependentTransientLayoutArtifacts('),
+        sourceBlock(connectionSource, 'function messageBaseSlotKey(', 'function legacyMessageSourceFingerprints('),
+        sourceBlock(connectionSource, 'function recordKey(', 'function baseSlotOf('),
+        sourceBlock(requestSource, 'const EXTERNAL_GEOMETRY_CYCLE_VERSION=', 'function textFromContent('),
+        sourceBlock(requestSource, 'function clearExternalHostGeometryTokens(', null),
+        sourceBlock(geometrySource, 'function applyMobileExternalHostGeometryPlan(', 'function scheduleExternalHostGeometryFinalConfirm('),
+        sourceBlock(geometrySource, 'function remeasureRabbitMirrorFaceGeometry(', 'function externalHostGeometrySettledForOwner('),
+        sourceBlock(geometrySource, 'const INDEPENDENT_CONTENT_WIDTH_RESCUE_ATTR=', 'function applyMobileExternalHostGeometryPlan('),
+        sourceBlock(geometrySource, 'function captureIndependentContentWidthBaseline(', null),
         'globalThis.api={remeasureRabbitMirrorFaceGeometry,repairRabbitMirrorFaceAutoWidth,undoRabbitMirrorFaceAutoWidth};',
     ].join('\n'), sandbox);
     return { ...sandbox.api, chat, state, host, details, body, summary, sibling, siblingBody, lane,

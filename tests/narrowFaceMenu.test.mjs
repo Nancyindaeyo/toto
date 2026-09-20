@@ -2,9 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-const source = readFileSync(new URL('../src/outputSanitizer.js', import.meta.url), 'utf8');
-const actionSource = source.slice(source.indexOf('async function runMaintenanceNarrowFaceRepair('), source.indexOf('function maintenanceRecommendationForInspection('));
-const menuSource = source.slice(source.indexOf('function showMaintenanceRabbitMenu('), source.indexOf('function handleMaintenanceRabbitClick('));
+const inspectSource = readFileSync(new URL('../src/outputSanitizer/maintenanceInspect.js', import.meta.url), 'utf8');
+const chromeSource = readFileSync(new URL('../src/outputSanitizer/toolsChrome.js', import.meta.url), 'utf8');
+function extractFunction(source, signature) {
+    const start = source.indexOf(signature);
+    assert.ok(start >= 0, `${signature} missing`);
+    const rest = source.slice(start + signature.length);
+    const next = rest.search(/\n(?:export )?(?:async )?function /);
+    const block = next < 0 ? source.slice(start) : source.slice(start, start + signature.length + next);
+    return block.replace(/^export /gm, '');
+}
+const actionSource = extractFunction(inspectSource, 'async function runMaintenanceNarrowFaceRepair(');
+const menuSource = extractFunction(chromeSource, 'function showMaintenanceRabbitMenu(');
 function fixture(options = {}) {
     const states = [], calls = [];
     const details = { isConnected: true, open: true, querySelector: () => ({}) };
@@ -28,7 +37,7 @@ function fixture(options = {}) {
     });
     // Stub only the asynchronous module-loading boundary. Execute the complete
     // production action; repair collaborators/owner changes are explicit fakes.
-    const transformed = actionSource.replace(/await import\('\.\/independentApi\.js\?rmv=[^']+'\)/, 'await loadAdapter()');
+    const transformed = actionSource.replace(/await import\('\.\.\/independentApi\.js\?rmv=[^']+'\)/, 'await loadAdapter()');
     assert.notEqual(transformed, actionSource);
     vm.runInContext(transformed, context);
     return {details,button,states,calls,adapter,run:()=>context.runMaintenanceNarrowFaceRepair(details,button), stale:()=>{current=false;}, get locked(){return locked;}};
