@@ -2,6 +2,7 @@ import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-vis
 import { extension_settings } from '../../../../extensions.js';
 import { saveSettingsDebounced } from '../../../../../script.js';
 import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
+import { AUTOMATIC_REROLL_DEFAULT, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.5.60-fork1';
 
 export const MODULE_NAME = 'rabbit_mirror_theater';
 
@@ -125,6 +126,7 @@ export const defaultSettings = Object.freeze({
     independentApiModel: '',
     independentApiTemperature: 0.8,
     independentApiMaxTokens: 30000,
+    independentAutomaticRerollMax: AUTOMATIC_REROLL_DEFAULT,
     independentAdvancedEnabled: false,
     independentReasoningEffort: '',
     independentExtraParams: '',
@@ -232,6 +234,7 @@ export function getSettings() {
         settings.independentApiTemperature = Math.max(0, Math.min(2, Number.isFinite(temperature) ? temperature : 0.8));
     }
     settings.independentApiMaxTokens = Math.max(512, Math.min(32000, Number(settings.independentApiMaxTokens) || 30000));
+    settings.independentAutomaticRerollMax = normalizeAutomaticRerollMax(settings.independentAutomaticRerollMax);
     // Keep this startup path scalar-only. Invalid stored JSON is not silently
     // truncated or repaired; opt-in request preflight validates it before send.
     settings.independentAdvancedEnabled = settings.independentAdvancedEnabled === true;
@@ -380,6 +383,9 @@ export function updateSettings(patch) {
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyEnabled')) safePatch.independentEarlyBodyEnabled = safePatch.independentEarlyBodyEnabled === true;
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyTags')) safePatch.independentEarlyBodyTags = normalizeIndependentEarlyBodyTags(safePatch.independentEarlyBodyTags);
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyChatKey')) safePatch.independentEarlyBodyChatKey = String(safePatch.independentEarlyBodyChatKey || '').slice(0, 2048);
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'independentAutomaticRerollMax')) {
+        safePatch.independentAutomaticRerollMax = normalizeAutomaticRerollMax(safePatch.independentAutomaticRerollMax);
+    }
     if (Object.prototype.hasOwnProperty.call(safePatch, 'behaviorRuleMode')) safePatch.behaviorRuleMode = ['always', 'off', 'adult-only'].includes(safePatch.behaviorRuleMode) ? safePatch.behaviorRuleMode : 'always';
     if (Object.prototype.hasOwnProperty.call(safePatch, 'behaviorRuleText')) safePatch.behaviorRuleText = safePatch.behaviorRuleText == null ? null : String(safePatch.behaviorRuleText).replace(/\u0000/g, '').slice(0, 20000);
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentContextExcludedTags')) {

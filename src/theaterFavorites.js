@@ -150,8 +150,44 @@ export async function getTheaterFavorite(id) {
     return normalizeRecord(row);
 }
 
+function hashFavoriteHtml(text = '') {
+    let h = 2166136261;
+    for (const ch of String(text)) {
+        h ^= ch.charCodeAt(0);
+        h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(36);
+}
+
+const FAVORITE_RUNTIME_UI_SELECTOR = [
+    '[data-rabbit-mirror-tool-entry-host]',
+    '[data-rm-image-region]',
+    '[data-rm-image-portal]',
+    '[data-rabbit-mirror-maintenance-rabbit]',
+    '[data-rabbit-mirror-feedback-cat]',
+    '[data-rabbit-mirror-resay]',
+    '[data-rm-ephemeral-failure-body]',
+    '[data-rm-face-swipe-bar]',
+    '[data-rm-face-favorite-star]',
+].join(', ');
+
+export function scrubTheaterFavoriteHtml(html) {
+    const source = String(html || '').trim();
+    if (!source || typeof document === 'undefined') return source;
+    const template = document.createElement('template');
+    template.innerHTML = source;
+    template.content.querySelectorAll?.(FAVORITE_RUNTIME_UI_SELECTOR)?.forEach(node => node.remove());
+    const root = [...template.content.children].find(node => node.nodeType === 1);
+    return String(root?.outerHTML || source).trim();
+}
+
+export function theaterFavoriteToggleId(html) {
+    const scrubbed = scrubTheaterFavoriteHtml(html);
+    return `toggle_${hashFavoriteHtml(scrubbed)}`.slice(0, 80);
+}
+
 export async function saveTheaterFavorite(input) {
-    const html = String(input?.html || '').trim();
+    const html = scrubTheaterFavoriteHtml(input?.html);
     if (!html) throw new Error('没有可收藏的兔子镜内容。');
     if (byteLength(html) > THEATER_FAVORITE_MAX_HTML_BYTES) {
         throw new Error('这面兔子镜超过收藏夹单条体积上限，未写入。');
@@ -196,14 +232,34 @@ export async function deleteTheaterFavorite(id) {
     return true;
 }
 
+export async function toggleTheaterFavorite(input) {
+    const captured = input && typeof input === 'object' ? input : null;
+    const html = scrubTheaterFavoriteHtml(captured?.html);
+    if (!html) throw new Error('当前没有可收藏的兔子镜。');
+    const id = theaterFavoriteToggleId(html);
+    const existing = await getTheaterFavorite(id);
+    if (existing) {
+        await deleteTheaterFavorite(id);
+        return { favorited: false, id };
+    }
+    await saveTheaterFavorite({ ...captured, html, id });
+    return { favorited: true, id };
+}
+
+export async function isTheaterFavoriteHtml(html) {
+    const id = theaterFavoriteToggleId(html);
+    return !!(await getTheaterFavorite(id));
+}
+
 export function captureTheaterFavoriteFromRoot(root, owner = {}) {
     const details = root?.matches?.('details') ? root : root?.closest?.('details') || root?.querySelector?.('details');
     if (!details || details.classList?.contains('rabbit-mirror-external-placeholder')) return null;
-    const html = String(details.outerHTML || '').trim();
+    const html = scrubTheaterFavoriteHtml(details.outerHTML);
     if (!html) return null;
     const title = String(details.querySelector?.(':scope > summary')?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);
     const character = currentTheaterFavoriteCharacter();
     return {
+        id: theaterFavoriteToggleId(html),
         title: title || '未命名兔子镜',
         mode: String(details.getAttribute?.('data-rm-presentation-mode') || owner.mode || '') === 'text' ? 'text' : 'html',
         html,
@@ -358,7 +414,7 @@ export async function openTheaterFavoriteLibrary(hydrate) {
     if (!groups.length) {
         const empty = document.createElement('p');
         empty.style.cssText = 'margin:0;opacity:.7;font-size:12px;';
-        empty.textContent = '还没有成品收藏。在镜面工具菜单点「收藏本面」。';
+        empty.textContent = '还没有成品收藏。点标题旁的星标，或在工具菜单打开收藏夹。';
         list.append(empty);
     } else {
         for (const group of groups) {

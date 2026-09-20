@@ -3,11 +3,11 @@ import { isTextPresentation } from './presentationMode.js?rmv=1.5.53-visualquick
 import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.58-fork1';
 import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.58-fork1';
 import { recordTtSurface, ttSurfaceNow, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
-import { getSettings, syncExternalReferenceVisibility } from './settings.js?rmv=1.5.53-image1';
+import { getSettings, syncExternalReferenceVisibility } from './settings.js?rmv=1.5.60-fork1';
 import { applyRabbitMirrorBannedWordsToDom, filterRabbitMirrorVisibleTextValue, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { getCurrentChatKey } from './storage.js?rmv=1.5.53-visualquick1';
 import { getSanitizedRabbitMirrorFaceProof } from './multifaceProof.js?rmv=1.5.53-visualquick1';
-import { captureTheaterFavoriteFromRoot, openTheaterFavoriteLibrary, saveTheaterFavorite } from './theaterFavorites.js?rmv=1.5.59-fork1';
+import { captureTheaterFavoriteFromRoot, openTheaterFavoriteLibrary, toggleTheaterFavorite, isTheaterFavoriteHtml } from './theaterFavorites.js?rmv=1.5.60-fork1';
 import { collectRevealedClipHosts, shouldRelaxRevealedClipPanel, REVEALED_CLIP_RESCUE_ATTR } from './revealedClipRepair.js?rmv=1.5.58-fork1';
 import {
     FEEDBACK_CAT_TYPES,
@@ -19,13 +19,13 @@ import {
     setActiveFeedbackForCurrentChat,
     auditVisibleLanguageBalanceText,
 } from './feedbackCat.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.59-fork1';
+import { scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.60-fork1';
 import { getRabbitMirrorGenerationSnapshot } from './generationGuard.js?rmv=1.5.53-image1';
 import { FAVORITE_MULTIPLIER_MAX, FAVORITE_MULTIPLIER_MIN, RECIPE_RECORDED_EVENT, blacklistEntries, clearBlacklist, clearFavorites, favoriteEntries, getBlacklistState, getFavoriteMultiplier, getFavoritesState, getRabbitMirrorRecipe, isBlacklisted, isFavorited, removeBlacklistItem, removeFavoriteItem, selectionCatalogEntries, setBlacklistEnabled, setFavoriteMultiplier, toggleBlacklistItem, toggleFavoriteItem } from './blacklist.js?rmv=1.5.53-image1';
 import { analyzeStylelessControlKinds, collectBoundedElementDescendants, countMeaningfulStateVisualRules, semanticEnsembleScalePlan } from './presentationQuality.js?rmv=1.5.53-cn-boundary1';
 
 
-const RUNTIME_VERSION = '1.5.59';
+const RUNTIME_VERSION = '1.5.60';
 const RUNTIME_VERSION_ATTR = 'data-rabbit-mirror-runtime-version';
 
 const FEEDBACK_CAT_RUNTIME_STYLE_ID = 'rabbit-mirror-feedback-cat-runtime-style';
@@ -19185,7 +19185,6 @@ function showFeedbackCatMenu(root, button, draft = null) {
     const independentActions = independentOwner
         ? `<div class="rabbit-mirror-feedback-cat-actions rabbit-mirror-feedback-cat-mirror-actions">
             <button type="button" data-rm-feedback-action="resay"${quickResay ? ' data-rm-quick-resay="true"' : ''}>↻ ${quickResay ? '快速重说这一面' : '重说'}</button>
-            <button type="button" data-rm-feedback-action="history">◷ 兔子镜历史</button>
           </div>`
         : '';
     panel.innerHTML = `
@@ -22812,7 +22811,7 @@ async function runMaintenanceNarrowFaceRepair(root, button) {
         if (rejectOversizedMaintenanceRepair(root, button, '窄面电击')) return false;
         if (!maintenanceRepairRunIsCurrent(repairRun)) return false;
         setMaintenanceRabbitState(button, MAINTENANCE_STATES.checking, '⚡ 正在重新测量并恢复这面兔子镜的宽度');
-        const adapter = await import('./independentApi.js?rmv=1.5.59-fork1');
+        const adapter = await import('./independentApi.js?rmv=1.5.60-fork1');
         // Loading the adapter is the sole async boundary. Never apply a delayed
         // click to a new chat, Swipe, source revision, face or replacement node.
         if (!root.isConnected || !details.isConnected || !button.isConnected
@@ -22874,7 +22873,7 @@ function runMaintenanceRevealClipRepair(root, button) {
             return false;
         }
         button.setAttribute(MAINTENANCE_REPAIR_ATTR, 'true');
-        setMaintenanceRabbitState(button, MAINTENANCE_STATES.idle, '已放开刚才展开的内容，请看最后一行是否完整。可用「返回修复前」撤销。');
+        setMaintenanceRabbitState(button, MAINTENANCE_STATES.idle, '已放开刚才展开的内容，请看最后一行是否完整。可用「恢复到初始」还原这一版。');
         notifyIndependentRepairPersistence(root);
         return true;
     } catch (error) {
@@ -22945,8 +22944,7 @@ function showMaintenanceRabbitMenu(root, button) {
       <button type="button" data-rm-maintenance-action="source">📄 空白或显示代码、纯文字</button>
       <button type="button" data-rm-maintenance-action="style">🎨 样子不对</button>
       <button type="button" data-rm-maintenance-action="all">🔧 全部试试（仅当前兔子镜）</button>
-      <button type="button" data-rm-maintenance-action="reset-interaction" ${hasRabbitMirrorInteractionResetSnapshot(root) ? '' : 'disabled'}>⏪ 恢复交互初始状态</button>
-      <button type="button" data-rm-maintenance-action="restore-before" ${maintenancePreRepairSnapshots.has(maintenanceSnapshotKey(root)) ? '' : 'disabled'}>↩️ 返回修复前</button>
+      <button type="button" data-rm-maintenance-action="reset-interaction" ${hasRabbitMirrorInteractionResetSnapshot(root) || (typeof canRestoreIndependentSwipeInitial === 'function' && canRestoreIndependentSwipeInitial(root)) ? '' : 'disabled'}>⏪ 恢复到初始</button>
       <button type="button" data-rm-maintenance-action="copy-html" style="min-height:44px!important;">复制本面 HTML（含样式）</button>
       <button type="button" data-rm-maintenance-action="download-html" style="min-height:44px!important;">下载本面 HTML 文件</button>
       <div data-rm-copy-html-status role="status" aria-live="polite" style="font-size:12px;line-height:1.5;">复制为独立 HTML，仅包含本面。依赖兔子镜脚本的交互不会随文件导出。</div>
@@ -22996,49 +22994,18 @@ function showMaintenanceRabbitMenu(root, button) {
             const repairRun = beginMaintenanceRepairRun(root, button);
             if (!repairRun) return;
             try {
-                if (!rejectOversizedMaintenanceRepair(root, button, '恢复交互初始状态')) {
+                const restoreSwipe = globalThis.__rabbitMirrorIndependentActionsV1?.restoreInitial;
+                if (typeof restoreSwipe === 'function' && restoreSwipe(root)) {
+                    finishMaintenanceRepairRun(repairRun);
+                    return;
+                }
+                if (!rejectOversizedMaintenanceRepair(root, button, '恢复到初始')) {
                     restoreRabbitMirrorInteractionResetSnapshot(root, button);
                 }
             } catch (error) {
                 console.debug('[RabbitMirror] interaction reset failed:', error);
-                failMaintenanceRabbit(button, '恢复交互初始状态执行失败，请生成全链路诊断');
+                failMaintenanceRabbit(button, '恢复到初始执行失败，请生成全链路诊断');
             } finally {
-                finishMaintenanceRepairRun(repairRun);
-            }
-            return;
-        }
-        if (action === 'restore-before') {
-            const repairRun = beginMaintenanceRepairRun(root, button);
-            if (!repairRun) return;
-            try {
-                if (rejectOversizedMaintenanceRepair(root, button, '返回修复前')) {
-                    finishMaintenanceRepairRun(repairRun);
-                    return;
-                }
-                invalidateRabbitMirrorInteractionResetSnapshot(root);
-                const restoreSummary = getRabbitMirrorSummaryText(root);
-                const restoreIndex = getMessageIndexFromMirrorNode(root);
-                if (!restoreMaintenancePreRepairSnapshot(root, button)) {
-                    finishMaintenanceRepairRun(repairRun);
-                    return;
-                }
-                scheduleMaintenanceRepairCallback(repairRun, 40, () => {
-                    const restoredRoot = findLiveMaintenanceRoot(root, restoreSummary, restoreIndex);
-                    const restoredButton = restoredRoot?.querySelector?.(`[${MAINTENANCE_RABBIT_ATTR}]`) || button;
-                    if (!restoredRoot?.isConnected) {
-                        failMaintenanceRabbit(restoredButton, '返回修复前后无法重新定位当前兔子镜');
-                        finishMaintenanceRepairRun(repairRun);
-                        return;
-                    }
-                    if (isIndependentMaintenanceRoot(restoredRoot) && !notifyIndependentRepairPersistence(restoredRoot)) {
-                        finishMaintenanceRepairRun(repairRun);
-                        return;
-                    }
-                    finishMaintenanceRepairRun(repairRun);
-                }, button);
-            } catch (error) {
-                console.debug('[RabbitMirror] restore-before failed:', error);
-                failMaintenanceRabbit(button, '返回修复前执行失败，请生成全链路诊断');
                 finishMaintenanceRepairRun(repairRun);
             }
             return;
@@ -23297,7 +23264,7 @@ function mirrorTitleDisplayParts(texts) {
 
 function ensureMirrorTitleDisplay(summary) {
     if (!summary?.childNodes || summary.childNodes.length > 256) return;
-    const skip = `[${TOOL_ENTRY_HOST_ATTR}], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [${RESAY_ATTR}], [${MIRROR_TITLE_PREFIX_ATTR}], button, input, select, textarea, a, label, svg, style, script, template, noscript, [contenteditable], [role="button"], [role="link"]`;
+    const skip = `[${TOOL_ENTRY_HOST_ATTR}], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [${RESAY_ATTR}], [${MIRROR_TITLE_PREFIX_ATTR}], button, input, select, textarea, a, label, svg, style, script, template, noscript, [contenteditable], [role="button"], [role="link"], [data-rm-face-swipe-bar], [data-rm-face-favorite-star]`;
     const texts = [];
     const stack = [...summary.childNodes].reverse();
     let visited = 0, length = 0;
@@ -23471,6 +23438,111 @@ function loadMirrorImageModule() {
     if (!mirrorImageModule) mirrorImageModule = import('./imageUi.js?rmv=1.5.53-hostuifix1').catch(error => { mirrorImageModule = null; throw error; });
     return mirrorImageModule;
 }
+function canRestoreIndependentSwipeInitial(root) {
+    try { return !!globalThis.__rabbitMirrorIndependentActionsV1?.hasSwipeInitial?.(root); }
+    catch { return false; }
+}
+function independentActionBridge() {
+    return globalThis.__rabbitMirrorIndependentActionsV1;
+}
+function stopTitleToggle(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+}
+function paintFavoriteStar(button, on) {
+    if (!button) return;
+    button.classList.toggle('is-favorited', !!on);
+    button.setAttribute('aria-pressed', on ? 'true' : 'false');
+    button.title = on ? '取消收藏本面' : '收藏本面';
+    button.setAttribute('aria-label', button.title);
+    button.innerHTML = on
+        ? '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3.6 14.5 9l6 .5-4.6 4 1.4 5.9L12 16.8 6.7 19.4 8.1 13.5 3.5 9.5 9.5 9z"/></svg>'
+        : '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.7" d="M12 4.2 14.2 9l5.3.4-4.1 3.5 1.3 5.2L12 15.7 7.3 18.1 8.6 12.9 4.5 9.4 9.8 9z"/></svg>';
+}
+function installFavoriteStar(root, host, before) {
+    let star = host.querySelector(':scope > [data-rm-face-favorite-star]');
+    if (!star) {
+        star = document.createElement('button');
+        star.type = 'button';
+        star.setAttribute('data-rm-face-favorite-star', 'true');
+        star.className = 'rabbit-mirror-face-favorite-star';
+        star.addEventListener('click', event => {
+            stopTitleToggle(event);
+            const captured = captureTheaterFavoriteFromRoot(root);
+            if (!captured) {
+                globalThis.toastr?.warning?.('当前没有可收藏的兔子镜。');
+                return;
+            }
+            void toggleTheaterFavorite(captured).then(result => {
+                paintFavoriteStar(star, result.favorited);
+                globalThis.toastr?.success?.(result.favorited ? '已收入兔子镜收藏夹。' : '已取消收藏。');
+            }).catch(error => globalThis.toastr?.warning?.(String(error?.message || '收藏失败。')));
+        }, true);
+    }
+    if (before?.parentElement === host) host.insertBefore(star, before);
+    else host.append(star);
+    const captured = captureTheaterFavoriteFromRoot(root);
+    paintFavoriteStar(star, false);
+    if (captured?.html) void isTheaterFavoriteHtml(captured.html).then(on => { if (star.isConnected) paintFavoriteStar(star, on); }).catch(() => {});
+    return star;
+}
+function installFaceSwipeBar(root, host, before) {
+    const bridge = independentActionBridge();
+    const view = bridge?.runtime === RUNTIME_VERSION ? bridge.swipeView?.(root) : null;
+    let bar = host.querySelector(':scope > [data-rm-face-swipe-bar]');
+    if (!view) {
+        bar?.remove();
+        return;
+    }
+    if (!bar) {
+        bar = document.createElement('span');
+        bar.setAttribute('data-rm-face-swipe-bar', 'true');
+        bar.className = 'rabbit-mirror-face-swipe-bar';
+        bar.innerHTML = '<button type="button" data-rm-face-swipe="prev" aria-label="上一版">‹</button><span data-rm-face-swipe-label></span><button type="button" data-rm-face-swipe="next" aria-label="下一版">›</button><button type="button" data-rm-face-swipe="delete" aria-label="删除这一版">×</button>';
+        bar.addEventListener('click', event => {
+            const action = event.target?.closest?.('[data-rm-face-swipe]')?.getAttribute('data-rm-face-swipe');
+            if (!action) return;
+            stopTitleToggle(event);
+            const live = independentActionBridge();
+            const current = live?.swipeView?.(root);
+            if (!current) return;
+            if (action === 'prev') {
+                const target = current.overlay ? current.currentIndex : current.currentIndex - 1;
+                if (target < 0) return;
+                live.selectSwipe?.(root, target);
+                return;
+            }
+            if (action === 'next') {
+                if (!current.canNext) return;
+                live.selectSwipe?.(root, current.currentIndex + 1);
+                return;
+            }
+            if (action === 'delete') live.deleteSwipe?.(root);
+        }, true);
+    }
+    if (before?.parentElement === host) host.insertBefore(bar, before);
+    else host.append(bar);
+    const label = bar.querySelector('[data-rm-face-swipe-label]');
+    if (label) label.textContent = view.label;
+    const prev = bar.querySelector('[data-rm-face-swipe="prev"]');
+    const next = bar.querySelector('[data-rm-face-swipe="next"]');
+    const remove = bar.querySelector('[data-rm-face-swipe="delete"]');
+    if (prev) prev.disabled = !view.canPrev;
+    if (next) next.disabled = !view.canNext;
+    if (remove) {
+        remove.disabled = !view.canDelete;
+        remove.hidden = view.count < 1;
+        remove.title = view.canDelete ? '删除当前这一版' : (view.overlay ? '失败这一格不会保存，切回上一版即可清掉' : '只剩一版时不能删除');
+    }
+    bar.title = view.overlay ? '这一版生成失败，可切回上一版' : (view.full ? '已满五版，删一版后才能重说' : '切换这一面的重说版本');
+    return bar;
+}
+function installFaceTitleChrome(root, host) {
+    const rabbit = host.querySelector(':scope > [data-rm-tool-menu-button]');
+    const star = installFavoriteStar(root, host, rabbit);
+    installFaceSwipeBar(root, host, star || rabbit);
+}
 function installUnifiedMirrorTools(root) {
     const details = root.matches?.('details') ? root : root.querySelector(':scope > details') || root.querySelector('details');
     const summary = details?.querySelector(':scope > summary');
@@ -23490,29 +23562,15 @@ function installUnifiedMirrorTools(root) {
             .catch(() => globalThis.toastr?.warning?.('生图面板未能打开，请重新打开后再试。'));
     } });
     actions.push({ id: 'theater-favorite-library', label: '📖 打开收藏夹', run: () => {
-        void import('./independentApi.js?rmv=1.5.59-fork1').then(module =>
+        void import('./independentApi.js?rmv=1.5.60-fork1').then(module =>
             openTheaterFavoriteLibrary((container, record) => module.hydrateIndependentFavoriteHtml(container, record)))
             .catch(error => globalThis.toastr?.warning?.(String(error?.message || '无法打开收藏夹。')));
-    } });
-    actions.push({ id: 'theater-favorite', label: '⭐ 收藏本面', run: () => {
-        void (async () => {
-            try {
-                const captured = captureTheaterFavoriteFromRoot(root);
-                if (!captured) {
-                    globalThis.toastr?.warning?.('当前没有可收藏的兔子镜。');
-                    return;
-                }
-                await saveTheaterFavorite(captured);
-                globalThis.toastr?.success?.('已收入兔子镜收藏夹。可在设置「兔子镜收藏夹」或工具菜单「打开收藏夹」回看。');
-            } catch (error) {
-                globalThis.toastr?.warning?.(String(error?.message || '收藏失败。'));
-            }
-        })();
     } });
     installMirrorToolMenu(root, host, actions, () => {
         closeMaintenanceRabbitMenu(); closeFeedbackCatMenu(); closeRecipeMenu();
         mirrorImageModule?.then(module => module.closeMirrorImagePanel?.()).catch(() => {});
     });
+    installFaceTitleChrome(root, host);
     // Restore saved images even when image generation is disabled; this never requests a model.
     void loadMirrorImageModule().then(module => { if (root.isConnected) return module.mountMirrorImage(root); })
         .catch(() => {});

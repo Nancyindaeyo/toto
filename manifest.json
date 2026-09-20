@@ -1,10 +1,10 @@
 {
   "display_name": "兔子镜小剧场",
   "loading_order": 100,
-  "js": "index.js?rmv=1.5.59-fork1",
-  "css": "style.css?rmv=1.5.59",
+  "js": "index.js?rmv=1.5.60-fork1",
+  "css": "style.css?rmv=1.5.60",
   "author": "Toto",
-  "version": "1.5.59",
+  "version": "1.5.60",
   "homePage": "https://github.com/Nancyindaeyo/toto",
   "auto_update": true,
   "generate_interceptor": "rabbitMirrorGenerateInterceptor",
@@ -13,5 +13,5 @@
     "disable": "onDisable",
     "clean": "onClean"
   },
-  "description": "兔子镜小剧场 fork：收藏夹回看不再被设置弹层挡住或点 HTML 闪退；维修兔展开后解裁；独立 API 失败自动重 roll 最多 2 次。安装通道为 Nancyindaeyo/toto。"
+  "description": "兔子镜小剧场 fork：副 API 重说按面保留最多五版可切换；满五需手动删除；标题星标收藏；魔杖入口带兔子图标。安装通道为 Nancyindaeyo/toto。"
 }

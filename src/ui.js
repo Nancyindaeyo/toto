@@ -1,5 +1,5 @@
 import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-visualquick1';
-import { DEFAULT_INDEPENDENT_CONTEXT_EXCLUDED_TAGS, DEFAULT_VISUAL_PROMPT, INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT, RABBIT_MIRROR_BANNED_WORD_MAX_COUNT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, normalizeRabbitMirrorBannedWords, updateSettings, resetSettings } from './settings.js?rmv=1.5.53-image1';
+import { DEFAULT_INDEPENDENT_CONTEXT_EXCLUDED_TAGS, DEFAULT_VISUAL_PROMPT, INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT, RABBIT_MIRROR_BANNED_WORD_MAX_COUNT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, normalizeRabbitMirrorBannedWords, updateSettings, resetSettings } from './settings.js?rmv=1.5.60-fork1';
 import { startTtSurfaceDiagnostics, stopTtSurfaceDiagnostics, isTtSurfaceDiagnosticsActive, buildTtSurfaceReport, recordTtSurface, registerTtSurfaceCleanup, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
 import { isRabbitMirrorManagedChatSurface, getRabbitMirrorHostCompatibilityStatus } from './hostCompatibility.js?rmv=1.5.58-fork1';
 import { clearLastCombo, getCurrentChatKey } from './storage.js?rmv=1.5.53-visualquick1';
@@ -12,18 +12,18 @@ import { parseIndependentAdvancedOptions } from './advancedRequestOptions.js?rmv
 import { parseRabbitMirrorReplacementLines, formatRabbitMirrorReplacementLines } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { clearRabbitMirrorPrompt, startManualEntryDiagnostic, stopManualEntryDiagnostic, getManualEntryDiagnosticState } from './injector.js?rmv=1.5.53-image1';
 import { clearFeedbackCatExtensionPrompt, getActiveFeedbackForCurrentChat, syncFeedbackCatExtensionPrompt } from './feedbackCat.js?rmv=1.5.53-cn-boundary1';
-import { configureMaintenanceAutoSafeMode, refreshMaintenanceRabbits } from './outputSanitizer.js?rmv=1.5.59-fork1';
+import { configureMaintenanceAutoSafeMode, refreshMaintenanceRabbits } from './outputSanitizer.js?rmv=1.5.60-fork1';
 import { scanMemoryPlugins, testMemoryProvider } from './memoryScanner.js?rmv=1.5.53-cn-boundary1';
 import { getLastRabbitMirrorTokenRecordForSource, TOKEN_METER_EVENT } from './tokenMeter.js?rmv=1.5.53-visualquick1';
-import { API_REQUEST_DIAGNOSTIC_EVENT, WORLD_INFO_BOOKS_CHANGED_EVENT, fetchIndependentModels, fetchWorldInfoBooks, getIndependentConnectionProfiles, getIndependentSavedModels, getLastIndependentApiRequestDiagnostic, getLastIndependentModelListDiagnostic, getObservedWorldInfoBooks, hydrateIndependentFavoriteHtml, importCurrentSillyTavernConnection, refreshRabbitMirrorGenerationMode, scanCurrentChatIndependentContextTags, testIndependentConnection } from './independentApi.js?rmv=1.5.59-fork1';
+import { API_REQUEST_DIAGNOSTIC_EVENT, WORLD_INFO_BOOKS_CHANGED_EVENT, fetchIndependentModels, fetchWorldInfoBooks, getIndependentConnectionProfiles, getIndependentSavedModels, getLastIndependentApiRequestDiagnostic, getLastIndependentModelListDiagnostic, getObservedWorldInfoBooks, hydrateIndependentFavoriteHtml, importCurrentSillyTavernConnection, refreshRabbitMirrorGenerationMode, scanCurrentChatIndependentContextTags, testIndependentConnection } from './independentApi.js?rmv=1.5.60-fork1';
 import { configureRabbitMirrorNoSendRegex, inspectRabbitMirrorNoSendRegex, openSillyTavernRegexSettings } from './regexConfigurator.js?rmv=1.5.53-cn-boundary1';
 import { BLACKLIST_CHANGED_EVENT, blacklistEntries, blacklistPoolStats, clearBlacklist, removeBlacklistItem, setBlacklistEnabled, favoriteEntries, removeFavoriteItem, setFavoriteMultiplier, clearFavorites } from './blacklist.js?rmv=1.5.53-image1';
-import { THEATER_FAVORITES_CHANGED_EVENT, deleteTheaterFavorite, groupTheaterFavoritesByCharacter, listTheaterFavorites, openTheaterFavoriteLibrary, openTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.59-fork1';
+import { THEATER_FAVORITES_CHANGED_EVENT, deleteTheaterFavorite, groupTheaterFavoritesByCharacter, listTheaterFavorites, openTheaterFavoriteLibrary, openTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.60-fork1';
 
-import { mountSettingsAppearance, destroySettingsAppearance } from './settingsAppearance.js?rmv=1.5.59-fork1';
+import { mountSettingsAppearance, destroySettingsAppearance } from './settingsAppearance.js?rmv=1.5.60-fork1';
 
-const SETTINGS_UI_VERSION = '1.12-layered-ui3-favlib2';
-const RUNTIME_VERSION = '1.5.59';
+const SETTINGS_UI_VERSION = '1.12-layered-ui3-swipe1';
+const RUNTIME_VERSION = '1.5.60';
 
 function isCurrentRuntime() {
     return globalThis.__rabbitMirrorRuntimeVersion === RUNTIME_VERSION;
@@ -155,7 +155,7 @@ async function renderTheaterFavoriteSettings() {
         if (!target.length) return;
         const groups = groupTheaterFavoritesByCharacter(rows);
         if (!groups.length) {
-            target.html('<div style="opacity:.55;font-size:11px;padding:3px 0;">暂无成品收藏。可在兔子镜工具菜单点「收藏本面」，再从这里或「打开收藏夹」回看。</div>');
+            target.html('<div style="opacity:.55;font-size:11px;padding:3px 0;">暂无成品收藏。可点标题旁的星标收藏本面，再从这里或「打开收藏夹」回看。</div>');
             return;
         }
         target.html(groups.map(group => `<div style="margin-top:8px;">
@@ -1004,7 +1004,7 @@ export function initRabbitMirrorUI() {
               <label><input name="rh_independent_display" type="radio" value="external_then_inline"> ② 外置后内嵌</label>
             </div>
               <div style="opacity:.66;font-size:11px;line-height:1.45;margin-top:6px;">只决定副 API 成品显示在哪里，不改变提示词、美化规则或模型。</div>
-              <div style="opacity:.72;font-size:11px;line-height:1.5;margin-top:8px;">独立 API 本轮若没有可用鲜兔镜，会自动重发最多 2 次（合计最多 3 次请求）。已出的 ready 镜面不会被失败卡盖掉；第 3 次仍失败后需手动「重新生成」。失败卡会写明「已自动重试 2/2」。</div>
+              <div style="opacity:.72;font-size:11px;line-height:1.5;margin-top:8px;">副 API 本轮若没有可用鲜兔镜，会按「自动重 roll 次数」自动再发（默认 2 次，合计请求 = 1 + 该次数）。0 表示失败后不再自动重发。已出的 ready 镜面不会被失败卡盖掉。</div>
             </div>
             <div style="padding:9px 10px;border:1px solid color-mix(in srgb, currentColor 16%, transparent);border-radius:9px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:7px;">连接与模型</div>
@@ -1037,6 +1037,7 @@ export function initRabbitMirrorUI() {
             <div class="flex-container" style="gap:8px;flex-wrap:wrap;align-items:center;padding:9px 10px;border:1px solid color-mix(in srgb,currentColor 14%,transparent);border-radius:9px;">
               <label>温度 <input id="rh_independent_temperature" class="text_pole" type="number" min="0" max="2" step="0.1" style="width:82px;"></label>
               <label>整批最大输出 <input id="rh_independent_max_tokens" class="text_pole" type="number" min="512" max="32000" step="256" style="width:110px;"></label>
+              <label>自动重 roll 次数 <input id="rh_independent_automatic_reroll" class="text_pole" type="number" min="0" max="10" step="1" style="width:72px;"></label>
             </div>
             <div class="rabbit-mirror-independent-advanced-row">
               <details id="rh_independent_request_advanced" class="rabbit-mirror-request-options">
@@ -1491,6 +1492,7 @@ export function initRabbitMirrorUI() {
     $('#rh_independent_key').val(settings.independentApiKey || '');
     $('#rh_independent_temperature').val(settings.independentApiTemperature ?? 0.8);
     $('#rh_independent_max_tokens').val(settings.independentApiMaxTokens ?? 30000);
+    $('#rh_independent_automatic_reroll').val(settings.independentAutomaticRerollMax ?? 2);
     checked('#rh_independent_advanced_enabled', settings.independentAdvancedEnabled === true);
     $('#rh_independent_reasoning_effort').val(settings.independentReasoningEffort || '');
     $('#rh_independent_extra_params').val(typeof settings.independentExtraParams === 'string' ? settings.independentExtraParams : '');
@@ -1913,7 +1915,7 @@ export function initRabbitMirrorUI() {
         if (!quickStart.open || guideLoading || guideCleanup || guideDisposed) return;
         guideLoading = true;
         try {
-            const module = await import('./quickStart.js?rmv=1.5.59-fork1');
+            const module = await import('./quickStart.js?rmv=1.5.60-fork1');
             if (guideDisposed || !quickStart.isConnected || !isCurrentRuntime()) return;
             guideCleanup = module.mountRabbitMirrorQuickStart({
                 root: document.getElementById('rabbit_mirror_theater_settings'),
@@ -2138,6 +2140,7 @@ export function initRabbitMirrorUI() {
         invalidateIndependentModelPull();
         const temperature=Number($('#rh_independent_temperature').val());
         const maxTokens=Number($('#rh_independent_max_tokens').val());
+        const rerollMax=Number($('#rh_independent_automatic_reroll').val());
         const contextLayers=Number($('#rh_independent_context_layers').val());
         updateSettings({
             independentConnectionProfileId:'',
@@ -2146,6 +2149,7 @@ export function initRabbitMirrorUI() {
             independentApiModel:$('#rh_independent_model').val(),
             independentApiTemperature:Number.isFinite(temperature)?temperature:0.8,
             independentApiMaxTokens:Number.isFinite(maxTokens)&&maxTokens>0?maxTokens:30000,
+            independentAutomaticRerollMax:Number.isFinite(rerollMax)?rerollMax:2,
             independentContextMaxLayers:Number.isFinite(contextLayers)&&contextLayers>0?contextLayers:20,
         });
         syncIndependentProfileSelector('');
@@ -2158,6 +2162,7 @@ export function initRabbitMirrorUI() {
     const saveIndependentFields = () => {
         const temperature = Number($('#rh_independent_temperature').val());
         const maxTokens = Number($('#rh_independent_max_tokens').val());
+        const rerollMax = Number($('#rh_independent_automatic_reroll').val());
         const contextLayers = Number($('#rh_independent_context_layers').val());
         updateSettings({
             independentApiBaseUrl: $('#rh_independent_base').val(),
@@ -2165,6 +2170,7 @@ export function initRabbitMirrorUI() {
             independentApiModel: $('#rh_independent_model').val(),
             independentApiTemperature: Number.isFinite(temperature) ? temperature : 0.8,
             independentApiMaxTokens: Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : 30000,
+            independentAutomaticRerollMax: Number.isFinite(rerollMax) ? rerollMax : 2,
             independentContextMaxLayers: Number.isFinite(contextLayers) && contextLayers > 0 ? contextLayers : 20,
         });
     };
@@ -2256,7 +2262,7 @@ export function initRabbitMirrorUI() {
     // Do not serialize the whole extension settings object on every mobile input event.
     // Safari may emit repeated input/autofill events as the drawer opens, which made the UI stutter.
     $('#rh_independent_base, #rh_independent_key, #rh_independent_model').on('change blur', saveIndependentFields);
-    $('#rh_independent_temperature, #rh_independent_max_tokens, #rh_independent_context_layers').on('change', saveIndependentFields);
+    $('#rh_independent_temperature, #rh_independent_max_tokens, #rh_independent_automatic_reroll, #rh_independent_context_layers').on('change', saveIndependentFields);
     let independentModelListSource=null;
     const independentProfileSourceRevision = () => Number(globalThis.__rabbitMirrorIndependentProfileSourceRevision||0);
     const syncIndependentProfileSelector = profileId => {

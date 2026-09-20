@@ -2,19 +2,19 @@ import { presentationModeFields, hasExplicitTextFace } from './presentationMode.
 import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.58-fork1';
 import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, getRabbitMirrorExternalPlacementParent, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.58-fork1';
 import { recordTtSurface, ttSurfaceNow } from './ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
-import { WORLD_INFO_BOOK_NAME_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, updateSettings } from './settings.js?rmv=1.5.53-image1';
+import { WORLD_INFO_BOOK_NAME_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, updateSettings } from './settings.js?rmv=1.5.60-fork1';
 import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
 import { assertRabbitMirrorIndependentResponseBytes, assertRabbitMirrorIndependentResponseText, authorizeRabbitMirrorIndependentServiceRequest, fetchRabbitMirrorIndependentCompletion } from './independentSecurityGuard.js?rmv=1.5.53-cn-boundary1';
 import { parseIndependentAdvancedOptions, buildIndependentAdvancedCarrier, applyIndependentAdvancedExclusions, independentAdvancedOptionsSignature } from './advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
 import { buildRabbitMirrorPromptDetails, planRabbitMirrorPromptDetails, renderRabbitMirrorPromptPlan, prepareSelectedMemoryForPrompt, memoryRequestSettingsKey, assertMemoryRequestSettings } from './promptBuilder.js?rmv=1.5.53-image1';
 import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from './externalWorldBook/store.js?rmv=1.5.53-text1';
 import { describeExternalWorldBookPreflightFailure, describeBatchPlanFailure } from './externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
-import { cleanRabbitMirrorOutput, compactTotoBlock, refreshRabbitMirrorToolsInScope, repairMalformedRabbitMirrorMarkup, repairRabbitMirrorScopedClassAliasesInScope, isolateRabbitMirrorInteractionIds, rearmRabbitMirrorSerializedInteractionRoot, armRabbitMirrorFirstUseInteraction, repairRabbitMirrorPersistedExclusiveGridSpan, clearRabbitMirrorHorizontalClipArtifacts, sanitizeRabbitMirrorUntrustedTemplate, validateRabbitMirrorRecoveredStyleAssignments } from './outputSanitizer.js?rmv=1.5.59-fork1';
+import { cleanRabbitMirrorOutput, compactTotoBlock, refreshRabbitMirrorToolsInScope, repairMalformedRabbitMirrorMarkup, repairRabbitMirrorScopedClassAliasesInScope, isolateRabbitMirrorInteractionIds, rearmRabbitMirrorSerializedInteractionRoot, armRabbitMirrorFirstUseInteraction, repairRabbitMirrorPersistedExclusiveGridSpan, clearRabbitMirrorHorizontalClipArtifacts, sanitizeRabbitMirrorUntrustedTemplate, validateRabbitMirrorRecoveredStyleAssignments } from './outputSanitizer.js?rmv=1.5.60-fork1';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from './replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput, recoverableMultifaceFrames, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from './multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from './multifaceProof.js?rmv=1.5.53-visualquick1';
-import { FOLLOW_MULTIFACE_COMMITTED_EVENT, FOLLOW_MULTIFACE_REJECTED_EVENT, getRabbitMirrorFollowBatchFailure, scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.59-fork1';
+import { FOLLOW_MULTIFACE_COMMITTED_EVENT, FOLLOW_MULTIFACE_REJECTED_EVENT, getRabbitMirrorFollowBatchFailure, scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.60-fork1';
 import { getCurrentChatKey, updateLatestVisualSignature, parseVisualFamilySkeleton, describeVisualFamilyDimensions, markPendingBatchAttempt, commitPendingComboBatch, releasePendingComboBatch } from './storage.js?rmv=1.5.53-visualquick1';
 import { buildFeedbackCatFinalCheck, buildFeedbackCatPrompt, consumeInjectedFeedbackForSuccessfulIndependentRabbitMirror, getActiveFeedbackForCurrentChat, markFeedbackCatInjected } from './feedbackCat.js?rmv=1.5.53-cn-boundary1';
 import { getRabbitMirrorRecipe, recordRabbitMirrorRecipe } from './blacklist.js?rmv=1.5.53-image1';
@@ -22,9 +22,10 @@ import { readFollowPartialResult, followPartialResultFaceOwnerKey } from './foll
 import { recordRabbitMirrorIndependentPrompt } from './tokenMeter.js?rmv=1.5.53-visualquick1';
 import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.53-cn-boundary1';
 import { rememberIndependentTransportDiagnostic } from './transportDiagnostics.js?rmv=1.5.53-cn-boundary1';
-import { AUTOMATIC_REROLL_MAX, shouldAutomaticReroll, automaticRerollStatusText, automaticRerollExhaustedNote, shouldAnnounceAutomaticRerollExhausted } from './automaticReroll.js?rmv=1.5.59-fork1';
+import { configuredAutomaticRerollMax, shouldAutomaticReroll, automaticRerollStatusText, automaticRerollExhaustedNote, shouldAnnounceAutomaticRerollExhausted } from './automaticReroll.js?rmv=1.5.60-fork1';
+import { FACE_SWIPE_FULL_MESSAGE, canAppendSwipe, seedSwipeState, appendSuccessfulSwipe, selectSwipeIndex, deleteCurrentSwipe, updateCurrentSwipeHtml, restoreCurrentSwipeInitial, currentSwipeEntry, readFaceSwipe, mutateFaceSwipe } from './swipeVersions.js?rmv=1.5.60-fork1';
 
-const RUNTIME_VERSION = '1.5.59';
+const RUNTIME_VERSION = '1.5.60';
 const STORE_KEY = 'rabbit_mirror_independent_outputs_v1';
 const INTERACTION_STATE_MIGRATION_KEY = 'rabbit_mirror_independent_interaction_state_migration_securityfix2_v2';
 const API_PROFILE_STORE_KEY = 'rabbit_mirror_independent_api_profiles_v1';
@@ -89,6 +90,8 @@ const HISTORY_STORE_KEY = 'rabbit_mirror_independent_history_v1';
 const CHAT_OUTPUT_METADATA_KEY = 'rabbit_mirror_independent_outputs_v2';
 const CHAT_OUTPUT_METADATA_SCHEMA = 2;
 const HISTORY_PANEL_ATTR = 'data-rabbit-mirror-history-panel';
+const EPHEMERAL_FAILURE_ATTR = 'data-rm-ephemeral-failure';
+const EPHEMERAL_FAILURE_BODY_ATTR = 'data-rm-ephemeral-failure-body';
 const ACTION_BRIDGE_KEY = '__rabbitMirrorIndependentActionsV1';
 const INDEPENDENT_GENERATION_INTENTS_KEY = '__rabbitMirrorIndependentGenerationIntents';
 const INDEPENDENT_GENERATION_STOPS_KEY = '__rabbitMirrorIndependentStoppedHostOperations';
@@ -343,7 +346,7 @@ function reserveAutomaticDispatchLease(baseSlot='',sourceHash=''){
  const key=`${base}\u0000${epoch}`;
  const leases=globalDispatchLeases();
  if(leases.has(key)) return null;
- const maxConsumes=1+AUTOMATIC_REROLL_MAX;
+ const maxConsumes=1+configuredAutomaticRerollMax(getSettings());
  const record={key,baseSlot:base,epoch,sourceHash:String(sourceHash||''),state:'reserved',consumeCount:0,maxConsumes,ts:Date.now()};
  leases.set(key,record);
  pruneDispatchLeaseState();
@@ -487,6 +490,225 @@ function appendHistoryEntry(slot,value){
 function historyEntriesForSlot(slot){
  const list=readHistoryStore().slots?.[slot];
  return (Array.isArray(list)?list:[]).map(normalizeHistoryEntry).filter(Boolean).sort((a,b)=>Number(b.ts||0)-Number(a.ts||0));
+}
+function independentRerollMax(){ return configuredAutomaticRerollMax(getSettings()); }
+function independentSwipeFaceIndex(identity){ return identity?.faceIndex>=0?identity.faceIndex:0; }
+function independentSwipeDetails(identity){
+ const faces=externalFaceDetails(identity?.host);
+ if(faces.length>1) return faces[independentSwipeFaceIndex(identity)]||null;
+ return faces[0]||identity?.host?.querySelector?.(':scope > details')||null;
+}
+function scrubSwipeDetailsHtml(html){
+ const source=String(html||'').trim();
+ if(!source || typeof document==='undefined') return source;
+ const template=document.createElement('template');
+ template.innerHTML=source;
+ const details=template.content.querySelector?.('details');
+ if(!details) return source;
+ details.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-maintenance-rabbit], [data-rabbit-mirror-feedback-cat], [data-rabbit-mirror-resay], [data-rm-ephemeral-failure-body], [data-rm-face-swipe-bar], [data-rm-face-favorite-star]')?.forEach(node=>node.remove());
+ details.querySelectorAll?.('[data-rm-ephemeral-failure-hidden]')?.forEach(node=>{ node.removeAttribute('data-rm-ephemeral-failure-hidden'); node.hidden=false; });
+ details.removeAttribute?.(EPHEMERAL_FAILURE_ATTR);
+ return String(details.outerHTML||source).trim();
+}
+function faceDetailsListFromHtml(html){
+ const source=String(html||'');
+ if(hasMultifaceMarkup(source)){
+  const parsed=parseMultifaceOutput(source);
+  if(!parsed.ok) return [];
+  return parsed.faces.map(face=>({index:face.index,detailsHtml:scrubSwipeDetailsHtml(face.details||face.inner||'')}));
+ }
+ const match=source.match(/<details\b[\s\S]*<\/details>/i);
+ return match?[{index:0,detailsHtml:scrubSwipeDetailsHtml(match[0])}]:[];
+}
+function mergeFaceDetailsIntoHtml(recordHtml,faceIndex,detailsHtml){
+ const clean=scrubSwipeDetailsHtml(detailsHtml);
+ if(!clean) return '';
+ if(hasMultifaceMarkup(recordHtml)){
+  const parsed=parseMultifaceOutput(String(recordHtml||''));
+  if(!parsed.ok) return '';
+  const index=Number.isInteger(faceIndex)&&faceIndex>=0?faceIndex:0;
+  return parsed.faces.map(face=>face.index===index?wrapIndependentFace(clean,index):face.html).join('\n');
+ }
+ return clean;
+}
+function seedIndependentFaceSwipes(slot,html){
+ if(!slot) return;
+ for(const face of faceDetailsListFromHtml(html)){
+  mutateFaceSwipe(slot,face.index,state=>seedSwipeState(state,{html:face.detailsHtml,initialHtml:face.detailsHtml,ts:Date.now()}));
+ }
+}
+function seedIndependentFaceSwipesFromIdentity(identity){
+ if(!identity?.slot) return;
+ const existing=readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity));
+ if(existing.versions.length) return;
+ const html=savedIndependentRecordForOwner(identity.ctx,identity.index,identity.msg,readStore())?.html
+  || identity.host?.__rabbitMirrorIndependentSource
+  || '';
+ if(html) seedIndependentFaceSwipes(identity.slot,html);
+}
+function appendIndependentFaceSwipe(slot,faceIndex,detailsHtml){
+ const html=scrubSwipeDetailsHtml(detailsHtml);
+ if(!slot||!html) return {ok:false,reason:'invalid'};
+ return mutateFaceSwipe(slot,faceIndex,state=>{
+  const seeded=seedSwipeState(state,{html,initialHtml:html,ts:Date.now()});
+  if(seeded.seeded) return seeded;
+  return appendSuccessfulSwipe(seeded.state,{html,initialHtml:html,ts:Date.now()});
+ });
+}
+function clearEphemeralFaceFailure(details){
+ if(!details) return;
+ details.removeAttribute?.(EPHEMERAL_FAILURE_ATTR);
+ details.querySelectorAll?.(`[${EPHEMERAL_FAILURE_BODY_ATTR}]`)?.forEach(node=>node.remove());
+ details.querySelectorAll?.('[data-rm-ephemeral-failure-hidden]')?.forEach(node=>{
+  node.removeAttribute('data-rm-ephemeral-failure-hidden');
+  node.hidden=false;
+ });
+}
+function hasEphemeralFaceFailure(details){ return details?.getAttribute?.(EPHEMERAL_FAILURE_ATTR)==='true'; }
+function showEphemeralFaceFailure(host,faceIndex,message,onRetry,onBack){
+ const faces=externalFaceDetails(host);
+ const details=faces.length>1?faces[Math.max(0,Number(faceIndex)||0)]:faces[0];
+ if(!details) return false;
+ clearEphemeralFaceFailure(details);
+ details.setAttribute(EPHEMERAL_FAILURE_ATTR,'true');
+ for(const child of [...details.children]){
+  if(child.tagName==='SUMMARY' || child.hasAttribute?.(EPHEMERAL_FAILURE_BODY_ATTR)) continue;
+  child.setAttribute('data-rm-ephemeral-failure-hidden','true');
+  child.hidden=true;
+ }
+ const body=document.createElement('div');
+ body.setAttribute(EPHEMERAL_FAILURE_BODY_ATTR,'true');
+ body.className='rabbit-mirror-ephemeral-failure';
+ const text=document.createElement('p');
+ text.textContent=String(message||'副 API 这一版没有生成成功。上一版仍可切换。');
+ const actions=document.createElement('div');
+ actions.className='rabbit-mirror-ephemeral-failure-actions';
+ const retry=document.createElement('button'); retry.type='button'; retry.textContent='再试一次';
+ retry.addEventListener('click',event=>{ event.preventDefault(); event.stopPropagation(); onRetry?.(); },true);
+ const back=document.createElement('button'); back.type='button'; back.textContent='回到上一版';
+ back.addEventListener('click',event=>{ event.preventDefault(); event.stopPropagation(); onBack?.(); },true);
+ actions.append(retry,back); body.append(text,actions); details.append(body);
+ try{ refreshRabbitMirrorToolsInScope(details); }catch{}
+ return true;
+}
+function writeIndependentOwnerHtml(identity,html){
+ if(!identity||!html) return false;
+ const store=readStore();
+ const existing=savedIndependentRecordForOwner(identity.ctx,identity.index,identity.msg,store)||{};
+ const next={...existing,html,ts:Date.now(),runtime:RUNTIME_VERSION,ownerLineage:null};
+ if(!independentRecordWithinBudget(next)){ showIndependentUnsavedOutput(next); return false; }
+ saveRecordForSlot(store,identity.slot,next);
+ if(!writeStore(store)){ showIndependentUnsavedOutput(next); return false; }
+ writePersistedOwner(identity.ctx,identity.index,identity.msg,next,{overwrite:true});
+ if(identity.host){
+  identity.host.__rabbitMirrorIndependentSource=html;
+  identity.host.dataset.rmSourceHash=String(identity.host.dataset.rmSourceHash||existing.sourceHash||'');
+ }
+ return true;
+}
+function remountIndependentFaceFromHtml(identity,html,faceIndex){
+ const host=identity?.host;
+ if(!host?.isConnected) return false;
+ const faces=externalFaceDetails(host);
+ if(faces.length>1){
+  if(!replaceExternalMultifaceFace(host,identity.key,'independent',html,faceIndex,true)) return false;
+ }else{
+  const replacement=extractReadyDetails(html,true);
+  const current=host.querySelector?.(':scope > details');
+  if(!replacement||!current) return false;
+  const wasOpen=current.hasAttribute('open');
+  markExternalDetails(replacement,identity.key,'independent');
+  if(wasOpen) replacement.setAttribute('open',''); else replacement.removeAttribute('open');
+  current.replaceWith(replacement);
+  host.__rabbitMirrorIndependentSource=html;
+  host.dataset.rmState='ready';
+ }
+ stampExternalDetailsOwnership(host);
+ ensureExternalTools(host);
+ scheduleIndependentReadyPostprocess(host,identity.key,html);
+ try{ refreshRabbitMirrorToolsInScope(host); }catch{}
+ return true;
+}
+function commitIndependentFaceVersion(identity,mutator){
+ if(!identity) return {ok:false,reason:'missing'};
+ const faceIndex=independentSwipeFaceIndex(identity);
+ const result=mutateFaceSwipe(identity.slot,faceIndex,mutator);
+ if(!result?.ok) return result;
+ const entry=currentSwipeEntry(result.state);
+ const existing=savedIndependentRecordForOwner(identity.ctx,identity.index,identity.msg,readStore());
+ const merged=mergeFaceDetailsIntoHtml(existing?.html||identity.host?.__rabbitMirrorIndependentSource||entry.html,faceIndex,entry.html);
+ if(!merged || !writeIndependentOwnerHtml(identity,merged)) return {ok:false,reason:'persist',state:result.state};
+ remountIndependentFaceFromHtml(identity,merged,faceIndex);
+ return result;
+}
+function independentFaceSwipeView(root,owner={}){
+ const identity=resolveIndependentActionIdentity(root,owner);
+ if(!identity || identity.host?.dataset?.rmState==='error') return null;
+ seedIndependentFaceSwipesFromIdentity(identity);
+ const details=independentSwipeDetails(identity);
+ const overlay=hasEphemeralFaceFailure(details);
+ const state=readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity));
+ if(!state.versions.length && !overlay) return null;
+ const count=state.versions.length;
+ const currentIndex=state.currentIndex;
+ return {
+  count, currentIndex, overlay,
+  label:`${currentIndex+1}/${count||1}`,
+  canPrev: overlay || currentIndex>0,
+  canNext: currentIndex<count-1,
+  canDelete: count>1 && !overlay,
+  full: count>=5,
+ };
+}
+function canIndependentFaceResay(root,owner={}){
+ const identity=resolveIndependentActionIdentity(root,owner,{allowPassiveErrorRetry:true});
+ if(!identity) return {ok:false,reason:'missing'};
+ seedIndependentFaceSwipesFromIdentity(identity);
+ if(hasEphemeralFaceFailure(independentSwipeDetails(identity))) return {ok:true,retry:true};
+ const state=readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity));
+ if(!canAppendSwipe(state)) return {ok:false,reason:'full',message:FACE_SWIPE_FULL_MESSAGE};
+ return {ok:true};
+}
+function applyIndependentFaceSwipe(root,index,owner={}){
+ const identity=resolveIndependentActionIdentity(root,owner);
+ if(!identity) return false;
+ seedIndependentFaceSwipesFromIdentity(identity);
+ const details=independentSwipeDetails(identity);
+ if(hasEphemeralFaceFailure(details) && Number(index)===readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity)).currentIndex){
+  clearEphemeralFaceFailure(details);
+  const existing=savedIndependentRecordForOwner(identity.ctx,identity.index,identity.msg,readStore());
+  if(existing?.html) remountIndependentFaceFromHtml(identity,existing.html,independentSwipeFaceIndex(identity));
+  return true;
+ }
+ const result=commitIndependentFaceVersion(identity,state=>selectSwipeIndex(state,index));
+ return !!result?.ok;
+}
+function deleteIndependentFaceSwipe(root,owner={}){
+ const identity=resolveIndependentActionIdentity(root,owner);
+ if(!identity) return false;
+ seedIndependentFaceSwipesFromIdentity(identity);
+ const result=commitIndependentFaceVersion(identity,deleteCurrentSwipe);
+ if(!result?.ok){
+  if(result?.reason==='last') globalThis.toastr?.info?.('只剩一版，不能删空。');
+  return false;
+ }
+ globalThis.toastr?.success?.(`已删除这一版，当前 ${result.state.currentIndex+1}/${result.state.versions.length}`);
+ return true;
+}
+function restoreIndependentFaceSwipeInitial(root){
+ const identity=resolveIndependentActionIdentity(root);
+ if(!identity) return false;
+ seedIndependentFaceSwipesFromIdentity(identity);
+ const result=commitIndependentFaceVersion(identity,restoreCurrentSwipeInitial);
+ if(!result?.ok) return false;
+ globalThis.toastr?.success?.('已恢复到这一版刚生成时的画面和交互。');
+ return true;
+}
+function hasIndependentSwipeInitial(root){
+ const identity=resolveIndependentActionIdentity(root);
+ if(!identity) return false;
+ seedIndependentFaceSwipesFromIdentity(identity);
+ return !!currentSwipeEntry(readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity)))?.initialHtml;
 }
 function emptyChatOutputMetadata(){ return {version:CHAT_OUTPUT_METADATA_SCHEMA,owners:{}}; }
 function chatMetadataObject(ctx=getContext()){
@@ -5630,7 +5852,7 @@ const MAINTENANCE_STRUCTURAL_STYLE_ATTRS = [
 ];
 const PERSISTED_STATE_STYLE_ATTRS = [...RUNTIME_STATE_STYLE_ATTRS, ...MAINTENANCE_STRUCTURAL_STYLE_ATTRS];
 const PERSISTED_STATE_ARIA_ATTRS = ['aria-pressed','aria-selected','aria-expanded','aria-current','aria-checked'];
-const PERSISTED_RUNTIME_UI_SELECTOR = '[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-maintenance-rabbit], [data-rabbit-mirror-feedback-cat], [data-rabbit-mirror-resay], [data-rabbit-mirror-interaction-home], [data-rabbit-mirror-interaction-diagnostic], [data-rabbit-mirror-reference-note]';
+const PERSISTED_RUNTIME_UI_SELECTOR = '[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-maintenance-rabbit], [data-rabbit-mirror-feedback-cat], [data-rabbit-mirror-resay], [data-rabbit-mirror-interaction-home], [data-rabbit-mirror-interaction-diagnostic], [data-rabbit-mirror-reference-note], [data-rm-ephemeral-failure-body], [data-rm-face-swipe-bar], [data-rm-face-favorite-star]';
 const PERSISTED_STATE_ATTR_RE = /^(?:data-rm-(?:.*(?:active|selected|open|used|filled|touch-hover|pseudo-active|target-active)|checked-pseudo-rule-target|labeled-checked-verify-target|reversible-style-baseline|reversible-text-baseline|click-to-restore)|data-rabbit-mirror-(?:labeled-checked(?:-last|-verify|-verify-count)?|checked-text-rule-rescue|expanded-opacity-rescue|inert-action-active|radio-reset-last|stale-checked-inline-cleanup|deferred-interaction-rescue))$/i;
 function parseIndependentDetailsRaw(html=''){
  try{
@@ -8613,6 +8835,15 @@ async function generateFor(index,msg,force=false,sourceAware=true,multifaceResay
   }
  }
  if(force){
+  const resayFaceIndex=Number.isInteger(multifaceResay?.faceIndex)?multifaceResay.faceIndex:0;
+  if(persistedReady?.html) seedIndependentFaceSwipes(slot,persistedReady.html);
+  const earlyHost=el?collapseDuplicateIdentityHosts(el,key,'independent',sourceHash):null;
+  const earlyFaces=externalFaceDetails(earlyHost);
+  const overlayDetails=earlyFaces.length>1?earlyFaces[resayFaceIndex]:earlyFaces[0];
+  if(!hasEphemeralFaceFailure(overlayDetails) && !canAppendSwipe(readFaceSwipe(slot,resayFaceIndex))){
+   globalThis.toastr?.warning?.(FACE_SWIPE_FULL_MESSAGE);
+   return null;
+  }
   // A user-initiated resay becomes the sole owner for this message. Advance
   // the operation epoch and abort every older swipe/source flight before the
   // new paid request is dispatched, so a late automatic result cannot replace
@@ -8676,7 +8907,7 @@ async function generateFor(index,msg,force=false,sourceAware=true,multifaceResay
   }
  }
  if(force){
-  if(previousReadyRecord?.html) appendHistoryEntry(slot,previousReadyRecord);
+  if(previousReadyRecord?.html) seedIndependentFaceSwipes(slot,previousReadyRecord.html);
  } else cancelFlightsForSlot(slot,sourceHash);
  const dispatchLease=force ? createManualDispatchLease() : reserveAutomaticDispatchLease(baseSlot,sourceHash);
  if(!dispatchLease){
@@ -8816,7 +9047,11 @@ async function generateFor(index,msg,force=false,sourceAware=true,multifaceResay
    if(!independentRecordWithinBudget(completed)) throw independentMarkupLimitError('record-bytes',byteLength(completed.html),INDEPENDENT_RECORD_BUDGET_BYTES);
    bindIndependentRecordContinuity(settledCtx,index,settledMsg,completed,null,{completed:true});
    recordRabbitMirrorRecipe({ chat:settledCtx.chat, chatKey:chatKey(settledCtx), messageIndex:index, swipeId:swipeId(settledMsg), message:settledMsg, metadata:result?.requestDiagnostic||null, source:'independent' });
-   appendHistoryEntry(settledSlot,completed);
+   if(force){
+    const resayFaceIndex=Number.isInteger(multifaceResay?.faceIndex)?multifaceResay.faceIndex:0;
+    const faceHtml=multifaceResay?replacementVisualHtml:faceDetailsListFromHtml(completed.html)[0]?.detailsHtml||completed.html;
+    appendIndependentFaceSwipe(settledSlot,resayFaceIndex,faceHtml);
+   } else seedIndependentFaceSwipes(settledSlot,completed.html);
    const next=readStore(); saveRecordForSlot(next,settledSlot,completed); writeStore(next);
    setOwnerLockForBase(baseSlot,settledSlot,settledSourceHash);
    writePersistedOwner(settledCtx,index,settledMsg,completed,{overwrite:true});
@@ -8884,8 +9119,9 @@ async function generateFor(index,msg,force=false,sourceAware=true,multifaceResay
   const keptReady=!!readyDetailsFromHost(liveHost);
   const failedPosts=Math.max(Number(dispatchLease?.consumeCount?.()||0), Number(flight.automaticRerollCount||0));
   let failureMessage=String(err?.message||err||'generation-failed');
-  if(shouldAnnounceAutomaticRerollExhausted({manual:!!force,faceResay:!!(multifaceResay||singlePresentationResay),usableReadyFace:keptReady,failedPosts})){
-   failureMessage=`${failureMessage} ${automaticRerollExhaustedNote(AUTOMATIC_REROLL_MAX)}`;
+  const rerollMax=independentRerollMax();
+  if(shouldAnnounceAutomaticRerollExhausted({manual:!!force,faceResay:!!(multifaceResay||singlePresentationResay),usableReadyFace:keptReady,failedPosts,max:rerollMax})){
+   failureMessage=`${failureMessage} ${automaticRerollExhaustedNote(rerollMax)}`;
   }
   const terminalDiagnostic=republishIndependentTerminalFailure(failedIdentity.ctx,index,failedIdentity.msg,failedHash,baseSlot,operationEpoch,err,dispatchLease);
   markAutomaticFailureStop(failedIdentity.slot,failedHash,'generation-failed',{
@@ -8902,8 +9138,17 @@ async function generateFor(index,msg,force=false,sourceAware=true,multifaceResay
   console.error('[RabbitMirror] independent generation failed',err);
   if(liveEl){
    if(force && previousReadyRecord?.html){
-    const currentHost=collapseDuplicateIdentityHosts(liveEl,failedKey,'independent',failedHash);
-    if(!multifaceResay || !completeReadyFaceDetails(currentHost,currentHost?.__rabbitMirrorIndependentSource||'').length){
+    const currentHost=collapseDuplicateIdentityHosts(liveEl,failedKey,'independent',failedHash)||liveHost;
+    if(currentHost){
+     currentHost.dataset.rmState='ready';
+     clearIndependentResayStatus(currentHost);
+     const faceIndex=Number.isInteger(multifaceResay?.faceIndex)?multifaceResay.faceIndex:0;
+     const overlayRoot=externalFaceDetails(currentHost)[currentHost && externalFaceDetails(currentHost).length>1?faceIndex:0]||currentHost;
+     showEphemeralFaceFailure(currentHost,faceIndex,failureMessage,
+      ()=>{ resayIndependentMirror(overlayRoot,{}); },
+      ()=>{ applyIndependentFaceSwipe(overlayRoot,readFaceSwipe(failedIdentity.slot,faceIndex).currentIndex); }
+     );
+    }else{
      ensureExternalUi(liveEl,failedKey,previousReadyRecord.html,'ready','independent',failedHash,previousReadyRecord);
     }
     flight.uiSettled=true;
@@ -8938,11 +9183,11 @@ async function generateFor(index,msg,force=false,sourceAware=true,multifaceResay
     const usableReadyFace=!!readyDetailsFromHost(liveHost);
     const failedPosts=Math.max(1, Number(dispatchLease?.consumeCount?.()||0));
     flight.automaticRerollCount=failedPosts;
-    if(shouldAutomaticReroll({manual:!!force,faceResay:!!(multifaceResay||singlePresentationResay),usableReadyFace,failedPosts}) && stillCurrent()){
+    if(shouldAutomaticReroll({manual:!!force,faceResay:!!(multifaceResay||singlePresentationResay),usableReadyFace,failedPosts,max:independentRerollMax()}) && stillCurrent()){
      try{ flight.deadline?.clear?.(); }catch{}
      try{ flight.controller=new AbortController(); }catch{}
      if(liveEl){
-      const status=automaticRerollStatusText(failedPosts,AUTOMATIC_REROLL_MAX);
+      const status=automaticRerollStatusText(failedPosts,independentRerollMax());
       flight.loadingHost=ensureExternalUi(liveEl,failedIdentity.key,status,'loading','independent',failedIdentity.sourceHash);
      }
      continue;
@@ -9119,7 +9364,7 @@ function showIndependentHistory(root,owner={}){
 }
 function resayIndependentMirror(root,owner={}){
  if(getSettings().generationSource==='follow'){
-  void import('./followFaceRetry.js?rmv=1.5.59-fork1').then(({retryFollowFace})=>retryFollowFace(root,owner,{
+  void import('./followFaceRetry.js?rmv=1.5.60-fork1').then(({retryFollowFace})=>retryFollowFace(root,owner,{
    getContext,hostBusy:hostGenerationLooksActive,maxRequestChars:MAX_INDEPENDENT_REQUEST_CHARS,
    resolveOwner:target=>{
     const host=target?.closest?.('[data-rabbit-mirror-external-source="true"][data-rm-source="follow"]');
@@ -9132,8 +9377,12 @@ function resayIndependentMirror(root,owner={}){
  }
  const identity=resolveIndependentActionIdentity(root,owner,{allowPassiveErrorRetry:true});
  if(!identity) return false;
+ const gate=canIndependentFaceResay(root,owner);
+ if(!gate.ok){
+  globalThis.toastr?.warning?.(gate.message||FACE_SWIPE_FULL_MESSAGE);
+  return true;
+ }
  const saved=savedIndependentRecordForOwner(identity.ctx,identity.index,identity.msg,readStore());
- if(saved?.html) appendHistoryEntry(independentLineageOriginSlot(saved)||identity.slot,saved);
  const diagnostic=saved?.apiRequest&&typeof saved.apiRequest==='object'?saved.apiRequest:{};
  const faces=Array.isArray(diagnostic.faces)?diagnostic.faces:[];
  if(identity.faceIndex>=0 && faces.length<=identity.faceIndex){
@@ -9237,7 +9486,16 @@ function persistIndependentRepairFromEvent(event) {
  // Reject before replacing the last restorable local record. The compactor may
  // otherwise discard an over-budget replacement and erase the previous result.
  if(!independentRecordWithinBudget(repaired)) return abort('repaired mirror exceeds storage budget');
- if(previousClean && previousClean!==html) appendHistoryEntry(existingSlot,{...existing,html:previousClean,initialHtml:initialHtml||previousClean});
+ if(previousClean && previousClean!==html){
+  const repairedFace=faces.length>1 ? faces.findIndex(face=>face===details) : 0;
+  const faceIndex=Math.max(0,repairedFace);
+  const repairedHtml=scrubSwipeDetailsHtml(clone.outerHTML);
+  if(repairedHtml) mutateFaceSwipe(existingSlot,faceIndex,state=>{
+   const seedHtml=faceDetailsListFromHtml(existing?.initialHtml||previousClean)[faceIndex]?.detailsHtml||previousClean;
+   const seeded=seedSwipeState(state,{html:seedHtml,initialHtml:seedHtml,ts:Number(existing?.ts||Date.now())});
+   return updateCurrentSwipeHtml(seeded.state,repairedHtml);
+  });
+ }
  bindIndependentRecordContinuity(identity.ctx,identity.index,identity.msg,repaired,null,{completed:true,commit:false});
  sealIndependentTextReplacementRecord(repaired,identity.slot);
  saveRecordForSlot(store,identity.slot,repaired);
@@ -9387,7 +9645,13 @@ function installIndependentActionBridge(){
   prepareImageTarget:root=>prepareMirrorImageTarget(root),
   prepareQuickResay:(root,owner={})=>prepareQuickResay(root,owner),
   resay:(root,owner={})=>resayIndependentMirror(root,owner),
-  history:(root,owner={})=>showIndependentHistory(root,owner),
+  history:(root,owner={})=>true,
+  swipeView:(root,owner={})=>independentFaceSwipeView(root,owner),
+  selectSwipe:(root,index,owner={})=>applyIndependentFaceSwipe(root,index,owner),
+  deleteSwipe:(root,owner={})=>deleteIndependentFaceSwipe(root,owner),
+  restoreInitial:root=>restoreIndependentFaceSwipeInitial(root),
+  hasSwipeInitial:root=>hasIndependentSwipeInitial(root),
+  canResay:(root,owner={})=>canIndependentFaceResay(root,owner),
  };
  globalThis[ACTION_BRIDGE_KEY]=independentActionBridge;
 }

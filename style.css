@@ -410,6 +410,89 @@ toto[data-rabbit-mirror="true"] summary {
   isolation: isolate !important;
 }
 
+.rabbit-mirror-face-swipe-bar {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  margin: 0 4px 0 0 !important;
+  padding: 0 2px !important;
+  color: inherit !important;
+  font: 12px/1 sans-serif !important;
+  pointer-events: auto !important;
+  vertical-align: middle !important;
+}
+.rabbit-mirror-face-swipe-bar button {
+  all: unset !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 22px !important;
+  min-height: 28px !important;
+  padding: 0 4px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  color: inherit !important;
+  opacity: .88 !important;
+}
+.rabbit-mirror-face-swipe-bar button:disabled {
+  opacity: .35 !important;
+  cursor: default !important;
+}
+.rabbit-mirror-face-swipe-bar [data-rm-face-swipe-label] {
+  min-width: 2.4em !important;
+  text-align: center !important;
+  font-variant-numeric: tabular-nums !important;
+  pointer-events: none !important;
+}
+.rabbit-mirror-face-favorite-star {
+  all: initial !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  margin: 0 2px 0 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: inherit !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+.rabbit-mirror-face-favorite-star.is-favorited { color: #e8b84a !important; }
+.rabbit-mirror-face-favorite-star:hover { background: color-mix(in srgb, currentColor 10%, transparent) !important; }
+.rabbit-mirror-ephemeral-failure {
+  margin: 10px 12px 14px !important;
+  padding: 12px !important;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent) !important;
+  border-radius: 12px !important;
+  font: 14px/1.55 sans-serif !important;
+}
+.rabbit-mirror-ephemeral-failure-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin-top: 10px !important;
+}
+.rabbit-mirror-ephemeral-failure-actions button {
+  min-height: 36px !important;
+  padding: 6px 12px !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+}
+.rabbit-mirror-wand-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto !important;
+}
+.rabbit-mirror-wand-icon svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
 /* 0.33.8 小小维修兔 v1.7：每条标题后独立入口，点击打开本地维修菜单。 */
 .rabbit-mirror-maintenance-rabbit {
   display: inline-flex !important;
