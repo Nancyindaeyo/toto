@@ -31,6 +31,14 @@ export function isRecentAssistantIndex(recentRows, index) {
     return recentRows.some(row => Number(row?.i) === id);
 }
 
+export function isMissingShellTargetFloor(index, { recentIndices, syncedIndices } = {}) {
+    const id = Number(index);
+    if (!Number.isInteger(id) || id < 0) return false;
+    if (recentIndices instanceof Set && recentIndices.has(id)) return true;
+    if (syncedIndices instanceof Set && syncedIndices.has(id)) return true;
+    return false;
+}
+
 export function hasUsableAssistantBody(message) {
     return !!(String(message?.mes || '').trim() || String(message?.extra?.display_text || '').trim());
 }

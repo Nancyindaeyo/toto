@@ -50,7 +50,7 @@ export const QUICK_START_GROUPS = [
     ] },
     { name: '配置与维护', items: [
         setting('connection', '连接与模型', '从酒馆当前连接配置，或手动填写兼容接口与模型。', '#rh_independent_import_current'),
-        setting('output', '温度与整批最大输出', '配置生成参数；多面共享整批输出上限。', '#rh_independent_max_tokens'),
+        setting('output', '温度、整批最大输出与请求字符预算', '配置生成参数；多面共享整批输出上限。完整请求字符预算可按模型上下文自行调大。', '#rh_independent_max_request_chars'),
         setting('regex', '一键配置正则', '为跟随正文 API 配置不发送正则；也可查看或复制。', '.rabbit-mirror-tools .rh_regex_configure'),
         setting('estimate', 'Prompt 估算', '查看请求前的本地估算，不是服务商账单。', '#rh_token_meter'),
         mirror('chain', '生成全链路诊断', '在出问题的镜面中查看生成与维修链路。', '该镜面 → 维修兔 → 生成全链路诊断'),

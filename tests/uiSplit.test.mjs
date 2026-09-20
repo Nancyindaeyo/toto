@@ -17,10 +17,10 @@ function loadRuntime() {
 
 test('ui runtime loads without settings, independentApi, or the ui barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.71');
-    assert.equal(loaded.SETTINGS_UI_VERSION, '1.12-layered-ui3-missingshell1');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.73');
+    assert.equal(loaded.SETTINGS_UI_VERSION, '1.12-layered-ui3-missingshell2-requestbudget1');
     assert.equal(loaded.escapeHtml('<a "b">'), '&lt;a &quot;b&quot;&gt;');
-    loaded.__rabbitMirrorRuntimeVersion = '1.5.71';
+    loaded.__rabbitMirrorRuntimeVersion = '1.5.73';
     assert.equal(loaded.isCurrentRuntime(), true);
     loaded.__rabbitMirrorRuntimeVersion = 'other';
     assert.equal(loaded.isCurrentRuntime(), false);
@@ -37,6 +37,10 @@ test('settings template keeps mount ids and does not own event bindings', () => 
     assert.match(source, /id="rh_visual_avoid_prompt"/);
     assert.match(source, /id="rh_world_info_prompt_modal"/);
     assert.match(source, /id="rh_independent_tag_filter_modal"/);
+    assert.match(source, /id="rh_independent_max_request_chars"/);
+    assert.match(source, /class="rh-independent-generation-params"/);
+    assert.match(source, /id="rh_missing_shell_panel"/);
+    assert.match(source, /id="rh_missing_shell_rescan"/);
     assert.doesNotMatch(source, /export function initRabbitMirrorUI/);
     assert.doesNotMatch(source, /\$\('#rh_enabled'\)\.on\(/);
 });
@@ -74,5 +78,5 @@ test('ui.js keeps mount/destroy and no longer embeds the settings dialog HTML', 
     assert.match(source, /const html = buildRabbitMirrorSettingsDialogHtml\(\);/);
     assert.doesNotMatch(source, /id="rh_visual_avoid_prompt"/);
     assert.doesNotMatch(source, /id="rh_tt_diag_start"/);
-    assert.match(source, /from '\.\/ui\/runtime\.js\?rmv=1\.5\.71'/);
+    assert.match(source, /from '\.\/ui\/runtime\.js\?rmv=1\.5\.73'/);
 });

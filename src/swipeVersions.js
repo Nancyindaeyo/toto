@@ -88,6 +88,22 @@ export function fallbackFaceSwipeView() {
     };
 }
 
+export function multifaceFacePagerView(faceCount, currentIndex, overlay = false) {
+    const count = Math.max(1, Number(faceCount) || 1);
+    const index = Math.max(0, Math.min(count - 1, Number(currentIndex) || 0));
+    return {
+        count,
+        currentIndex: index,
+        overlay: overlay === true,
+        label: `${index + 1}/${count}`,
+        canPrev: overlay === true || index > 0,
+        canNext: index < count - 1,
+        canDelete: false,
+        canResay: true,
+        full: false,
+    };
+}
+
 export function faceSwipeBarIntent(view, action) {
     if (!view || !action) return { type: 'noop' };
     if (action === 'delete') return view.canDelete ? { type: 'delete' } : { type: 'noop' };
@@ -236,6 +252,24 @@ function writeStore(store) {
         }
         return false;
     }
+}
+
+export function compactFaceSwipeStoreForQuota() {
+    const store = readStore();
+    const stacks = Object.entries(store.faces || {})
+        .map(([key, value]) => [key, normalizeSwipeState(value)])
+        .filter(([, state]) => state.versions.length)
+        .sort((a, b) => Number(b[1].touched || 0) - Number(a[1].touched || 0));
+    for (const limit of [40, 20, 10, 5, 1]) {
+        const next = emptyStore();
+        for (const [key, state] of stacks.slice(0, limit)) next.faces[key] = state;
+        memoryStore = next;
+        try {
+            globalThis.localStorage?.setItem(STORE_KEY, JSON.stringify(next));
+            return true;
+        } catch {}
+    }
+    return false;
 }
 
 function matchingSwipeKeys(store, slot, faceIndex = 0) {

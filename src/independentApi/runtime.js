@@ -1,6 +1,6 @@
 // Split from independentApi.js — runtime.
 
-export const RUNTIME_VERSION = '1.5.71';
+export const RUNTIME_VERSION = '1.5.73';
 
 export const SOURCE_ATTR = 'data-rabbit-mirror-external-source';
 
@@ -44,7 +44,7 @@ export const CONTEXT_TRANSCRIPT_BUDGET = 12000;
 
 export const CONTEXT_TOTAL_BUDGET = 20000;
 
-export const MAX_INDEPENDENT_REQUEST_CHARS = 32000;
+export const MAX_INDEPENDENT_REQUEST_CHARS = 50000;
 
 export function independentMaintenanceLiveRepairLocked(host){
  if(!host?.isConnected || host.getAttribute?.(INDEPENDENT_LIVE_REPAIR_ATTR)!=='true') return false;

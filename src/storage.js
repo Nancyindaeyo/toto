@@ -1,5 +1,6 @@
 import { presentationModeFields } from './presentationMode.js?rmv=1.5.53-visualquick1';
 import { packBatchPlanText, unpackBatchPlanText } from './batchPlanCodec.js?rmv=1.5.53-cn-boundary1';
+import { compactFaceSwipeStoreForQuota } from './swipeVersions.js?rmv=1.5.73';
 
 const STORAGE_KEY = 'rabbit_mirror_theater:last_combo:v11';
 const PENDING_KEY = 'rabbit_mirror_theater:pending_combo:v11';
@@ -995,6 +996,23 @@ function reclaimExpiredTransactionsForQuota(changes) {
     } catch { return null; }
 }
 
+function compactIndependentOutputsForQuota() {
+    const key = 'rabbit_mirror_independent_outputs_v1';
+    try {
+        const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+        const entries = Object.entries(parsed).sort((a, b) => Number(b[1]?.ts || 0) - Number(a[1]?.ts || 0));
+        if (!entries.length) return false;
+        for (const keep of [40, 20, 10, 5, 1]) {
+            try {
+                localStorage.setItem(key, JSON.stringify(Object.fromEntries(entries.slice(0, keep))));
+                return true;
+            } catch {}
+        }
+    } catch {}
+    return false;
+}
+
 function writeOwnedTransaction(changes = [], options = {}, allowQuotaRecovery = false) {
     const completed = [];
     let rejection = 'BATCH_STORAGE_WRITE_FAILED';
@@ -1019,9 +1037,11 @@ function writeOwnedTransaction(changes = [], options = {}, allowQuotaRecovery = 
             } catch { /* Fail closed; caller receives false and never dispatches/commits. */ }
         }
         if (allowQuotaRecovery && isStorageQuotaError(error)) {
+            compactFaceSwipeStoreForQuota();
+            compactIndependentOutputsForQuota();
             const retry = reclaimExpiredTransactionsForQuota(changes);
             // Same plan and payload, one local retry only. No picker/provider call.
-            if (retry) return writeOwnedTransaction(retry, options, false);
+            return writeOwnedTransaction(retry || changes, options, false);
         }
         reportBatchRejection(options, isStorageQuotaError(error) ? 'BATCH_STORAGE_QUOTA_EXCEEDED' : rejection);
         return false;

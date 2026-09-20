@@ -1,4 +1,4 @@
-@import url('./settings-ui.css?rmv=1.5.56');
+@import url('./settings-ui.css?rmv=1.5.73');
 
 #rabbit_mirror_theater_settings #rh_independent_excluded_params{min-width:0;margin:0;padding:10px;border:1px solid var(--SmartThemeBorderColor,currentColor);border-radius:8px;}
 #rabbit_mirror_theater_settings .rabbit-mirror-exclusion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0;}
@@ -67,6 +67,9 @@
   box-sizing:border-box !important;
   margin:0 !important;
   overflow:visible !important;
+}
+#chat .rabbit-mirror-multiface-host > details:not([data-rm-face-current="true"]){
+  display:none !important;
 }
 /* 1.1.0-beta.14.65-test: settings drawer mobile performance containment. */
 .rabbit-mirror-settings {
@@ -1358,15 +1361,18 @@ html[data-rabbit-mirror-external-sampling-enabled="false"] [data-rabbit-mirror-r
 /* Compact the last message's large spacer, but reserve the measured part of its
    footer/swipe controls that really extends outside. No theme artwork is copied. */
 #chat .mes:has(> [data-rabbit-mirror-external-shell="true"]){
-  flex-wrap:wrap;
+  flex-wrap:wrap !important;
 }
 #chat .mes > [data-rabbit-mirror-external-shell="true"]{
-  flex:1 1 100%;
+  flex:1 1 100% !important;
+  flex-basis:100% !important;
   order:50;
   width:100% !important;
   max-width:100% !important;
   min-width:0 !important;
+  align-self:stretch;
   margin-left:0 !important;
+  box-sizing:border-box;
 }
 #chat .mes_block > [data-rabbit-mirror-external-shell="true"],
 #chat .mes_block > [data-rabbit-mirror-independent-inline-anchor="true"] + [data-rabbit-mirror-external-shell="true"]{

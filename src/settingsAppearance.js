@@ -1,6 +1,6 @@
 // UI palettes from the user-provided Hearttrace source, by Toto.
 // Presentation only: no generation settings, Prompt, content storage, or network.
-import { closeTheaterFavoriteLibrary, closeTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.71';
+import { closeTheaterFavoriteLibrary, closeTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.73';
 export const UI_THEMES = Object.freeze([
   {
     "id": "default",
@@ -154,7 +154,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
         display:['settings','兔子镜显示模式','选择兔子镜的显示模式。'],
         connection:['settings','给兔子镜连接模型','副 API 生成时，兔子镜会使用这里的连接。'],
         manual:['settings','自己填写接口','使用兼容 OpenAI 的接口地址、密钥与模型。'],
-        parameters:['settings','生成参数','调整副 API 生成时的随机程度和输出长度。'],
+        parameters:['settings','生成参数','调整副 API 的温度、整批最大输出、自动重 roll，以及完整请求字符预算。'],
         request:['settings','请求参数','默认关闭。只有你的模型需要这些参数时，才启用并配置。'],
         read:['settings','它可以参考什么','决定兔子镜副 API 生成时，可以读取哪些资料。'],
         chat:['settings','参考聊天正文','读取层数，以及角色卡和你的 Persona 摘要。'],
@@ -177,7 +177,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
         references:['play','参考已有的 HTML','借鉴参考的外观与交互特点，和界面主题是两回事。'],
         visualRules:['play','通用视觉规则','查看或修改每次绘制遵循的规则。'],
         replacement:['play','禁词与文字替换','只处理兔子镜可见文字，保留原聊天正文。'],
-        mirror:['tools','镜面出问题了','先找到需要处理的那一面，再使用对应的工具。'],
+        mirror:['tools','镜面出问题了','先处理缺外壳的楼层，再对已有镜面使用挨打猫或维修兔。'],
         usage:['tools','看看这次抽到了什么','查看抽签、请求记录和 Prompt 估算。估算不是服务商账单。'],
         regex:['tools','避免旧镜面重复发给模型','跟随正文 API 生成时，用这条正则过滤旧的兔子镜内容。'],
         diagnosis:['tools','检查宿主与连接问题','记录情况、查看诊断报告。'],
@@ -246,7 +246,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     for(const input of followDisplay.querySelectorAll('input'))choice(input,input.value==='inline'?'放在正文下方':'外置展示',input.value==='inline'?'翻到这条回复，就能看到对应的小剧场。':outer);
     for(const input of indDisplay.querySelectorAll('input'))choice(input,input.value==='external'?'外置展示':'跟随正文内嵌',input.value==='external'?outer:inner);
     for(const node of [followDisplay,indDisplay]){node.removeAttribute('style');node.className='rh-ui-display-options';}
-    move('rh_independent_manual_legacy','manual');move(get('rh_independent_temperature').closest('.flex-container'),'parameters');move('rh_independent_request_advanced','request');
+    move('rh_independent_manual_legacy','manual');move(get('rh_independent_temperature').closest('.rh-independent-generation-params')||get('rh_independent_temperature').closest('.flex-container'),'parameters');move('rh_independent_request_advanced','request');
     get('rh_independent_advanced_open').closest('.rabbit-mirror-independent-advanced-row').hidden=true;
     const apiFields=get('rh_independent_api_fields');
     // The emptied display wrapper is presentation only. Connection/profile hooks retain their original parent card.
@@ -269,6 +269,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     move('rh_advanced_page_replacement','replacement');move('rh_advanced_page_external','library');
     move(get('rh_blacklist_enabled').closest('label').parentElement,'blacklist');move(get('rh_favorite_summary').parentElement,'favorites');
     move(get('rh_theater_favorite_section')?.querySelector('.rabbit-mirror-section-content'),'theaterFavorites');
+    move('rh_missing_shell_panel','mirror');
     move('rh_advanced_page_repair','mirror');
     note('mirror','每面兔子镜的标题旁都有版本箭头、收藏星标和兔子工具。挨打猫用于反馈和重说；维修兔用于检查、修复、复制本面 HTML；星标收藏当前这一版。');
     move('rh_manual_entry_diag','diagnosis');

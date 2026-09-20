@@ -1,7 +1,8 @@
 // Split from independentApi.js — request.
 
 import { presentationModeFields, hasExplicitTextFace } from '../presentationMode.js?rmv=1.5.53-visualquick1';
-import { getSettings } from '../settings.js?rmv=1.5.71';
+import { getSettings } from '../settings.js?rmv=1.5.73';
+import { configuredIndependentMaxRequestChars } from '../independentRequestBudget.js?rmv=1.5.73';
 import { independentGenerationTiming } from '../independentTiming.js?rmv=1.5.53-timing1';
 import {
     assertRabbitMirrorIndependentResponseBytes,
@@ -23,9 +24,9 @@ import {
 } from '../promptBuilder.js?rmv=1.5.53-image1';
 import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from '../externalWorldBook/store.js?rmv=1.5.53-text1';
 import { describeExternalWorldBookPreflightFailure } from '../externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
-import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.5.71';
+import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.5.73';
 import { parseMultifaceOutput, recoverableMultifaceFrames, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.71';
+import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.73';
 import {
     updateLatestVisualSignature,
     parseVisualFamilySkeleton,
@@ -40,13 +41,12 @@ import {
     FOLLOW_EXTERNAL_ANCHOR_ATTR,
     FOLLOW_ORIGIN_ATTR,
     INLINE_ANCHOR_ATTR,
-    MAX_INDEPENDENT_REQUEST_CHARS,
     SOURCE_ATTR,
     byteLength,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.71';
-import { operationEpochForBase } from './flights.js?rmv=1.5.71';
+} from './runtime.js?rmv=1.5.73';
+import { operationEpochForBase } from './flights.js?rmv=1.5.73';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INDEPENDENT_MAX_APPROX_DEPTH,
@@ -61,7 +61,7 @@ import {
     normalizedConfiguredTemperature,
     readHistoryStore,
     readStore,
-} from './persistence.js?rmv=1.5.71';
+} from './persistence.js?rmv=1.5.73';
 import {
     API_PROFILE_ORDER,
     chatKey,
@@ -95,7 +95,7 @@ import {
     stageNextApiProfile,
     swipeId,
     validatedIndependentConnectionProfile,
-} from './connection.js?rmv=1.5.71';
+} from './connection.js?rmv=1.5.73';
 import {
     externalGeometryCycleSequence,
     externalGeometryLifecycleEpoch,
@@ -106,7 +106,7 @@ import {
     writeExternalGeometryCycleSequence,
     writeExternalGeometryLifecycleEpoch,
     writeExternalGeometryLifecycleReason,
-} from './geometry.js?rmv=1.5.71';
+} from './geometry.js?rmv=1.5.73';
 import {
     INDEPENDENT_REJECTED_PREVIEW_MAX_CHARS,
     INDEPENDENT_REJECTED_PREVIEW_MAX_ENTRIES,
@@ -122,8 +122,8 @@ import {
     writeExternalHostSyncIndex,
     writeIndependentRejectedPreviewChars,
     writeIndependentRejectedPreviewSequence,
-} from './mount.js?rmv=1.5.71';
-import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.5.71';
+} from './mount.js?rmv=1.5.73';
+import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.5.73';
 
 const NON_STREAM_PROFILE_BY_STREAM_PROFILE={
  chat_system_user_full:'chat_system_user_full_nostream',
@@ -1826,12 +1826,13 @@ ${independentSystemRules}`;
  const independentUserTail=faceCount>1
   ? `现在依据逐面抽取计划，依次完成 ${faceCount} 个独立成品，每个单独闭合 <toto>；不解释、不复述规则、不合并到一个 details。`
   : '现在依据近输出短锁完成唯一成品。不要解释构思过程，不要复述规则，直接输出完整 <toto>...</toto>。';
+ const maxRequestChars=configuredIndependentMaxRequestChars(st);
  const fixedRequestChars=systemPrompt.length+executionLock.length+independentUserLead.length+independentUserTail.length+16;
- const availableContextChars=MAX_INDEPENDENT_REQUEST_CHARS-fixedRequestChars;
+ const availableContextChars=maxRequestChars-fixedRequestChars;
  // Do not reserve an arbitrary 8k context floor. The real request-size check
  // below is authoritative; a short current turn can safely fit in the remainder.
  if(availableContextChars<=0){
-  const error=new Error(`兔子镜规则与执行锁已超过独立 API 完整请求 ${MAX_INDEPENDENT_REQUEST_CHARS} 字符安全预算；本次未发送网络请求。`);
+  const error=new Error(`兔子镜规则与执行锁已超过独立 API 完整请求 ${maxRequestChars} 字符安全预算；本次未发送网络请求。`);
   error.code='RABBIT_MIRROR_REQUEST_TOO_LARGE'; error.requestCount=0; throw error;
  }
  const globalWorldInfoSnapshot=globalWorldInfoSnapshotFor(ctx,index,msg);
@@ -1847,8 +1848,8 @@ ${executionLock}
 
 ${independentUserTail}`;
  const totalRequestChars=systemPrompt.length+userPrompt.length;
- if(totalRequestChars>MAX_INDEPENDENT_REQUEST_CHARS){
-  const error=new Error(`独立 API 完整请求超过 ${MAX_INDEPENDENT_REQUEST_CHARS} 字符安全预算；本次未发送网络请求。`);
+ if(totalRequestChars>maxRequestChars){
+  const error=new Error(`独立 API 完整请求超过 ${maxRequestChars} 字符安全预算；本次未发送网络请求。`);
   error.code='RABBIT_MIRROR_REQUEST_TOO_LARGE'; error.requestCount=0; throw error;
  }
  // 设置页原来的 Token 面板在独立 API 模式只显示“主 API 0 Token”，看不到实际上

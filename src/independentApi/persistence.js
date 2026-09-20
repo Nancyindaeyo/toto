@@ -2,7 +2,7 @@
 
 import { presentationModeFields } from '../presentationMode.js?rmv=1.5.53-visualquick1';
 import { independentAdvancedOptionsSignature } from '../advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
-import { refreshRabbitMirrorToolsInScope } from '../outputSanitizer.js?rmv=1.5.71';
+import { refreshRabbitMirrorToolsInScope } from '../outputSanitizer.js?rmv=1.5.73';
 import {
     FACE_SWIPE_FULL_MESSAGE,
     FACE_SWIPE_MAX,
@@ -13,8 +13,9 @@ import {
     currentSwipeEntry,
     readFaceSwipe,
     mutateFaceSwipe,
-} from '../swipeVersions.js?rmv=1.5.71';
-import { RUNTIME_VERSION, byteLength, getContext, hashText } from './runtime.js?rmv=1.5.71';
+    multifaceFacePagerView,
+} from '../swipeVersions.js?rmv=1.5.73';
+import { RUNTIME_VERSION, byteLength, getContext, hashText } from './runtime.js?rmv=1.5.73';
 import {
     clearEphemeralFaceFailure,
     hasEphemeralFaceFailure,
@@ -24,7 +25,7 @@ import {
     independentSwipeSlot,
     seedIndependentFaceSwipesFromIdentity,
     writeIndependentOwnerHtml,
-} from './faceSwipe.js?rmv=1.5.71';
+} from './faceSwipe.js?rmv=1.5.73';
 import {
     API_PROFILE_STORE_KEY,
     assistantMessages,
@@ -40,8 +41,8 @@ import {
     savedIndependentRecordForOwner,
     setOwnerLockForBase,
     swipeId,
-} from './connection.js?rmv=1.5.71';
-import { stampExternalDetailsOwnership } from './request.js?rmv=1.5.71';
+} from './connection.js?rmv=1.5.73';
+import { stampExternalDetailsOwnership } from './request.js?rmv=1.5.73';
 import {
     copyIndependentReplacementReceipt,
     ensureExternalTools,
@@ -52,8 +53,8 @@ import {
     normalizeSavedInteractionRecord,
     recoverSavedRecord,
     replaceExternalMultifaceFace,
-} from './geometry.js?rmv=1.5.71';
-import { externalFaceDetails, resolveIndependentActionIdentity, scheduleIndependentReadyPostprocess } from './mount.js?rmv=1.5.71';
+} from './geometry.js?rmv=1.5.73';
+import { externalFaceDetails, resolveIndependentActionIdentity, scheduleIndependentReadyPostprocess, showMultifaceFace } from './mount.js?rmv=1.5.73';
 
 const STORE_KEY = 'rabbit_mirror_independent_outputs_v1';
 
@@ -251,6 +252,11 @@ function commitIndependentFaceVersion(identity,mutator){
 export function independentFaceSwipeView(root,owner={}){
  const identity=resolveIndependentActionIdentity(root,owner);
  if(!identity || identity.host?.dataset?.rmState==='error') return null;
+ const faces=externalFaceDetails(identity.host);
+ if(faces.length>1){
+  const currentIndex=showMultifaceFace(identity.host,identity.host.dataset.rmFaceView);
+  return multifaceFacePagerView(faces.length,currentIndex,hasEphemeralFaceFailure(faces[currentIndex]));
+ }
  seedIndependentFaceSwipesFromIdentity(identity);
  const details=independentSwipeDetails(identity);
  const overlay=hasEphemeralFaceFailure(details);
@@ -283,6 +289,14 @@ export function canIndependentFaceResay(root,owner={}){
 export function applyIndependentFaceSwipe(root,index,owner={}){
  const identity=resolveIndependentActionIdentity(root,owner);
  if(!identity) return false;
+ const faces=externalFaceDetails(identity.host);
+ if(faces.length>1){
+  const current=Number(identity.host.dataset.rmFaceView)||0;
+  const details=faces[showMultifaceFace(identity.host,index)];
+  if(hasEphemeralFaceFailure(details) && Number(index)===current) clearEphemeralFaceFailure(details);
+  try{ refreshRabbitMirrorToolsInScope(identity.host); }catch{}
+  return true;
+ }
  seedIndependentFaceSwipesFromIdentity(identity);
  const details=independentSwipeDetails(identity);
  if(hasEphemeralFaceFailure(details) && Number(index)===readFaceSwipe(independentSwipeSlot(identity),independentSwipeFaceIndex(identity)).currentIndex){

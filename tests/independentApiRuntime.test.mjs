@@ -13,13 +13,14 @@ function loadRuntime() {
         Date,
     });
     context.globalThis = context;
-    vm.runInContext(`${source}\nObject.assign(globalThis, { RUNTIME_VERSION, byteLength, hashText, currentRuntime });`, context);
+    vm.runInContext(`${source}\nObject.assign(globalThis, { RUNTIME_VERSION, MAX_INDEPENDENT_REQUEST_CHARS, byteLength, hashText, currentRuntime });`, context);
     return context;
 }
 
 test('independentApi runtime loads without flights, connection, or the barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.71');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.73');
+    assert.equal(loaded.MAX_INDEPENDENT_REQUEST_CHARS, 50000);
     assert.equal(typeof loaded.byteLength, 'function');
     assert.equal(typeof loaded.flightIdentity, 'undefined');
     assert.equal(typeof loaded.initIndependentRabbitMirror, 'undefined');

@@ -2,8 +2,9 @@ import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-vis
 import { extension_settings } from '../../../../extensions.js';
 import { saveSettingsDebounced } from '../../../../../script.js';
 import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
-import { AUTOMATIC_REROLL_DEFAULT, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.5.71';
-import { normalizeMissingShellScanRange } from './independentApi/missingRetryShell.js?rmv=1.5.71';
+import { AUTOMATIC_REROLL_DEFAULT, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.5.73';
+import { DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS, normalizeIndependentMaxRequestChars } from './independentRequestBudget.js?rmv=1.5.73';
+import { normalizeMissingShellScanRange } from './independentApi/missingRetryShell.js?rmv=1.5.73';
 
 export const MODULE_NAME = 'rabbit_mirror_theater';
 
@@ -127,6 +128,7 @@ export const defaultSettings = Object.freeze({
     independentApiModel: '',
     independentApiTemperature: 0.8,
     independentApiMaxTokens: 30000,
+    independentMaxRequestChars: DEFAULT_INDEPENDENT_MAX_REQUEST_CHARS,
     independentAutomaticRerollMax: AUTOMATIC_REROLL_DEFAULT,
     independentAdvancedEnabled: false,
     independentReasoningEffort: '',
@@ -237,6 +239,7 @@ export function getSettings() {
         settings.independentApiTemperature = Math.max(0, Math.min(2, Number.isFinite(temperature) ? temperature : 0.8));
     }
     settings.independentApiMaxTokens = Math.max(512, Math.min(32000, Number(settings.independentApiMaxTokens) || 30000));
+    settings.independentMaxRequestChars = normalizeIndependentMaxRequestChars(settings.independentMaxRequestChars);
     settings.independentAutomaticRerollMax = normalizeAutomaticRerollMax(settings.independentAutomaticRerollMax);
     // Keep this startup path scalar-only. Invalid stored JSON is not silently
     // truncated or repaired; opt-in request preflight validates it before send.

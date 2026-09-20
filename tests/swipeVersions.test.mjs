@@ -13,6 +13,8 @@ import {
     restoreCurrentSwipeInitial,
     faceSwipeBarIntent,
     fallbackFaceSwipeView,
+    multifaceFacePagerView,
+    compactFaceSwipeStoreForQuota,
     faceSwipeStorageSlot,
     readFaceSwipe,
     writeFaceSwipe,
@@ -195,4 +197,36 @@ test('read still finds a legacy hashed store key after remount', () => {
     const keys = Object.keys(raw.faces);
     assert.equal(keys.length, 1);
     assert.equal(keys[0], 'chat:2:0\u00000');
+});
+
+test('multiface pager uses face count instead of per-face versions', () => {
+    const view = multifaceFacePagerView(3, 1);
+    assert.equal(view.label, '2/3');
+    assert.equal(view.canPrev, true);
+    assert.equal(view.canNext, true);
+    assert.equal(view.canDelete, false);
+    assert.deepEqual(faceSwipeBarIntent(view, 'next'), { type: 'select', index: 2 });
+    assert.deepEqual(faceSwipeBarIntent({ ...view, currentIndex: 2, canNext: false }, 'next'), { type: 'resay' });
+});
+
+test('quota compact keeps the newest swipe stacks', () => {
+    let armed = false;
+    const data = mockLocalStorage((_key, value, store) => {
+        if (armed && String(value).length > 280) throw new Error('quota');
+        store[_key] = String(value);
+    });
+    const faces = {};
+    for (let i = 0; i < 8; i += 1) {
+        faces[`chat:${i}:0\u00000`] = {
+            ...stack(`<details>${'x'.repeat(24)}${i}</details>`),
+            touched: i + 1,
+        };
+    }
+    data.rabbit_mirror_face_swipes_v1 = JSON.stringify({ schema: 1, faces });
+    resetFaceSwipeStoreForTests();
+    armed = true;
+    assert.equal(compactFaceSwipeStoreForQuota(), true);
+    const raw = JSON.parse(data.rabbit_mirror_face_swipes_v1);
+    assert.ok(Object.keys(raw.faces).length < 8);
+    assert.ok(raw.faces['chat:7:0\u00000']);
 });

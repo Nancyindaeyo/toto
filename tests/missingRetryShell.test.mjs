@@ -8,6 +8,7 @@ import {
     formatMissingShellReport,
     hasUsableAssistantBody,
     isRecentAssistantIndex,
+    isMissingShellTargetFloor,
     normalizeMissingShellScanRange,
     shouldRestoreMissingIndependentRetryShell,
 } from '../src/independentApi/missingRetryShell.js';
@@ -35,6 +36,13 @@ test('recent assistant window uses the selected scan rows', () => {
     assert.equal(isRecentAssistantIndex([{ i: 2 }, { i: 5 }], 5), true);
     assert.equal(isRecentAssistantIndex([{ i: 2 }, { i: 5 }], 4), false);
     assert.equal(isRecentAssistantIndex(null, 5), false);
+});
+
+test('currently synced or mounted floors stay eligible even outside the scan window', () => {
+    assert.equal(isMissingShellTargetFloor(3, { recentIndices: new Set([8, 9]) }), false);
+    assert.equal(isMissingShellTargetFloor(3, { recentIndices: new Set([8, 9]), syncedIndices: new Set([3]) }), true);
+    assert.equal(isMissingShellTargetFloor(9, { recentIndices: new Set([8, 9]) }), true);
+    assert.equal(isMissingShellTargetFloor('x', { syncedIndices: new Set([1]) }), false);
 });
 
 test('only auto/manual independent timing may restore a retry shell', () => {
