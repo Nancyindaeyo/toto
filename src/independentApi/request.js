@@ -23,9 +23,9 @@ import {
 } from '../promptBuilder.js?rmv=1.5.53-image1';
 import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from '../externalWorldBook/store.js?rmv=1.5.53-text1';
 import { describeExternalWorldBookPreflightFailure } from '../externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
-import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.5.62';
+import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.5.63';
 import { parseMultifaceOutput, recoverableMultifaceFrames, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.62';
+import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.63';
 import {
     updateLatestVisualSignature,
     parseVisualFamilySkeleton,
@@ -45,8 +45,8 @@ import {
     byteLength,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.62';
-import { operationEpochForBase } from './flights.js?rmv=1.5.62';
+} from './runtime.js?rmv=1.5.63';
+import { operationEpochForBase } from './flights.js?rmv=1.5.63';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INDEPENDENT_MAX_APPROX_DEPTH,
@@ -61,7 +61,7 @@ import {
     normalizedConfiguredTemperature,
     readHistoryStore,
     readStore,
-} from './persistence.js?rmv=1.5.62';
+} from './persistence.js?rmv=1.5.63';
 import {
     API_PROFILE_ORDER,
     chatKey,
@@ -95,7 +95,7 @@ import {
     stageNextApiProfile,
     swipeId,
     validatedIndependentConnectionProfile,
-} from './connection.js?rmv=1.5.62';
+} from './connection.js?rmv=1.5.63';
 import {
     externalGeometryCycleSequence,
     externalGeometryLifecycleEpoch,
@@ -105,7 +105,7 @@ import {
     readyDetailsFromHost,
     writeExternalGeometryLifecycleEpoch,
     writeExternalGeometryLifecycleReason,
-} from './geometry.js?rmv=1.5.62';
+} from './geometry.js?rmv=1.5.63';
 import {
     INDEPENDENT_REJECTED_PREVIEW_MAX_CHARS,
     INDEPENDENT_REJECTED_PREVIEW_MAX_ENTRIES,
@@ -120,8 +120,8 @@ import {
     resayIndependentMirror,
     writeExternalHostSyncIndex,
     writeIndependentRejectedPreviewChars,
-} from './mount.js?rmv=1.5.62';
-import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.5.62';
+} from './mount.js?rmv=1.5.63';
+import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.5.63';
 
 const NON_STREAM_PROFILE_BY_STREAM_PROFILE={
  chat_system_user_full:'chat_system_user_full_nostream',

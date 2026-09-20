@@ -732,7 +732,13 @@ function rewriteImportedAssigns(body, name) {
         .replace(new RegExp(`(?<![.\\w$])\\+\\+${name}\\b`, 'g'), `${fn}(${name}+1)`)
         .replace(new RegExp(`(?<![.\\w$])${name}\\+\\+`, 'g'), `${fn}(${name}+1)`)
         .replace(new RegExp(`(?<![.\\w$])${name}\\s*\\+=\\s*([^;\\n]+)`, 'g'), `${fn}(${name}+($1))`)
-        .replace(new RegExp(`(?<![.\\w$])${name}\\s*=(?!=)\\s*([^;\\n]+)`, 'g'), `${fn}($1)`);
+        .replace(new RegExp(`(?<![.\\w$])${name}\\s*=(?!=)\\s*([^;\\n]+)`, 'g'), (all, rhs) => {
+            const trimmed = String(rhs).replace(/\r$/, '').trimEnd();
+            if (/[({[]$/.test(trimmed)) {
+                throw new Error(`Refusing first-line wrap of multiline assignment ${name} = ${trimmed}`);
+            }
+            return `${fn}(${rhs.replace(/\r$/, '')})`;
+        });
 }
 
 function parseFileNamedImports(text) {

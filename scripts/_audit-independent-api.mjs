@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = path.join(ROOT, 'src', 'independentApi');
-const stamp = '1.5.62';
+const stamp = '1.5.63';
 const files = readdirSync(dir).filter(name => name.endsWith('.js'));
 const exportNames = new Map();
 const importNames = [];

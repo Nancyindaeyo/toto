@@ -2,7 +2,7 @@
 
 import { presentationModeFields } from '../presentationMode.js?rmv=1.5.53-visualquick1';
 import { independentAdvancedOptionsSignature } from '../advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
-import { refreshRabbitMirrorToolsInScope } from '../outputSanitizer.js?rmv=1.5.62';
+import { refreshRabbitMirrorToolsInScope } from '../outputSanitizer.js?rmv=1.5.63';
 import {
     FACE_SWIPE_FULL_MESSAGE,
     canAppendSwipe,
@@ -13,7 +13,7 @@ import {
     readFaceSwipe,
     mutateFaceSwipe,
 } from '../swipeVersions.js?rmv=1.5.60-fork1';
-import { RUNTIME_VERSION, byteLength, getContext, hashText } from './runtime.js?rmv=1.5.62';
+import { RUNTIME_VERSION, byteLength, getContext, hashText } from './runtime.js?rmv=1.5.63';
 import {
     clearEphemeralFaceFailure,
     hasEphemeralFaceFailure,
@@ -22,7 +22,7 @@ import {
     mergeFaceDetailsIntoHtml,
     seedIndependentFaceSwipesFromIdentity,
     writeIndependentOwnerHtml,
-} from './faceSwipe.js?rmv=1.5.62';
+} from './faceSwipe.js?rmv=1.5.63';
 import {
     API_PROFILE_STORE_KEY,
     assistantMessages,
@@ -38,8 +38,8 @@ import {
     savedIndependentRecordForOwner,
     setOwnerLockForBase,
     swipeId,
-} from './connection.js?rmv=1.5.62';
-import { stampExternalDetailsOwnership } from './request.js?rmv=1.5.62';
+} from './connection.js?rmv=1.5.63';
+import { stampExternalDetailsOwnership } from './request.js?rmv=1.5.63';
 import {
     copyIndependentReplacementReceipt,
     ensureExternalTools,
@@ -50,8 +50,8 @@ import {
     normalizeSavedInteractionRecord,
     recoverSavedRecord,
     replaceExternalMultifaceFace,
-} from './geometry.js?rmv=1.5.62';
-import { externalFaceDetails, resolveIndependentActionIdentity, scheduleIndependentReadyPostprocess } from './mount.js?rmv=1.5.62';
+} from './geometry.js?rmv=1.5.63';
+import { externalFaceDetails, resolveIndependentActionIdentity, scheduleIndependentReadyPostprocess } from './mount.js?rmv=1.5.63';
 
 const STORE_KEY = 'rabbit_mirror_independent_outputs_v1';
 

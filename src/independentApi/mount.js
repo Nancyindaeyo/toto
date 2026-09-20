@@ -9,7 +9,7 @@ import {
     refreshRabbitMirrorToolsInScope,
     isolateRabbitMirrorInteractionIds,
     rearmRabbitMirrorSerializedInteractionRoot,
-} from '../outputSanitizer.js?rmv=1.5.62';
+} from '../outputSanitizer.js?rmv=1.5.63';
 import { matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from '../multifaceProof.js?rmv=1.5.53-visualquick1';
@@ -17,7 +17,7 @@ import {
     FOLLOW_MULTIFACE_COMMITTED_EVENT,
     FOLLOW_MULTIFACE_REJECTED_EVENT,
     getRabbitMirrorFollowBatchFailure,
-} from '../visualScanner.js?rmv=1.5.62';
+} from '../visualScanner.js?rmv=1.5.63';
 import { commitPendingComboBatch, releasePendingComboBatch } from '../storage.js?rmv=1.5.53-visualquick1';
 import {
     consumeInjectedFeedbackForSuccessfulIndependentRabbitMirror,
@@ -60,7 +60,7 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.62';
+} from './runtime.js?rmv=1.5.63';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_CONFIRMATION_TTL_MS,
@@ -87,7 +87,7 @@ import {
     operationEpochForBase,
     pending,
     reserveAutomaticDispatchLease,
-} from './flights.js?rmv=1.5.62';
+} from './flights.js?rmv=1.5.63';
 import {
     HISTORY_PANEL_ATTR,
     INDEPENDENT_RECORD_BUDGET_BYTES,
@@ -105,7 +105,7 @@ import {
     restoreIndependentFaceSwipeInitial,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.62';
+} from './persistence.js?rmv=1.5.63';
 import {
     appendIndependentFaceSwipe,
     faceDetailsListFromHtml,
@@ -114,7 +114,7 @@ import {
     scrubSwipeDetailsHtml,
     seedIndependentFaceSwipes,
     showEphemeralFaceFailure,
-} from './faceSwipe.js?rmv=1.5.62';
+} from './faceSwipe.js?rmv=1.5.63';
 import {
     INDEPENDENT_OWNER_OBSERVATION,
     assistantMessages,
@@ -153,7 +153,7 @@ import {
     setOwnerLockForBase,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.62';
+} from './connection.js?rmv=1.5.63';
 import {
     allExternalHosts,
     assertIndependentMarkupComplexityWithDiagnostic,
@@ -178,7 +178,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     wrappedIndependentMirrorHtml,
-} from './request.js?rmv=1.5.62';
+} from './request.js?rmv=1.5.63';
 import {
     DEFERRED_INTERACTION_RESCUE_ATTR,
     INDEPENDENT_CONTENT_WIDTH_BASELINE_ATTR,
@@ -237,7 +237,7 @@ import {
     showIndependentResayStatus,
     transferExternalTools,
     usableReadyDetails,
-} from './geometry.js?rmv=1.5.62';
+} from './geometry.js?rmv=1.5.63';
 import {
     assertEarlyBodyOwner,
     automaticHostGenerationMayUseTools,
@@ -251,7 +251,7 @@ import {
     scheduleStartupHistorySync,
     suppressesAutomaticGeneration,
     unlockAutomaticGenerationCutover,
-} from './earlyBody.js?rmv=1.5.62';
+} from './earlyBody.js?rmv=1.5.63';
 import {
     automaticGenerationCutovers,
     backgroundLifecycleListenersInstalled,
@@ -273,7 +273,7 @@ import {
     writeHostGenerationInProgress,
     writeIndependentActionBridge,
     writeLastAppliedIndependentTiming,
-} from './lifecycle.js?rmv=1.5.62';
+} from './lifecycle.js?rmv=1.5.63';
 
 let generationSequence = 0;
 
@@ -1265,7 +1265,7 @@ function resumeRabbitMirrorLifecycle(event){
 
  writeBackgroundLifecycleNeedsRecovery(false);
  if(backgroundResumeTimer) clearTimeout(backgroundResumeTimer);
- writeBackgroundResumeTimer(setTimeout(()=>{)
+ writeBackgroundResumeTimer(setTimeout(()=>{
   writeBackgroundResumeTimer(0);
   if(!currentRuntime()) return;
   const currentMode=runtimeMode();
@@ -1274,7 +1274,7 @@ function resumeRabbitMirrorLifecycle(event){
   markExternalGeometryLifecycle('background-resume');
   scheduleStartupHistorySync(runtimeConfigSequence);
   if(currentMode==='independent' && last) scheduleMessageGeneration(last.i,160,true);
- },80);
+ },80));
 }
 
 export function installBackgroundLifecycleListeners(){
@@ -2020,7 +2020,7 @@ function showIndependentHistory(root,owner={}){
 
 export function resayIndependentMirror(root,owner={}){
  if(getSettings().generationSource==='follow'){
-  void import('../followFaceRetry.js?rmv=1.5.62').then(({retryFollowFace})=>retryFollowFace(root,owner,{
+  void import('../followFaceRetry.js?rmv=1.5.63').then(({retryFollowFace})=>retryFollowFace(root,owner,{
    getContext,hostBusy:hostGenerationLooksActive,maxRequestChars:MAX_INDEPENDENT_REQUEST_CHARS,
    resolveOwner:target=>{
     const host=target?.closest?.('[data-rabbit-mirror-external-source="true"][data-rm-source="follow"]');
@@ -2302,7 +2302,7 @@ async function requestMirrorImagePlan(target,input={},options={}){
 
 
 export function installIndependentActionBridge(){
- writeIndependentActionBridge({)
+ writeIndependentActionBridge({
   runtime:RUNTIME_VERSION,
   generateManual:root=>generateManualIndependentMirror(root),
   prepareImageTarget:root=>prepareMirrorImageTarget(root),
@@ -2315,7 +2315,7 @@ export function installIndependentActionBridge(){
   restoreInitial:root=>restoreIndependentFaceSwipeInitial(root),
   hasSwipeInitial:root=>hasIndependentSwipeInitial(root),
   canResay:(root,owner={})=>canIndependentFaceResay(root,owner),
- };
+ });
  globalThis[ACTION_BRIDGE_KEY]=independentActionBridge;
 }
 

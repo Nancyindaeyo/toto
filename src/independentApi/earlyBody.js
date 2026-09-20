@@ -14,7 +14,7 @@ import {
     currentRuntime,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.62';
+} from './runtime.js?rmv=1.5.63';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_POLL_INTERVAL_MS,
@@ -28,7 +28,7 @@ import {
     markAutomaticFailureStop,
     operationEpochForBase,
     pending,
-} from './flights.js?rmv=1.5.62';
+} from './flights.js?rmv=1.5.63';
 import {
     appendHistoryEntry,
     chatPersistenceSlot,
@@ -38,7 +38,7 @@ import {
     synchronizeIndependentChatPersistence,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.62';
+} from './persistence.js?rmv=1.5.63';
 import {
     activeGlobalWorldInfoCapture,
     assistantMessages,
@@ -87,14 +87,14 @@ import {
     withOwnerLockStoreBatch,
     writeActiveGlobalWorldInfoCapture,
     writeHostModule,
-} from './connection.js?rmv=1.5.62';
+} from './connection.js?rmv=1.5.63';
 import {
     allExternalHosts,
     externalHosts,
     removeEmptyFollowExternalAnchors,
     removeEmptyInlineAnchors,
     withExternalHostSyncIndex,
-} from './request.js?rmv=1.5.62';
+} from './request.js?rmv=1.5.63';
 import {
     beginHostWorkTiming,
     clearExternalHostFreshSourceState,
@@ -127,7 +127,7 @@ import {
     setPlaceholderSummary,
     usableReadyDetails,
     withRestorableHtmlCacheBatch,
-} from './geometry.js?rmv=1.5.62';
+} from './geometry.js?rmv=1.5.63';
 import {
     INDEPENDENT_INTENT_OWNER,
     abortFlight,
@@ -181,7 +181,7 @@ import {
     serializeExternalFaceDetails,
     stampAutomaticAuthorizationEpoch,
     withHistoricalRestoreLightPass,
-} from './mount.js?rmv=1.5.62';
+} from './mount.js?rmv=1.5.63';
 import {
     automaticGenerationCutovers,
     hostGenerationHintStartedAt,
@@ -206,7 +206,7 @@ import {
     writeStartupHistoryFallbackRoot,
     writeSyncRunning,
     writeSyncTimer,
-} from './lifecycle.js?rmv=1.5.62';
+} from './lifecycle.js?rmv=1.5.63';
 
 let earlyBodyParserPromise=null;
 
@@ -1414,7 +1414,7 @@ export function scheduleStartupHistorySync(expectedSequence=runtimeConfigSequenc
 export function queueMessageSync(indices=[]){
  for(const index of indices){ if(Number.isInteger(index) && index>=0) queuedIndices.add(index); }
  if(syncTimer) return;
- writeSyncTimer(setTimeout(()=>{)
+ writeSyncTimer(setTimeout(()=>{
    writeSyncTimer(null);
    const batch=queuedIndices; writeQueuedIndices(new Set());
    if(batch.size){
@@ -1423,7 +1423,7 @@ export function queueMessageSync(indices=[]){
      reconcileVisibleMirrorDuplicates(batch);
     }));
    }
- },120);
+ },120));
 }
 
 function nodeMessageIndex(node){
@@ -1636,7 +1636,7 @@ export function installObserverIfNeeded({skipHistoricalProbe=false}={}){
  const preserveIndependentInInline=mode==='inline' && (liveIndependent || (!skipHistoricalProbe && currentChatHasRestorableIndependentRecord()));
  if(mode==='off' || (mode==='inline' && !preserveIndependentInInline) || typeof MutationObserver==='undefined') return;
  const chat=document.querySelector('#chat'); if(!chat) return;
-  writeObserver(new MutationObserver(records=>{)
+  writeObserver(new MutationObserver(records=>{
    const end=globalThis.__rabbitMirrorPerfDiag?.begin?.('independent.mutationObserver',{records:records.length},8);
    // Streaming mutations are finalized by GENERATION_ENDED/STOPPED. Scanning the
    // current message on every token used to turn a long reply into repeated full
@@ -1661,7 +1661,7 @@ export function installObserverIfNeeded({skipHistoricalProbe=false}={}){
    for(const id of removed) indices.add(id);
    if(indices.size) queueMessageSync(indices);
    end?.({affectedMessages:indices.size,removedMessages:removed.size});
- });
+ }));
  observer.observe(chat,{childList:true,subtree:true});
 }
 

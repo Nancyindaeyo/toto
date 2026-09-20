@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 function loadRuntime() {
@@ -19,7 +19,7 @@ function loadRuntime() {
 
 test('independentApi runtime loads without flights, connection, or the barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.62');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.63');
     assert.equal(typeof loaded.byteLength, 'function');
     assert.equal(typeof loaded.flightIdentity, 'undefined');
     assert.equal(typeof loaded.initIndependentRabbitMirror, 'undefined');
@@ -55,4 +55,13 @@ test('geometry module owns face auto-width and remeasure', () => {
     assert.match(source, /export function undoRabbitMirrorFaceAutoWidth\(/);
     assert.doesNotMatch(source, /export function initIndependentRabbitMirror/);
     assert.doesNotMatch(source, /export async function testIndependentConnection/);
+});
+
+test('imported setter wraps do not leave a stray paren after an opening brace', () => {
+    const dir = new URL('../src/independentApi/', import.meta.url);
+    for (const name of readdirSync(dir).filter(file => file.endsWith('.js'))) {
+        const source = readFileSync(new URL(name, dir), 'utf8');
+        assert.doesNotMatch(source, /\{\r\)/, `${name} has a first-line setter wrap leftover`);
+        assert.doesNotMatch(source, /write[A-Z][A-Za-z]*\([^;\n]*\{\s*\)/, `${name} has a broken setter wrap`);
+    }
 });
