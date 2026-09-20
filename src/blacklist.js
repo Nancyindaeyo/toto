@@ -1,7 +1,8 @@
-import { getSettings, updateSettings } from './settings.js?rmv=1.5.51-narrow1';
-import { getCurrentChatKey, resetFormatEligibleMisses } from './storage.js?rmv=1.5.51-narrow1';
-import { THEMATIC_CATEGORIES } from '../data/structured/thematicIndex.js?rmv=1.5.51-narrow1';
-import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.51-narrow1';
+import { presentationModeFields } from './presentationMode.js?rmv=1.5.53-visualquick1';
+import { getSettings, updateSettings } from './settings.js?rmv=1.5.53-image1';
+import { getCurrentChatKey, resetFormatEligibleMisses } from './storage.js?rmv=1.5.53-visualquick1';
+import { THEMATIC_CATEGORIES } from '../data/structured/thematicIndex.js?rmv=1.5.53-cn-boundary1';
+import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.53-cn-boundary1';
 
 export const BLACKLIST_CHANGED_EVENT = 'rabbitmirror:blacklist-changed';
 export const RECIPE_RECORDED_EVENT = 'rabbitmirror:recipe-recorded';
@@ -405,11 +406,12 @@ function compactSelectionMetadata(metadata = {}, allowFaces = true) {
         .filter(name => typeof name === 'string').slice(0, 24)
         .map(name => name.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 200)).filter(Boolean))];
     const hasExternalReferences = metadata?.hasExternalReferences === true || externalSources.length > 0;
-    if (!themeIds.length && !formatIds.length && !hasExternalReferences) return null;
+    if (!themeIds.length && !formatIds.length && !hasExternalReferences && !metadata?.textIds?.length) return null;
     return {
         themeIds,
         formatIds,
         ...(hasExternalReferences ? { hasExternalReferences: true, externalSources } : {}),
+        ...presentationModeFields(metadata),
         samplingMode: String(metadata?.samplingMode || 'classic'),
         userDirectiveApplied: !!metadata?.userDirectiveApplied,
         forcedVisualScenery: !!metadata?.forcedVisualScenery || !!metadata?.visualSceneryMode,
@@ -472,6 +474,7 @@ export function recordRabbitMirrorRecipe({ chat = null, chatKey = '', messageInd
     const unchanged = existing
         && JSON.stringify(existing.themeIds || []) === JSON.stringify(compact.themeIds)
         && JSON.stringify(existing.formatIds || []) === JSON.stringify(compact.formatIds)
+        && JSON.stringify(presentationModeFields(existing)) === JSON.stringify(presentationModeFields(compact))
         && JSON.stringify(existing.externalSources || []) === JSON.stringify(compact.externalSources || [])
         && !!existing.hasExternalReferences === !!compact.hasExternalReferences
         && String(existing.samplingMode || '') === compact.samplingMode
@@ -504,7 +507,8 @@ export function getRabbitMirrorRecipe({ chatKey = '', messageIndex = -1, swipeId
         if (!Array.isArray(record?.faces)) return decorateRecipe(record, includeExternalOnly);
         if (!Number.isInteger(faceIndex) || faceIndex < 0 || faceIndex >= record.faces.length) return null;
         const face = compactSelectionMetadata(record.faces[faceIndex], false);
-        return face ? decorateRecipe({ ...record, hasExternalReferences: false, externalSources: [], ...face, faceIndex }, includeExternalOnly) : null;
+        const { requestedPresentationMode, presentationMode, textIds, textLabels, ...batchRecord } = record;
+        return face ? decorateRecipe({ ...batchRecord, hasExternalReferences: false, externalSources: [], ...face, faceIndex }, includeExternalOnly) : null;
     };
     const resolvedChatKey = String(chatKey || '').trim();
     const index = Number(messageIndex);

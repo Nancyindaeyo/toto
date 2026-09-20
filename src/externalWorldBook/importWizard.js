@@ -1,7 +1,7 @@
-import { readLocalExternalImportFile, readPlainTextWorldBook } from './fileReader.js?rmv=1.5.51-narrow1';
-import { getSettings, updateSettings } from '../settings.js?rmv=1.5.51-narrow1';
-import { listHostWorldBooks, readHostWorldBook } from './hostReader.js?rmv=1.5.51-narrow1';
-import { searchNormalizedWorldBookEntries } from './normalize.js?rmv=1.5.51-narrow1';
+import { readLocalExternalImportFile, readPlainTextWorldBook } from './fileReader.js?rmv=1.5.53-text1';
+import { getSettings, updateSettings } from '../settings.js?rmv=1.5.53-image1';
+import { listHostWorldBooks, readHostWorldBook } from './hostReader.js?rmv=1.5.53-cn-boundary1';
+import { searchNormalizedWorldBookEntries } from './normalize.js?rmv=1.5.53-cn-boundary1';
 import {
     EXTERNAL_WORLD_BOOK_SELECTION_MODE,
     createEmptySelection,
@@ -9,14 +9,14 @@ import {
     createWholeBookSelection,
     entryIdentity,
     toggleEntrySelection,
-} from './selectionState.js?rmv=1.5.51-narrow1';
+} from './selectionState.js?rmv=1.5.53-cn-boundary1';
 import {
     EXTERNAL_WORLD_BOOK_CLASSIFICATION,
     applyExternalWorldBookBulkClassification,
     createExternalWorldBookClassificationDraft,
     externalWorldBookClassificationCounts,
     updateExternalWorldBookDraftItem,
-} from './classifier.js?rmv=1.5.51-narrow1';
+} from './classifier.js?rmv=1.5.53-text1';
 import {
     deleteExternalLibrary,
     listExternalLibraries,
@@ -28,7 +28,7 @@ import {
     hydrateExternalPoolMetadata,
     getExternalPoolHydrationStatus,
     rebuildExternalPoolMetadata,
-} from './store.js?rmv=1.5.51-narrow1';
+} from './store.js?rmv=1.5.53-text1';
 
 const MODAL_ID = 'rh_external_worldbook_import_modal';
 const PAGE_SIZE = 50;
@@ -38,6 +38,7 @@ let state = null;
 const CLASSIFICATION_LABELS = Object.freeze({
     [EXTERNAL_WORLD_BOOK_CLASSIFICATION.THEME]: '主题元素',
     [EXTERNAL_WORLD_BOOK_CLASSIFICATION.FORMAT]: '展现形式',
+    [EXTERNAL_WORLD_BOOK_CLASSIFICATION.TEXT]: '文本类',
     [EXTERNAL_WORLD_BOOK_CLASSIFICATION.MIXED]: '混合型',
     [EXTERNAL_WORLD_BOOK_CLASSIFICATION.AUXILIARY]: '辅助片段',
     [EXTERNAL_WORLD_BOOK_CLASSIFICATION.IGNORE]: '忽略',
@@ -318,7 +319,7 @@ function renderClassification() {
     if (!state?.classificationPanel) return;
     const draft = Array.isArray(state.classificationDraft) ? state.classificationDraft : [];
     const counts = externalWorldBookClassificationCounts(draft);
-    state.classificationMeta.textContent = `待保存 ${counts.total} 条｜主题 ${counts.theme}｜展现形式 ${counts.format}｜辅助 ${counts.auxiliary}｜忽略 ${counts.ignore}｜待确认 ${counts.pending}`;
+    state.classificationMeta.textContent = `待保存 ${counts.total} 条｜主题 ${counts.theme}｜展现形式 ${counts.format}｜文本 ${counts.text}｜辅助 ${counts.auxiliary}｜忽略 ${counts.ignore}｜待确认 ${counts.pending}`;
     const rows = classificationRowsForView();
     const pageCount = Math.max(1, Math.ceil(rows.length / CLASSIFICATION_PAGE_SIZE));
     state.classificationPage = Math.max(0, Math.min(state.classificationPage, pageCount - 1));
@@ -344,6 +345,7 @@ function renderClassification() {
             EXTERNAL_WORLD_BOOK_CLASSIFICATION.PENDING,
             EXTERNAL_WORLD_BOOK_CLASSIFICATION.THEME,
             EXTERNAL_WORLD_BOOK_CLASSIFICATION.FORMAT,
+            EXTERNAL_WORLD_BOOK_CLASSIFICATION.TEXT,
             EXTERNAL_WORLD_BOOK_CLASSIFICATION.AUXILIARY,
             EXTERNAL_WORLD_BOOK_CLASSIFICATION.IGNORE,
         ]) {
@@ -352,6 +354,7 @@ function renderClassification() {
             select.append(option);
         }
         select.value = item.classification;
+        select.disabled = state.importKind === 'text';
         select.addEventListener('change', () => {
             state.classificationDraft = updateExternalWorldBookDraftItem(state.classificationDraft, item.entryIdentity, { classification: select.value, userConfirmed: true });
             renderClassification();
@@ -385,12 +388,12 @@ function startClassificationReview() {
     const book = state?.currentBook;
     if (!book) { setStatus('请先读取一本世界书。', 'error'); return; }
     if (!state.selectedIds.size) { setStatus('当前没有选中的条目。', 'error'); return; }
-    state.classificationDraft = createExternalWorldBookClassificationDraft(book, state.selectedIds);
+    state.classificationDraft = createExternalWorldBookClassificationDraft(book, state.selectedIds, { importKind: state.importKind });
     state.classificationPage = 0;
-    state.classificationFilter.value = 'review';
+    state.classificationFilter.value = state.importKind === 'text' ? 'all' : 'review';
     state.classificationPanel.style.display = '';
     renderClassification();
-    setStatus(`已本地分析 ${state.classificationDraft.length} 条；高置信度结果已预填，混合型和不确定项保持待确认。`);
+    setStatus(state.importKind === 'text' ? `已将选中的 ${state.classificationDraft.length} 条全部归为文本类；确认保存后按需启用。` : `已本地分析 ${state.classificationDraft.length} 条；高置信度结果已预填，混合型和不确定项保持待确认。`);
     try { state.classificationPanel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch {}
 }
 
@@ -403,7 +406,7 @@ async function saveClassificationReview() {
         const saved = await saveExternalLibrarySnapshot(snapshot);
         if (state !== owner || !owner.overlay.isConnected) return saved;
         const counts = externalWorldBookClassificationCounts(state.classificationDraft);
-        setStatus(`已保存到兔子镜本地库：主题 ${counts.theme}、展现形式 ${counts.format}、辅助 ${counts.auxiliary}、待确认 ${counts.pending}。新库默认停用，请按需启用。`, 'success');
+        setStatus(`已保存到兔子镜本地库：主题 ${counts.theme}、展现形式 ${counts.format}、文本 ${counts.text}、辅助 ${counts.auxiliary}、待确认 ${counts.pending}。新库默认停用，请按需启用。`, 'success');
         state.showView('manage', { announce: false });
         return saved;
     } catch (error) {
@@ -440,7 +443,7 @@ async function renderSavedLibraries() {
         const row = el('div', { style: { padding: '9px 3px', borderBottom: '1px solid color-mix(in srgb,currentColor 10%,transparent)' } });
         row.append(el('div', { text: library.displayName, style: { fontWeight: '700', fontSize: '12px', overflowWrap: 'anywhere' } }));
         row.append(el('div', {
-            text: `主题 ${library.themeCount || 0}｜展现 ${library.formatCount || 0}｜辅助 ${library.auxiliaryCount || 0}｜待确认 ${library.pendingCount || 0}｜${library.enabled ? '已启用' : '已停用'}`,
+            text: `主题 ${library.themeCount || 0}｜展现 ${library.formatCount || 0}｜文本 ${library.textCount || 0}｜辅助 ${library.auxiliaryCount || 0}｜待确认 ${library.pendingCount || 0}｜${library.enabled ? '已启用' : '已停用'}`,
             style: { opacity: '.65', fontSize: '10px', marginTop: '3px', overflowWrap: 'anywhere' },
         }));
         row.append(el('div', { text: `抽签索引：${needsRebuild.has(library.libraryId) ? '需重建（已保存内容仍在）' : '可用'}`, style: { fontSize: '12px', lineHeight: '1.5', marginTop: '6px' } }));
@@ -455,7 +458,7 @@ async function renderSavedLibraries() {
                     await setExternalLibraryEnabled(library.libraryId, !library.enabled);
                     if (state !== owner || !owner.overlay.isConnected) return;
                     await renderSavedLibraries();
-                    setStatus(`已${library.enabled ? '停用' : '启用'}「${library.displayName}」。只有同时打开“外部母本参与抽签”才会用于生成。`);
+                    setStatus(`已${library.enabled ? '停用' : '启用'}「${library.displayName}」。自动档参与外部抽取需打开“外部母本参与抽签”；指定文本面会优先使用已启用的文本类。`);
                 } catch (error) { setStatus(String(error?.message || error), 'error'); }
                 finally { control.disabled = false; }
             }, { minHeight: '34px' }),
@@ -631,7 +634,7 @@ function createLibraryTransferControls() {
         if (busy) return;
         const owner = state; lock(true); feedback('正在读取本设备已导入的库并生成迁移文件……');
         try {
-            const module = await import('./backup.js?rmv=1.5.51-narrow1');
+            const module = await import('./backup.js?rmv=1.5.53-text1');
             if (!current(owner)) return;
             const result = await module.exportExternalLibraryBackup();
             if (!current(owner)) return;
@@ -648,7 +651,7 @@ function createLibraryTransferControls() {
         if (!globalThis.confirm('导入这份备份里的外部库？目标已有同编号库会保留并跳过，其余库保留备份的分类和启用状态。不删除或覆盖旧库，不改变抽签总开关。')) return;
         const owner = state, backup = pending; lock(true); feedback('正在原子保存迁移数据；请暂时保留此页面……');
         try {
-            const module = await import('./backup.js?rmv=1.5.51-narrow1');
+            const module = await import('./backup.js?rmv=1.5.53-text1');
             if (!current(owner)) return;
             const result = await module.importExternalLibraryBackup(backup);
             if (!current(owner)) return;
@@ -666,7 +669,7 @@ function createLibraryTransferControls() {
         const selected = file.files?.[0]; if (!selected) return;
         const owner = state, ownSequence = ++sequence; lock(true); feedback('正在校验迁移文件，尚未写入……');
         try {
-            const module = await import('./backup.js?rmv=1.5.51-narrow1');
+            const module = await import('./backup.js?rmv=1.5.53-text1');
             if (!current(owner)) return;
             const backup = await module.readExternalLibraryBackupFile(selected);
             if (!current(owner) || sequence !== ownSequence) return;
@@ -714,7 +717,7 @@ function bindImportViewport(overlay) {
     };
 }
 
-function createModal(initialView = 'plain') {
+function createModal(initialView = 'plain', importKind = '') {
     state?.dismiss?.(false);
     document.getElementById(MODAL_ID)?.remove();
     const returnFocus = document.activeElement;
@@ -813,7 +816,7 @@ function createModal(initialView = 'plain') {
         if (which === 'host') loadHostBooks();
         if (which === 'manage') renderSavedLibraries();
         if (which === 'plain') { try { plainInput.focus({ preventScroll: true }); } catch {} }
-        if (announce && which !== 'host') setStatus(which === 'transfer' ? '旧设备导出 → 把文件发到新设备 → 新设备选文件并确认导入。' : which === 'manage' ? '启用需要的库，再打开“外部母本参与抽签”；未启用的库不会用于生成。' : '先读取内容 → 确认分类并保存 → 启用母本库。读取和切换页面不会保存。');
+        if (announce && which !== 'host') setStatus(which === 'transfer' ? '旧设备导出 → 把文件发到新设备 → 新设备选文件并确认导入。' : which === 'manage' ? '先启用需要的库。自动档使用外部内容需打开“外部母本参与抽签”；指定文本面优先使用已启用的文本类。' : '先读取内容 → 确认分类并保存 → 启用母本库。读取和切换页面不会保存。');
     };
     for (const [view, label, panelId] of [
         ['plain', '粘贴文字', plainPane.id],
@@ -827,7 +830,18 @@ function createModal(initialView = 'plain') {
         navButtons.set(view, control);
         sourceButtons.append(control);
     }
-    scroll.append(sourceButtons);
+    const importPurpose = el('select', { id: 'rh_external_import_kind', className: 'text_pole', attrs: { 'aria-label': '导入类别' } });
+    for (const [value, label] of [['', '普通母本：按主题／展现形式等分类'], ['text', '文本类：导入的条目全部用于长文本']]) importPurpose.append(el('option', { value, text: label }));
+    importPurpose.value = importKind === 'text' ? 'text' : '';
+    importPurpose.addEventListener('change', () => {
+        if (state?.overlay !== overlay) return;
+        state.importKind = importPurpose.value === 'text' ? 'text' : '';
+        state.classificationDraft = [];
+        state.classificationPanel.style.display = 'none';
+        setStatus(state.importKind === 'text' ? '文本类导入：选择来源并读取，选中的条目会全部归为文本；确认保存后按需启用。' : '普通母本导入：读取后确认主题、展现形式等分类。');
+    });
+    scroll.append(el('label', { text: '导入类别', attrs: { for: importPurpose.id } }), importPurpose,
+        el('p', { text: '文本类独立于展现形式，用于生成长文本；可使用 HTML 排版，不要求内部交互。整库迁移保留备份原分类。', style: { fontSize: '12px', lineHeight: '1.5' } }), sourceButtons);
 
     const bookSearch = el('input', { className: 'text_pole', type: 'search', placeholder: '搜索世界书名称', style: { width: '100%', marginTop: '8px', boxSizing: 'border-box' } });
     const bookList = el('div', { style: { maxHeight: '210px', overflowY: 'auto', marginTop: '6px', padding: '4px 2px', WebkitOverflowScrolling: 'touch' } });
@@ -915,12 +929,12 @@ function createModal(initialView = 'plain') {
         setStatus(`已应用分类，剩余 ${remaining} 条待确认；手动选择未更改。`);
     };
     const bulkCategory = el('select', { id: 'rh_external_bulk_category', className: 'text_pole', attrs: { 'aria-label': '待确认项批量分类' } });
-    for (const value of ['format', 'theme', 'auxiliary', 'ignore']) bulkCategory.append(el('option', { value, text: `待确认项全部归为：${CLASSIFICATION_LABELS[value]}` }));
+    for (const value of ['format', 'theme', 'text', 'auxiliary', 'ignore']) bulkCategory.append(el('option', { value, text: `待确认项全部归为：${CLASSIFICATION_LABELS[value]}` }));
     bulkActions.append(button('全部一键分类（按线索建议）', () => applyBulk('suggested')),
         bulkCategory, button('应用待确认项批量分类', () => applyBulk(bulkCategory.value)));
     const classificationMeta = el('div', { style: { fontSize: '11px', opacity: '.72', margin: '7px 0' } });
     const classificationFilter = el('select', { className: 'text_pole', style: { width: '100%', minHeight: '36px', boxSizing: 'border-box' } });
-    for (const [value, label] of [['review', '只看需确认'], ['all', '显示全部'], ['theme', '主题元素'], ['format', '展现形式'], ['auxiliary', '辅助片段'], ['ignore', '忽略'], ['pending', '待确认']]) {
+    for (const [value, label] of [['review', '只看需确认'], ['all', '显示全部'], ['theme', '主题元素'], ['format', '展现形式'], ['text', '文本类'], ['auxiliary', '辅助片段'], ['ignore', '忽略'], ['pending', '待确认']]) {
         const option = el('option', { text: label, value }); option.value = value; classificationFilter.append(option);
     }
     classificationFilter.value = 'review';
@@ -955,6 +969,7 @@ function createModal(initialView = 'plain') {
     disposeViewport = bindImportViewport(overlay);
 
     state = {
+        importKind: importKind === 'text' ? 'text' : '',
         overlay, dismiss, status, showView, entrySection, hostBooks: [], localBooks: [], currentBook: null, transferControls, localFileSequence: 0,
         filteredEntries: [], page: 0, selectedIds: new Set(), selectionMode: EXTERNAL_WORLD_BOOK_SELECTION_MODE.WHOLE,
         classificationDraft: [], classificationPage: 0,
@@ -976,5 +991,5 @@ function createModal(initialView = 'plain') {
 }
 
 export function openExternalWorldBookImportWizard(options = {}) {
-    createModal(options?.initialView);
+    createModal(options?.initialView, options?.importKind);
 }

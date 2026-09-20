@@ -1,6 +1,6 @@
-import { sanitizeExternalTransportSummary as sanitizeTransportSummary, getRecentIndependentTransportDiagnostics, clearRecentIndependentTransportDiagnostics } from './transportDiagnostics.js?rmv=1.5.51-narrow1';
+import { sanitizeExternalTransportSummary as sanitizeTransportSummary, getRecentIndependentTransportDiagnostics, clearRecentIndependentTransportDiagnostics } from './transportDiagnostics.js?rmv=1.5.53-cn-boundary1';
 
-const DIAG_VERSION = '1.5.50-externaldiag-transport1';
+const DIAG_VERSION = '1.5.53-ttperfdiag1';
 const MAX_ENTRIES = 1800;
 const STALL_INTERVAL_MS = 1000;
 const STALL_THRESHOLD_MS = 250;
@@ -32,6 +32,44 @@ let maintenanceSequence = 0;
 let maintenanceWindows = [];
 let initialized = false;
 let transportRows = [];
+
+// Fixed scalar aggregates: no message/DOM/body data, no per-call event buffer,
+// and no additional observer or polling task. Only the explicit recorder owns it.
+const HOST_WORK_NAMES = new Map([
+    ['independent.syncMessages', '可见楼层恢复'],
+    ['independent.ensureExternalUi', '外置壳挂载与刷新'],
+    ['independent.refreshExistingExternalDetails', '已有镜面刷新'],
+    ['independent.reconcileVisibleMirrorDuplicates', '镜面位置与重复节点整理'],
+    ['independent.viewportMessageIndices', '可见楼层定位'],
+    ['maintenance.installScope', '镜面工具挂载'],
+]);
+let hostWorkRows = new Map();
+let hostWorkEpoch = 0;
+let hostWorkToken = null;
+function hostWorkSnapshot() {
+    return [...hostWorkRows.values()].map(row => ({ ...row }));
+}
+function beginHostWork(name, token) {
+    if (!initialized || token !== hostWorkToken || !HOST_WORK_NAMES.has(name)) return null;
+    const epoch = hostWorkEpoch;
+    const start = now();
+    let ended = false;
+    return () => {
+        if (ended || !initialized || token !== hostWorkToken || epoch !== hostWorkEpoch) return;
+        ended = true;
+        const finish = now();
+        const ms = Math.max(0, finish - start);
+        const row = hostWorkRows.get(name) || { name, count: 0, totalMs: 0, maxMs: 0, peakStartMs: 0, peakEndMs: 0 };
+        row.count += 1;
+        row.totalMs += ms;
+        if (row.count === 1 || ms > row.maxMs) {
+            row.maxMs = ms;
+            row.peakStartMs = Math.max(0, start - startedAt);
+            row.peakEndMs = Math.max(0, finish - startedAt);
+        }
+        hostWorkRows.set(name, row);
+    };
+}
 
 // The request parser sends only a scalar transport summary. Revalidate the
 // event at this boundary; arbitrary detail fields and provider strings must
@@ -557,6 +595,12 @@ function topExternalResources(snapshot) {
 }
 function automatedFindings(snapshot, sendRows, maintenanceRows) {
     const findings = [];
+    const stall = snapshot.filter(row => row.name === 'external.eventLoopStall' || row.name === 'external.longtask').sort((a, b) => b.ms - a.ms)[0];
+    if (stall) findings.push(stall.name === 'external.eventLoopStall'
+        ? `捕获到事件循环调度延迟 ${Math.round(stall.ms)}ms；未归因到具体脚本，不能将全部延迟等同于某个函数的执行耗时。`
+        : `捕获到主线程长任务 ${Math.round(stall.ms)}ms；未归因到具体脚本。`);
+    const interaction = snapshot.filter(row => row.name === 'external.slowEvent').sort((a, b) => b.ms - a.ms)[0];
+    if (interaction) findings.push(`慢交互 ${interaction.event || 'event'}：到下一次绘制共 ${Math.round(interaction.ms)}ms，其中输入排队 ${Math.round(interaction.inputDelay || 0)}ms、事件处理 ${Math.round(interaction.processingMs || 0)}ms；不能据此认定事件处理函数占满全部耗时。`);
     const resources = topExternalResources(snapshot);
     if (resources[0]?.ms >= 500) findings.push(`外部启动资源最慢：${resources[0].path} ${Math.round(resources[0].ms)}ms（${resources[0].owner}）。`);
     const externalLoaf = snapshot.filter(row => row.name === 'external.longAnimationFrame' && row.externalScript).sort((a, b) => b.ms - a.ms)[0];
@@ -610,13 +654,13 @@ function report() {
     const lines = [];
     lines.push(`RabbitMirror 外部代码／宿主性能诊断 ${DIAG_VERSION}`);
     lines.push(`生成时间: ${wallNow()}`);
-    lines.push('边界: 诊断 SillyTavern、其他扩展、浏览器主线程与网络；仅补充独立 API 的标量传输元数据，不读取兔子镜内部生成/维修状态。');
+    lines.push('边界: 诊断 SillyTavern、其他扩展、浏览器主线程与网络；补充独立 API 标量传输元数据及兔子镜恢复／挂载的标量耗时，不读取内部生成/维修状态。');
     lines.push('兔子镜内部维修问题请单独使用对应兔子镜里的「📋 生成全链路诊断」，两份报告不要合并。');
     lines.push('隐私: 不保存聊天正文、Prompt、API Key、角色正文、世界书正文、请求 body 或响应 body。');
     lines.push('');
     lines.push('【外部自动结论】');
     if (findings.length) findings.forEach((text, index) => lines.push(`${index + 1}. ${text}`));
-    else lines.push('暂未捕获到明确的外部 1 秒级断点；请在同一页面复现一次空白/发送迟滞/维修点击无响应后再次生成。');
+    else lines.push('本次记录未捕获到可总结的慢事件；不能据此认定页面流畅。可查看下方挂载耗时，或在诊断开启后复现卡顿。');
 
     lines.push('');
     lines.push('【外部启动资源】');
@@ -635,9 +679,15 @@ function report() {
     lines.push('');
     lines.push('【主线程 / 慢交互】');
     if (stalls.length) stalls.forEach(row => lines.push(`- t+${row.t}ms ${row.name}: ${row.ms}ms${row.container ? ` container=${row.container}` : ''}`));
-    else lines.push('未记录到 >=150ms event-loop stall / LongTask。');
+    else lines.push('本次未记录到事件循环延迟或 LongTask；采集能力依浏览器而异。');
     if (slowEvents.length) slowEvents.forEach(row => lines.push(`- event ${row.event}: ${row.ms}ms inputDelay=${row.inputDelay || 0}ms processing=${row.processingMs || 0}ms`));
 
+    lines.push('');
+    lines.push('【兔子镜恢复／挂载耗时（仅手动诊断期间）】');
+    lines.push('以下为同步调用耗时，包含嵌套调用，各项不能相加；不含异步任务及后续绘制，不直接认定为卡顿根因。');
+    const hostWork = hostWorkSnapshot().sort((a, b) => b.maxMs - a.maxMs);
+    if (!hostWork.length) lines.push('本次未记录到这些操作；不代表全部兔子镜工作均无耗时。');
+    for (const row of hostWork) lines.push(`- ${HOST_WORK_NAMES.get(row.name)} [${row.name}]: 次数=${row.count} 总耗时=${row.totalMs.toFixed(1)}ms 最慢=${row.maxMs.toFixed(1)}ms 最慢窗口=t+${row.peakStartMs.toFixed(1)}～${row.peakEndMs.toFixed(1)}ms`);
     lines.push('');
     lines.push('【聊天窗口装载】');
     if (samples.length) samples.forEach(row => lines.push(`- ${row.reason} +${row.delay}ms: messages=${row.messages}, user=${row.users}, assistant=${row.assistants}`));
@@ -693,6 +743,8 @@ function status() {
     };
 }
 function reset(reason = 'manual') {
+    hostWorkEpoch += 1;
+    hostWorkRows.clear();
     entries = [];
     // Starting the performance recorder after an error must not throw away its
     // already captured transport receipt. Only explicit clear resets the ring.
@@ -718,6 +770,10 @@ function reset(reason = 'manual') {
 export function initRabbitMirrorExternalDiagnostics() {
     if (initialized) return globalThis.__rabbitMirrorExternalDiag;
     initialized = true;
+    hostWorkEpoch += 1;
+    hostWorkRows.clear();
+    const token = {};
+    hostWorkToken = token;
     startedAt = now();
     entries = [];
     transportRows = getRecentIndependentTransportDiagnostics();
@@ -725,6 +781,8 @@ export function initRabbitMirrorExternalDiagnostics() {
     maintenanceWindows = [];
     const api = {
         version: DIAG_VERSION,
+        beginHostWork: name => beginHostWork(name, token),
+        hostWork: hostWorkSnapshot,
         mark: (name, meta = {}) => name === 'externalDiag.userEnabled'
             ? mark(name, { readyState: safeString(meta?.readyState || '', 32) })
             : mark('externalDiag.externalMark'),
@@ -758,6 +816,9 @@ export function initRabbitMirrorExternalDiagnostics() {
 }
 
 export function destroyRabbitMirrorExternalDiagnostics() {
+    hostWorkToken = null;
+    hostWorkEpoch += 1;
+    hostWorkRows.clear();
     for (const timer of chatSampleTimers) clearTimeout(timer);
     chatSampleTimers.clear();
     for (const observer of firstTextObservers.values()) { try { observer.disconnect(); } catch {} }

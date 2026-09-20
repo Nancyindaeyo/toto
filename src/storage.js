@@ -1,4 +1,5 @@
-import { packBatchPlanText, unpackBatchPlanText } from './batchPlanCodec.js?rmv=1.5.51-narrow1';
+import { presentationModeFields } from './presentationMode.js?rmv=1.5.53-visualquick1';
+import { packBatchPlanText, unpackBatchPlanText } from './batchPlanCodec.js?rmv=1.5.53-cn-boundary1';
 
 const STORAGE_KEY = 'rabbit_mirror_theater:last_combo:v11';
 const PENDING_KEY = 'rabbit_mirror_theater:pending_combo:v11';
@@ -283,6 +284,8 @@ export function getRecentGenerationAttemptIds(chatKey, limit = 10) {
     const recent = items.slice(-Math.max(1, Number(limit) || 10));
     const themeIds = new Set();
     const formatIds = new Set();
+    const textIds = new Set();
+    const textIdHits = new Map();
     const themeGroups = new Set();
     const formatGroups = new Set();
     const themeIdHits = new Map();
@@ -292,6 +295,7 @@ export function getRecentGenerationAttemptIds(chatKey, limit = 10) {
     for (const item of recent) {
         for (const id of new Set(item.themeIds || [])) { themeIds.add(id); incrementRecentHit(themeIdHits, id); }
         for (const id of new Set(item.formatIds || [])) { formatIds.add(id); incrementRecentHit(formatIdHits, id); }
+        for (const id of new Set(item.textIds || [])) { textIds.add(id); incrementRecentHit(textIdHits, id); }
         for (const id of new Set(item.themeGroups || [])) { themeGroups.add(id); incrementRecentHit(themeGroupHits, id); }
         for (const id of new Set(item.formatGroups || [])) { formatGroups.add(id); incrementRecentHit(formatGroupHits, id); }
     }
@@ -302,6 +306,7 @@ export function getRecentGenerationAttemptIds(chatKey, limit = 10) {
         formatGroups: [...formatGroups],
         themeIdHits: recentHitObject(themeIdHits),
         formatIdHits: recentHitObject(formatIdHits),
+        ...(textIds.size ? { textIds: [...textIds], textIdHits: recentHitObject(textIdHits) } : {}),
         themeGroupHits: recentHitObject(themeGroupHits),
         formatGroupHits: recentHitObject(formatGroupHits),
     };
@@ -321,6 +326,7 @@ export function recordGenerationAttempt(combo, { chatKey = '', attemptId = '', d
         attemptId: id,
         themeIds: compactIdList(combo.themeIds),
         formatIds: compactIdList(combo.formatIds),
+        ...presentationModeFields(combo),
         themeGroups: compactIdList(combo.themeGroups),
         formatGroups: compactIdList(combo.formatGroups),
         directiveScoped: !!directiveScoped,
@@ -358,6 +364,7 @@ export function setDirectiveScopedPick(chatKey, directiveScopeKey, combo) {
         scopeKey: scope,
         themeIds: compactIdList(combo.themeIds),
         formatIds: compactIdList(combo.formatIds),
+        ...presentationModeFields(combo),
         uiReviewFocus: Array.isArray(combo.uiReviewFocus) ? combo.uiReviewFocus.slice(0, 8) : [],
         ts: now,
     });
@@ -384,6 +391,7 @@ function signatureOf(combo) {
         formatIds: combo?.formatIds || [],
         samplingMode: combo?.samplingMode || 'classic',
         forcedVisualScenery: !!combo?.forcedVisualScenery,
+        ...presentationModeFields(combo),
     });
 }
 
@@ -401,6 +409,8 @@ export function getRecentIds(limit = 10) {
     const history = getComboHistory(limit);
     const themeIds = new Set();
     const formatIds = new Set();
+    const textIds = new Set();
+    const textIdHits = new Map();
     const themeGroups = new Set();
     const formatGroups = new Set();
     const themeIdHits = new Map();
@@ -412,6 +422,7 @@ export function getRecentIds(limit = 10) {
     for (const combo of history) {
         for (const id of new Set(combo?.themeIds || [])) { themeIds.add(id); incrementRecentHit(themeIdHits, id); }
         for (const id of new Set(combo?.formatIds || [])) { formatIds.add(id); incrementRecentHit(formatIdHits, id); }
+        for (const id of new Set(combo?.textIds || [])) { textIds.add(id); incrementRecentHit(textIdHits, id); }
         for (const id of new Set(combo?.themeGroups || [])) { themeGroups.add(id); incrementRecentHit(themeGroupHits, id); }
         for (const id of new Set(combo?.formatGroups || [])) { formatGroups.add(id); incrementRecentHit(formatGroupHits, id); }
         if (Array.isArray(combo?.uiReviewFocus) && combo.uiReviewFocus.length) {
@@ -426,6 +437,7 @@ export function getRecentIds(limit = 10) {
         formatGroups: [...formatGroups],
         themeIdHits: recentHitObject(themeIdHits),
         formatIdHits: recentHitObject(formatIdHits),
+        ...(textIds.size ? { textIds: [...textIds], textIdHits: recentHitObject(textIdHits) } : {}),
         themeGroupHits: recentHitObject(themeGroupHits),
         formatGroupHits: recentHitObject(formatGroupHits),
         uiReviewFocus: uiReviewFocus.slice(-limit),
@@ -720,12 +732,18 @@ function batchMatchesExpected(batch, expected, requireCommitIdentity = false) {
 
 function validBatchCombo(combo) {
     if (!combo || typeof combo !== 'object' || Array.isArray(combo)) return false;
-    for (const key of ['themeIds', 'formatIds']) {
+    if (combo.presentationMode !== undefined && !['html', 'text'].includes(combo.presentationMode)) return false;
+    if (combo.requestedPresentationMode !== undefined && !['auto', 'html', 'text'].includes(combo.requestedPresentationMode)) return false;
+    // A selected text source must retain its actual mode; otherwise compact
+    // accounting would discard its IDs and the original face could not recover.
+    if (combo.textIds?.length && combo.presentationMode !== 'text') return false;
+    for (const key of ['themeIds', 'formatIds', ...(combo.textIds !== undefined ? ['textIds'] : [])]) {
         if (!Array.isArray(combo[key]) || combo[key].length > 16) return false;
         for (let index = 0; index < combo[key].length; index += 1) {
             if (!Object.prototype.hasOwnProperty.call(combo[key], index)) return false;
             const id = combo[key][index];
             if (typeof id !== 'string' || !id.trim()) return false;
+            if (key === 'textIds' && !id.startsWith('ext:')) return false;
             // Imported IDs include the URI-encoded source filename and stable
             // entry identity. Keep their original IDs (including saved recipes)
             // and match the bounded prompt-material contract; builtin IDs retain
@@ -736,7 +754,7 @@ function validBatchCombo(combo) {
         }
         if (new Set(combo[key]).size !== combo[key].length) return false;
     }
-    return combo.themeIds.length + combo.formatIds.length > 0 || combo.customDirective === true;
+    return combo.themeIds.length + combo.formatIds.length + (combo.textIds?.length || 0) > 0 || combo.customDirective === true;
 }
 
 function removeBatchRawIfUnchanged(raw) {
@@ -828,7 +846,7 @@ export function createPendingComboBatchPlan(combos = [], identity = null, fairne
     const normalizedIdentity = normalizeBatchIdentity(identity);
     if (!normalizedIdentity) return reject('BATCH_PLAN_IDENTITY_INVALID');
     if (combos.some(combo => !validBatchCombo(combo))) {
-        const duplicate = combos.some(combo => ['themeIds', 'formatIds'].some(key =>
+        const duplicate = combos.some(combo => ['themeIds', 'formatIds', 'textIds'].some(key =>
             Array.isArray(combo?.[key]) && new Set(combo[key]).size !== combo[key].length));
         return reject(duplicate ? 'BATCH_PLAN_DUPLICATE_ID' : 'BATCH_PLAN_COMBO_INVALID');
     }
@@ -1043,6 +1061,7 @@ function batchAttemptPayload(plan, beforeRaw, now) {
             attemptId: `${plan.batchId}:${face.faceIndex}`,
             themeIds: compactIdList(combo.themeIds),
             formatIds: compactIdList(combo.formatIds),
+            ...presentationModeFields(combo),
             themeGroups: compactIdList(combo.themeGroups),
             formatGroups: compactIdList(combo.formatGroups),
             directiveScoped: plan.fairness.directiveScoped === true,
@@ -1136,7 +1155,7 @@ function batchHistoryPayload(plan, scans, beforeRaw) {
         // Successful history is accounting, not a recovery source for a pending
         // prompt. Consumers use IDs, UI/interaction and visual fingerprints.
         // Preserve those fields while avoiding another copy of mother materials.
-        const { themes, formats, ...accounting } = combo;
+        const { themes, formats, texts, ...accounting } = combo;
         history.push({ ...accounting, signature: signatureOf(combo), ts: now, batchId: plan.batchId, faceIndex: face.faceIndex,
             visualSignature: scan.visualSignature || combo.visualSignature,
             visualSkeleton: scan.visualSkeleton || combo.visualSkeleton,

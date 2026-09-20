@@ -1,7 +1,7 @@
-import { EXTERNAL_WORLD_BOOK_CLASSIFICATION } from './classifier.js?rmv=1.5.51-narrow1';
-import { EXTERNAL_WORLD_BOOK_ERROR_CODES, ExternalWorldBookError } from './errors.js?rmv=1.5.51-narrow1';
-import { entryIdentity } from './selectionState.js?rmv=1.5.51-narrow1';
-import { EXTERNAL_POOL_METADATA_VERSION, externalPoolMetadataForLibrary, getExternalPoolRevision, getExternalPoolSnapshot, removeExternalPoolLibrary, setExternalPoolMetadataSnapshot, upsertExternalPoolLibrary, validExternalPoolMetadata } from './externalPool.js?rmv=1.5.51-narrow1';
+import { EXTERNAL_WORLD_BOOK_CLASSIFICATION } from './classifier.js?rmv=1.5.53-text1';
+import { EXTERNAL_WORLD_BOOK_ERROR_CODES, ExternalWorldBookError } from './errors.js?rmv=1.5.53-cn-boundary1';
+import { entryIdentity } from './selectionState.js?rmv=1.5.53-cn-boundary1';
+import { EXTERNAL_POOL_METADATA_VERSION, externalPoolMetadataForLibrary, getExternalPoolRevision, getExternalPoolSnapshot, removeExternalPoolLibrary, setExternalPoolMetadataSnapshot, upsertExternalPoolLibrary, validExternalPoolMetadata } from './externalPool.js?rmv=1.5.53-text1';
 
 export const EXTERNAL_WORLD_BOOK_DB_NAME = 'rabbitmirror_external_worldbooks';
 export const EXTERNAL_WORLD_BOOK_DB_VERSION = 2;
@@ -65,6 +65,7 @@ export function externalEntryStableIdentity(entry) {
 function externalEntryKind(classification) {
     if (classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.THEME) return 'theme';
     if (classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.FORMAT) return 'format';
+    if (classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.TEXT) return 'text';
     if (classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.AUXILIARY) return 'aux';
     return 'entry';
 }
@@ -113,6 +114,7 @@ export function prepareExternalLibrarySnapshot(book, draft, options = {}) {
             enabled: [
                 EXTERNAL_WORLD_BOOK_CLASSIFICATION.THEME,
                 EXTERNAL_WORLD_BOOK_CLASSIFICATION.FORMAT,
+                EXTERNAL_WORLD_BOOK_CLASSIFICATION.TEXT,
                 EXTERNAL_WORLD_BOOK_CLASSIFICATION.AUXILIARY,
             ].includes(classification),
             aliases: [],
@@ -129,11 +131,12 @@ export function prepareExternalLibrarySnapshot(book, draft, options = {}) {
     const counts = storedEntries.reduce((acc, entry) => {
         if (entry.classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.THEME) acc.theme += 1;
         else if (entry.classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.FORMAT) acc.format += 1;
+        else if (entry.classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.TEXT) acc.text += 1;
         else if (entry.classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.AUXILIARY) acc.auxiliary += 1;
         else if (entry.classification === EXTERNAL_WORLD_BOOK_CLASSIFICATION.IGNORE) acc.ignored += 1;
         else acc.pending += 1;
         return acc;
-    }, { theme: 0, format: 0, auxiliary: 0, ignored: 0, pending: 0 });
+    }, { theme: 0, format: 0, text: 0, auxiliary: 0, ignored: 0, pending: 0 });
 
     return {
         library: {
@@ -149,6 +152,7 @@ export function prepareExternalLibrarySnapshot(book, draft, options = {}) {
             entryCount: storedEntries.length,
             themeCount: counts.theme,
             formatCount: counts.format,
+            ...(counts.text ? { textCount: counts.text } : {}),
             auxiliaryCount: counts.auxiliary,
             pendingCount: counts.pending,
             ignoredCount: counts.ignored,
@@ -307,7 +311,7 @@ function externalEntryChoice(row) {
         title: String(row.localTitle || row.sourceTitle || '未命名条目').slice(0, 1000),
         classification: String(row.classification || ''),
         enabled: row.enabled === true,
-        selectable: row.userConfirmed === true && ['theme', 'format'].includes(row.classification),
+        selectable: row.userConfirmed === true && ['theme', 'format', 'text'].includes(row.classification),
     };
 }
 
@@ -374,12 +378,12 @@ export async function setExternalLibraryEntryEnabled(libraryId, externalId, enab
         }
         if (!validExternalPoolMetadata(metadata, libraryId)) throw metadataRebuildError(libraryId);
         if (!externalEntryChoice(row).selectable || !externalId.startsWith(`ext:${libraryId}:${row.classification}:`)) {
-            throw new ExternalWorldBookError(EXTERNAL_WORLD_BOOK_ERROR_CODES.ENTRY_STATE_CONFLICT, '只有已确认的主题和展现形式可以勾选参与抽签；条目原文未修改。');
+            throw new ExternalWorldBookError(EXTERNAL_WORLD_BOOK_ERROR_CODES.ENTRY_STATE_CONFLICT, '只有已确认的主题、展现形式和文本类可以勾选参与抽签；条目原文未修改。');
         }
         const now = Date.now();
         const next = { ...row, enabled: enabled === true, updatedAt: now };
-        const field = row.classification === 'theme' ? 'themeIds' : 'formatIds';
-        const ids = metadata[field].filter(id => id !== externalId);
+        const field = row.classification === 'theme' ? 'themeIds' : row.classification === 'text' ? 'textIds' : 'formatIds';
+        const ids = (metadata[field] || []).filter(id => id !== externalId);
         if (next.enabled) ids.push(externalId);
         const nextMetadata = { ...metadata, enabled: library.enabled === true, [field]: ids };
         const nextLibrary = { ...library, updatedAt: now };
@@ -392,6 +396,7 @@ export async function setExternalLibraryEntryEnabled(libraryId, externalId, enab
         upsertExternalPoolLibrary(nextLibrary, [
             ...nextMetadata.themeIds.map(id => ({ externalId: id, classification: 'theme', enabled: true, userConfirmed: true })),
             ...nextMetadata.formatIds.map(id => ({ externalId: id, classification: 'format', enabled: true, userConfirmed: true })),
+            ...(nextMetadata.textIds || []).map(id => ({ externalId: id, classification: 'text', enabled: true, userConfirmed: true })),
         ]);
         invalidateMetadataHydration();
         return externalEntryChoice(next);
@@ -421,6 +426,7 @@ export async function setExternalLibraryEnabled(libraryId, enabled, options = {}
         const entries = validExternalPoolMetadata(metadata, libraryId) ? [
             ...(metadata?.themeIds || []).map(externalId => ({ externalId, classification: 'theme', enabled: true, userConfirmed: true })),
             ...(metadata?.formatIds || []).map(externalId => ({ externalId, classification: 'format', enabled: true, userConfirmed: true })),
+            ...(metadata?.textIds || []).map(externalId => ({ externalId, classification: 'text', enabled: true, userConfirmed: true })),
         ] : [];
         upsertExternalPoolLibrary(next, entries);
         invalidateMetadataHydration();
@@ -496,7 +502,7 @@ export async function getSelectedExternalEntries(ids = [], options = {}) {
             }
             const kind = row.classification;
             if (row.enabled !== true || row.userConfirmed !== true || library.enabled !== true
-                || !['theme', 'format'].includes(kind) || !id.startsWith(`ext:${row.libraryId}:${kind}:`)) {
+                || !['theme', 'format', 'text'].includes(kind) || !id.startsWith(`ext:${row.libraryId}:${kind}:`)) {
                 throw new ExternalWorldBookError(EXTERNAL_WORLD_BOOK_ERROR_CODES.ENTRY_STATE_CONFLICT, '本轮抽中的外部条目已停用或分类状态发生变化；不会自动重抽。', { reason: 'selected-entry-ineligible', externalId: id });
             }
             if (typeof row.rawContent !== 'string' || !row.rawContent.trim()) {

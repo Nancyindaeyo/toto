@@ -33,6 +33,7 @@ export const QUICK_START_GROUPS = [
         setting('behavior', '补充创作规则', '高级设置 → 独立 API：选择注入方式，编辑并保存；可清空、关闭或恢复默认，只影响独立 API。', '#rh_behavior_rule_text', 'worldinfo'),
         setting('draw', '本轮抽签记录', '在 Prompt 估算里查看逐面记录；镜面的挨打猫里也可查看本轮抽签。', '#rh_token_meter'),
         setting('favorites', '收藏偏好', '提高收藏项目的随机抽取权重，不保证每轮必出。', '#rh_favorite_summary'),
+        setting('theater-favorites', '兔子镜收藏夹', '保存已净化的单面成品，打开时保留交互；不写入 Prompt，也不接七日历。', '#rh_theater_favorite_summary'),
         setting('blacklist', '抽签黑名单', '排除不喜欢的随机项目；明确指令和强制场景有例外。', '#rh_blacklist_enabled'),
         setting('replacement', '禁词与文字替换', '本地删除或替换兔子镜可见文字，不改聊天原文。', '#rh_banned_words', 'replacement'),
     ] },
@@ -54,7 +55,7 @@ export const QUICK_START_GROUPS = [
         mirror('chain', '生成全链路诊断', '在出问题的镜面中查看生成与维修链路。', '该镜面 → 维修兔 → 生成全链路诊断'),
         setting('hostdiag', '宿主性能诊断', '检查宿主、其他扩展和网络，与内部诊断分开。', '#rh_external_diag_start'),
         setting('clear', '清理与恢复', '分别清除抽签冷却、当前注入或恢复默认；先确认范围。', '#rh_clear_last'),
-        setting('update', '检查并更新', '通过宿主更新当前扩展；权限或非 Git 安装仍可能受限。', '#rh_update_now'),
+        setting('update', '检查并更新', '通过宿主更新当前扩展所登记的 git 仓库，不读取本 fork 的 homePage。若 remote 仍是作者仓库，会覆盖成本地 fork。权限或非 Git 安装仍可能受限。', '#rh_update_now'),
     ] },
 ];
 export const QUICK_START_STEPS = {

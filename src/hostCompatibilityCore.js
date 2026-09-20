@@ -134,7 +134,7 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
     function mutationTargetIsAuxiliary(record) {
         const target = record.target?.nodeType === 1 ? record.target : record.target?.parentElement;
         return !!target?.closest?.(
-            'toto, [data-rabbit-mirror-external-source="true"], .rabbit-mirror-composer-clearance, [data-rabbit-mirror-tool-entry-host], .rabbit-mirror-maintenance-toolbar',
+            'toto, [data-rabbit-mirror-external-source="true"], .rabbit-mirror-composer-clearance, [data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], .rabbit-mirror-maintenance-toolbar',
         );
     }
 
@@ -145,7 +145,7 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
             return [...(record.addedNodes || []), ...(record.removedNodes || [])].some(node => {
                 if (!(node instanceof Element)) return true;
                 return !node.matches?.(
-                    '[data-rabbit-mirror-external-source="true"], .rabbit-mirror-composer-clearance, [data-rabbit-mirror-tool-entry-host], .rabbit-mirror-maintenance-toolbar',
+                    '[data-rabbit-mirror-external-source="true"], .rabbit-mirror-composer-clearance, [data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], .rabbit-mirror-maintenance-toolbar',
                 );
             });
         });
@@ -260,7 +260,7 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
             }
         });
         visibleFallback.observer.observe(chatRoot, { childList: true });
-        try { console.info('[RabbitMirror] ChatSurface late-projection fallback: following visible #chat > .mes leases'); } catch {}
+        try { console.info('[RabbitMirror] ChatSurface late-projection fallback: visible-floor remount from cache; this is not a successful ChatSurface registration'); } catch {}
     }
 
     function startVisibleProjectionFallback() {

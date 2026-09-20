@@ -1,10 +1,13 @@
-import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.55-extfloor1';
-import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.55-extfloor1';
-import { recordTtSurface, ttSurfaceNow, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.51-narrow1';
-import { getSettings, syncExternalReferenceVisibility } from './settings.js?rmv=1.5.51-narrow1';
-import { applyRabbitMirrorBannedWordsToDom, filterRabbitMirrorVisibleTextValue, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.51-narrow1';
-import { getCurrentChatKey } from './storage.js?rmv=1.5.51-narrow1';
-import { getSanitizedRabbitMirrorFaceProof } from './multifaceProof.js?rmv=1.5.51-narrow1';
+import { installMirrorToolMenu, fitMirrorToolPanel } from './mirrorToolMenu.js?rmv=1.5.57-fork1';
+import { isTextPresentation } from './presentationMode.js?rmv=1.5.53-visualquick1';
+import { scheduleRabbitMirrorComposerClearance } from './composerClearance.js?rmv=1.5.57-fork1';
+import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.5.57-fork1';
+import { recordTtSurface, ttSurfaceNow, nextTtSurfaceClickSeq } from './ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
+import { getSettings, syncExternalReferenceVisibility } from './settings.js?rmv=1.5.53-image1';
+import { applyRabbitMirrorBannedWordsToDom, filterRabbitMirrorVisibleTextValue, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
+import { getCurrentChatKey } from './storage.js?rmv=1.5.53-visualquick1';
+import { getSanitizedRabbitMirrorFaceProof } from './multifaceProof.js?rmv=1.5.53-visualquick1';
+import { captureTheaterFavoriteFromRoot, saveTheaterFavorite } from './theaterFavorites.js?rmv=1.5.57-fork1';
 import {
     FEEDBACK_CAT_TYPES,
     clearActiveFeedbackForCurrentChat,
@@ -14,14 +17,14 @@ import {
     getFeedbackCatLastReceiptForCurrentChat,
     setActiveFeedbackForCurrentChat,
     auditVisibleLanguageBalanceText,
-} from './feedbackCat.js?rmv=1.5.51-narrow1';
-import { scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.51-narrow1';
-import { getRabbitMirrorGenerationSnapshot } from './generationGuard.js?rmv=1.5.51-narrow1';
-import { FAVORITE_MULTIPLIER_MAX, FAVORITE_MULTIPLIER_MIN, RECIPE_RECORDED_EVENT, blacklistEntries, clearBlacklist, clearFavorites, favoriteEntries, getBlacklistState, getFavoriteMultiplier, getFavoritesState, getRabbitMirrorRecipe, isBlacklisted, isFavorited, removeBlacklistItem, removeFavoriteItem, selectionCatalogEntries, setBlacklistEnabled, setFavoriteMultiplier, toggleBlacklistItem, toggleFavoriteItem } from './blacklist.js?rmv=1.5.51-narrow1';
-import { analyzeStylelessControlKinds, collectBoundedElementDescendants, countMeaningfulStateVisualRules, semanticEnsembleScalePlan } from './presentationQuality.js?rmv=1.5.51-narrow1';
+} from './feedbackCat.js?rmv=1.5.53-cn-boundary1';
+import { scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.53-hostuifix1';
+import { getRabbitMirrorGenerationSnapshot } from './generationGuard.js?rmv=1.5.53-image1';
+import { FAVORITE_MULTIPLIER_MAX, FAVORITE_MULTIPLIER_MIN, RECIPE_RECORDED_EVENT, blacklistEntries, clearBlacklist, clearFavorites, favoriteEntries, getBlacklistState, getFavoriteMultiplier, getFavoritesState, getRabbitMirrorRecipe, isBlacklisted, isFavorited, removeBlacklistItem, removeFavoriteItem, selectionCatalogEntries, setBlacklistEnabled, setFavoriteMultiplier, toggleBlacklistItem, toggleFavoriteItem } from './blacklist.js?rmv=1.5.53-image1';
+import { analyzeStylelessControlKinds, collectBoundedElementDescendants, countMeaningfulStateVisualRules, semanticEnsembleScalePlan } from './presentationQuality.js?rmv=1.5.53-cn-boundary1';
 
 
-const RUNTIME_VERSION = '1.5.55';
+const RUNTIME_VERSION = '1.5.57';
 const RUNTIME_VERSION_ATTR = 'data-rabbit-mirror-runtime-version';
 
 const FEEDBACK_CAT_RUNTIME_STYLE_ID = 'rabbit-mirror-feedback-cat-runtime-style';
@@ -6933,7 +6936,7 @@ function getRabbitMirrorSummaryText(root) {
     if (!summary) return '';
     const clone = summary.cloneNode?.(true);
     if (clone?.querySelectorAll) {
-        clone.querySelectorAll(`[${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [${RESAY_ATTR}], [${TOOL_ENTRY_HOST_ATTR}]`).forEach(node => node.remove());
+        clone.querySelectorAll(`[data-rm-image-region], [data-rm-image-portal], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [${RESAY_ATTR}], [${TOOL_ENTRY_HOST_ATTR}]`).forEach(node => node.remove());
     }
     return String((clone || summary).textContent || '')
         .replace(/\s+/g, ' ')
@@ -11202,7 +11205,7 @@ function maintenanceProbeElementAtPath(ancestor, path) {
 
 function sanitizeMaintenanceProbeClone(clone) {
     if (!clone?.querySelectorAll) return;
-    clone.querySelectorAll(`script, iframe, object, embed, [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${TOOL_ENTRY_HOST_ATTR}]`)
+    clone.querySelectorAll(`[data-rm-image-region], [data-rm-image-portal], script, iframe, object, embed, [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${TOOL_ENTRY_HOST_ATTR}]`)
         .forEach(node => node.remove());
     clone.querySelectorAll('*').forEach(element => {
         for (const attribute of [...element.attributes]) {
@@ -12598,6 +12601,10 @@ function diagnosticRouteSummary(root) {
 }
 
 function diagnosticInferReason(root, inputs, targets, state = null) {
+    if (rabbitMirrorTextPresentation(root) && !inputs.length
+        && !targets.some(target => !diagnosticIsInternalUiNode(target)
+            && !target.closest?.(`[${TOOL_ENTRY_HOST_ATTR}]`)
+            && !target.matches?.('[data-rabbit-mirror-title-flow-end="true"]'))) return '本面为文本模式：使用 HTML 排版阅读，不要求内部交互；外层收展与重说工具照常可用。';
     const routes = diagnosticRouteSummary(root);
     const depth = maintenanceCheckedInteractionDepth(root);
     const routeCount = routes.adjacent + routes.layers + routes.labelInternal + routes.labelAdjacent + routes.maskReveal + routes.listDetail + routes.stateSibling + routes.buttonAdjacent + routes.clickableAdjacent + routes.clickablePopup + routes.checkedIdTarget + routes.focusToChecked + routes.checkedTextRule + routes.missingCheckedClass + routes.crossParentChecked + routes.checkedHasState + routes.detachedCheckedHas + routes.pairedCheckedState + routes.exclusiveStackedState + routes.channelDialCycle + routes.reversibleRadio + routes.expandedOpacity + routes.nestedCheckedContent + routes.containerReveal + routes.selfMutation + routes.classStateProgram + routes.scriptTimeline + routes.cssCommentRepair + routes.changeProgram + routes.focusWithinPersistent + routes.unlabeledChecked + routes.labeledCheckedVerify + routes.selectionFallback + routes.disabledChoice + routes.inertAction + routes.staticChoiceSelection + routes.structuredStaticDisclosure + routes.fillInChoice + routes.passportDocument + routes.decorativeOverlayPassThrough;
@@ -12688,6 +12695,7 @@ function diagnosticMessageBody(root) {
 
 function diagnosticIsInternalUiNode(node) {
     if (!node) return false;
+    if (node.closest?.('[data-rm-image-region], [data-rm-image-portal], [data-rm-tool-menu]')) return true;
     if (node.closest?.(`[${EXTERNAL_REFERENCE_NOTE_ATTR}]`)) return true;
     if (node.matches?.(`[${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [${RESAY_ATTR}], [${TOOL_ENTRY_HOST_ATTR}]`)) return true;
     return !!node.closest?.(`[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}]`);
@@ -12705,7 +12713,7 @@ function diagnosticContentSnapshot(root) {
     };
     const clone = root?.cloneNode?.(true);
     if (!clone?.querySelectorAll) return fallback;
-    clone.querySelectorAll(`[${EXTERNAL_REFERENCE_NOTE_ATTR}], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}]`)
+    clone.querySelectorAll(`[data-rm-image-region], [data-rm-image-portal], [${EXTERNAL_REFERENCE_NOTE_ATTR}], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}]`)
         .forEach(node => node.remove());
     return {
         html: String(clone.innerHTML || ''),
@@ -13657,7 +13665,8 @@ function diagnosticIndependentSelectionFields(value) {
     for (let index = 0; index < count; index += 1) {
         const face = recorded[index];
         const visual = face?.forcedVisualScenery === true ? '是' : face?.forcedVisualScenery === false ? '否' : '未记录';
-        lines.push(`第${index + 1}面：主题 ${counts(face?.themeIds)}；形式 ${counts(face?.formatIds)}；动态视觉固定=${visual}`);
+        const presentation = face?.presentationMode ? `；呈现=${face.presentationMode === 'text' ? '文本' : 'HTML'}；文本类 ${counts(face.textIds || [])}` : '';
+        lines.push(`第${index + 1}面：主题 ${counts(face?.themeIds)}；形式 ${counts(face?.formatIds)}；动态视觉固定=${visual}${presentation}`);
     }
     if (recorded.length > 5) lines.push('选材记录超过展示上限，最多展示5面。');
     lines.push('外部预取与最终请求体：未记录独立验证证据；选材记录不能证明已发送或模型采用。');
@@ -13905,7 +13914,7 @@ function getDiagnosticRenderedSource(root) {
     try {
         const clone = root.cloneNode(true);
         if (clone.matches?.(`[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}]`)) return '（当前根节点为诊断面板，无法复制兔子镜）';
-        clone.querySelectorAll?.(`[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}]`).forEach(panel => panel.remove());
+        clone.querySelectorAll?.(`[data-rm-image-region], [data-rm-image-portal], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}]`).forEach(panel => panel.remove());
         return diagnosticLimitSource(clone.outerHTML || '（无法序列化实际渲染代码）');
     } catch {
         return '（无法序列化实际渲染代码）';
@@ -13981,6 +13990,7 @@ function buildRabbitMirrorCurrentFaceHtml(root) {
         template.content.appendChild(shell);
     } else template.content.appendChild(clone);
     template.content.querySelectorAll([
+        '[data-rm-image-region]', '[data-rm-image-portal]',
         `[${TOOL_ENTRY_HOST_ATTR}]`, `[${MAINTENANCE_RABBIT_ATTR}]`, `[${FEEDBACK_CAT_ATTR}]`,
         `[${RECIPE_BUTTON_ATTR}]`, `[${RESAY_ATTR}]`, `[${MAINTENANCE_MENU_ATTR}]`,
         `[${FEEDBACK_CAT_MENU_ATTR}]`, `[${RECIPE_MENU_ATTR}]`, `[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}]`,
@@ -13988,6 +13998,15 @@ function buildRabbitMirrorCurrentFaceHtml(root) {
         '[data-rabbit-mirror-maintenance-checked-sandbox]', '[data-rabbit-mirror-title-flow-end]',
         `template[${MAINTENANCE_QUARANTINED_SCRIPT_ATTR}]`,
     ].join(',')).forEach(node => node.remove());
+    // Remove only diagnostic bookkeeping from the detached export. Functional
+    // rescue markers/CSS remain intact; live DOM and saved source are untouched.
+    const diagnosticAttributes = [
+        'data-rabbit-mirror-maintenance-modules', MAINTENANCE_AUTO_SAFE_RESULT_ATTR,
+        MAINTENANCE_STATE_ATTR, MAINTENANCE_REASON_ATTR,
+    ];
+    for (const node of template.content.querySelectorAll('*')) {
+        for (const attribute of diagnosticAttributes) node.removeAttribute(attribute);
+    }
     if (!sanitizeRabbitMirrorUntrustedTemplate(template)) {
         throw new Error('这面 HTML 未通过安全复制检查；当前页面没有改变。');
     }
@@ -14000,7 +14019,7 @@ function buildRabbitMirrorCurrentFaceHtml(root) {
         + '<title>兔子镜小剧场</title></head><body>\n' + html + '\n</body></html>';
 }
 
-async function writeRabbitMirrorHtmlClipboard(text) {
+async function writeRabbitMirrorHtmlClipboard(text, panel) {
     try { await navigator.clipboard.writeText(text); return true; } catch { /* WebView fallback below. */ }
     const previousFocus = document.activeElement;
     let field;
@@ -14008,11 +14027,17 @@ async function writeRabbitMirrorHtmlClipboard(text) {
         field = document.createElement('textarea');
         field.value = text;
         field.readOnly = true;
-        field.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
-        document.body.appendChild(field);
+        field.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;font-size:16px;';
+        // A modal dialog makes body siblings inert. Put the selection inside
+        // the active top-layer dialog so mobile WebViews can actually focus it.
+        const dialog = panel?.closest?.('dialog[open]') || [...document.querySelectorAll('dialog[open]')].reverse().find(node => {
+            try { return node.matches(':modal'); } catch { return node.contains(previousFocus); }
+        });
+        (dialog || panel || document.body).appendChild(field);
         field.focus({ preventScroll: true });
         field.select();
-        return !!document.execCommand('copy');
+        field.setSelectionRange(0, field.value.length);
+        return document.activeElement === field && !!document.execCommand('copy');
     } catch { return false; }
     finally {
         field?.remove();
@@ -14028,11 +14053,11 @@ async function copyRabbitMirrorCurrentFaceHtml(root, actionButton, panel) {
     panel.querySelector('[data-rm-copy-html-fallback]')?.remove();
     try {
         const html = buildRabbitMirrorCurrentFaceHtml(root);
-        const copied = await writeRabbitMirrorHtmlClipboard(html);
+        const copied = await writeRabbitMirrorHtmlClipboard(html, panel);
         if (!panel.isConnected) return;
         if (status) status.textContent = copied
-            ? '已复制本面 HTML（含样式）。粘贴到纯文本文件并保存为 .html 即可；不含整份诊断或其他消息。'
-            : '自动复制失败。请在下方文本框全选复制，再保存为 .html；当前镜面没有改变。';
+            ? '已提交完整 HTML 到剪贴板（含样式）。若粘贴软件限制长度，请用“下载本面 HTML 文件”；不含整份诊断或其他消息。'
+            : '自动复制失败。可下载本面 HTML 文件，或在下方全选复制；当前镜面没有改变。';
         if (!copied) {
             const field = document.createElement('textarea');
             field.setAttribute('data-rm-copy-html-fallback', 'true');
@@ -14046,6 +14071,29 @@ async function copyRabbitMirrorCurrentFaceHtml(root, actionButton, panel) {
         if (status?.isConnected) status.textContent = String(error?.message || '复制失败，当前镜面没有改变。');
     } finally {
         actionButton.disabled = false;
+    }
+}
+
+function downloadRabbitMirrorCurrentFaceHtml(root, actionButton, panel) {
+    if (!actionButton || actionButton.disabled) return;
+    const status = panel.querySelector('[data-rm-copy-html-status]');
+    let url, link;
+    try {
+        const html = buildRabbitMirrorCurrentFaceHtml(root);
+        url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+        link = document.createElement('a');
+        link.href = url;
+        link.download = '兔子镜-本面.html';
+        link.textContent = '保存本面 HTML 文件';
+        panel.appendChild(link);
+        link.click();
+        if (status) status.textContent = '已请求保存本面 HTML 文件。若宿主未弹出保存，请使用复制；依赖兔子镜脚本的交互不会随文件导出。';
+    } catch (error) {
+        if (status) status.textContent = String(error?.message || '文件导出失败，当前镜面没有改变。');
+    } finally {
+        link?.remove();
+        // Keep the URL valid through the browser/native download hand-off.
+        if (url) setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
 }
 
@@ -14225,7 +14273,7 @@ function rabbitMirrorLanguageBalance(root) {
     try {
         const clone = root.cloneNode?.(true);
         if (clone?.querySelectorAll) {
-            clone.querySelectorAll(`style,script,[${TOOL_ENTRY_HOST_ATTR}],[${MAINTENANCE_RABBIT_ATTR}],[${FEEDBACK_CAT_ATTR}],[${RESAY_ATTR}],[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}],[${FEEDBACK_CAT_MENU_ATTR}]`).forEach(node => node.remove());
+            clone.querySelectorAll(`[data-rm-image-region], [data-rm-image-portal], style,script,[${TOOL_ENTRY_HOST_ATTR}],[${MAINTENANCE_RABBIT_ATTR}],[${FEEDBACK_CAT_ATTR}],[${RESAY_ATTR}],[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}],[${FEEDBACK_CAT_MENU_ATTR}]`).forEach(node => node.remove());
             return auditVisibleLanguageBalanceText(clone.textContent || '');
         }
     } catch (error) {
@@ -15762,7 +15810,7 @@ function maintenanceReachableInteractionEvidence(root, routeSummary, checkedDept
     const structuredStaticDisclosureCandidateCount = findStructuredStaticDisclosureCandidates(root).length;
     const fillInChoiceCandidateCount = findFillInChoiceCandidates(root)
         .reduce((sum, candidate) => sum + Number(candidate.blanks?.length || 0), 0);
-    const noInteractionStructure = contentInteractiveElementCount === 0
+    const noInteractionStructure = !rabbitMirrorTextPresentation(root) && contentInteractiveElementCount === 0
         && installedInteractionRouteCount === 0
         && staticChoiceCandidateCount === 0
         && structuredStaticDisclosureCandidateCount === 0
@@ -16917,7 +16965,7 @@ function inspectMaintenanceRabbit(root) {
     if (full.controlsLost && full.checkedCount === 0 && full.rawInlineEvents === 0) unknownReasons.push('交互控件丢失，无法确认原始状态逻辑');
     if (full.currentMirrorRenderedEscapedTags && !code.strictParseOk && !full.sourceCandidate) unknownReasons.push('显示层仍有源码标签，但没有可安全恢复的完整候选');
     if (interaction.checkedSelectionOnly && interaction.selectionOnlyRepairCandidateCount === 0 && Number(interaction.pairedCheckedStateRescueCount || 0) === 0) unknownReasons.push('选择控件只能改变选中样式，且没有可安全挂接的内容区；维修兔不能代写缺失体验');
-    if (interaction.pseudoVisualOnly) unknownReasons.push('当前只有 Hover／Active 外观变化，没有可保持状态或第二层内容；维修兔不能代写缺失体验');
+    if (!rabbitMirrorTextPresentation(root) && interaction.pseudoVisualOnly) unknownReasons.push('当前只有 Hover／Active 外观变化，没有可保持状态或第二层内容；维修兔不能代写缺失体验');
     if (interaction.noInteractionStructure) unknownReasons.push('原始输出只有静态内容或动画，没有可达的内容交互结构；维修兔不能在不编造结果的情况下自动补全');
     if (unknownReasons.length) {
         return {
@@ -17102,6 +17150,7 @@ function maintenanceMirrorBodyEvidence(candidate) {
     const clone = details.cloneNode(true);
     clone.querySelectorAll?.([
         ':scope > summary',
+        '[data-rm-image-region]',
         'script',
         'template',
         `[${MAINTENANCE_RABBIT_ATTR}]`,
@@ -18493,7 +18542,7 @@ function cleanRabbitMirrorInteractionResetClone(details) {
     if (!details?.cloneNode) return null;
     const clone = cloneRabbitMirrorFilteredNode(details);
     clone.querySelectorAll?.(`[${EXTERNAL_REFERENCE_NOTE_ATTR}]`)?.forEach(node => node.remove());
-    clone.querySelectorAll?.(`[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}]`)?.forEach(node => node.remove());
+    clone.querySelectorAll?.(`[data-rm-image-region], [data-rm-image-portal], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}]`)?.forEach(node => node.remove());
     clone.querySelector?.(':scope > summary > [data-rabbit-mirror-tool-entry-host]')?.remove?.();
     clone.querySelectorAll?.('[data-rabbit-mirror-maintenance-checked-sandbox]')?.forEach(node => node.remove());
     clone.querySelectorAll?.(`[${INTERACTION_HOME_ATTR}]`)?.forEach(node => node.remove());
@@ -18579,7 +18628,7 @@ function rabbitMirrorInteractionRootFromTarget(target) {
 
 function captureRabbitMirrorInteractionResetFromEventTarget(target) {
     if (!(target instanceof Element)) return false;
-    if (target.closest?.(`[${TOOL_ENTRY_HOST_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}]`)) return false;
+    if (target.closest?.(`[data-rm-image-region], [data-rm-image-portal], [${TOOL_ENTRY_HOST_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}]`)) return false;
     const root = rabbitMirrorInteractionRootFromTarget(target);
     if (!root) return false;
     const details = getRabbitMirrorFacePosition(root)?.details
@@ -18635,9 +18684,9 @@ function captureMaintenancePreRepairSnapshot(root) {
     if (isIndependentMaintenanceRoot(root)) {
         const snapshotNode = cloneRabbitMirrorFilteredNode(originalNode);
         const workingNode = cloneRabbitMirrorFilteredNode(originalNode);
-        snapshotNode.querySelectorAll?.(`[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}]`)?.forEach(node => node.remove());
+        snapshotNode.querySelectorAll?.(`[data-rm-image-region], [data-rm-image-portal], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}]`)?.forEach(node => node.remove());
         snapshotNode.querySelector?.(':scope > summary > [data-rabbit-mirror-tool-entry-host]')?.remove?.();
-        workingNode.querySelectorAll?.(`[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}]`)?.forEach(node => node.remove());
+        workingNode.querySelectorAll?.(`[data-rm-image-region], [data-rm-image-portal], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}]`)?.forEach(node => node.remove());
         workingNode.querySelector?.(':scope > summary > [data-rabbit-mirror-tool-entry-host]')?.remove?.();
         const wasOpen = originalNode.hasAttribute('open');
         rearmRabbitMirrorSerializedInteractionRoot(workingNode);
@@ -18658,7 +18707,7 @@ function captureMaintenancePreRepairSnapshot(root) {
     // place and store only a detached rollback clone. Replacing the working node
     // would drop handlers while preserving data-* "already bound" markers.
     const snapshotNode = cloneRabbitMirrorFilteredNode(originalNode);
-    snapshotNode.querySelectorAll?.(`[${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}]`)?.forEach(node => node.remove());
+    snapshotNode.querySelectorAll?.(`[data-rm-image-region], [data-rm-image-portal], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}]`)?.forEach(node => node.remove());
     snapshotNode.querySelector?.(':scope > summary > [data-rabbit-mirror-tool-entry-host]')?.remove?.();
     maintenancePreRepairSnapshots.set(key, {
         node: snapshotNode,
@@ -18764,6 +18813,7 @@ function closeFeedbackCatMenu() {
 }
 
 function positionFeedbackCatPanel(panel, button, preferredWidth = 300) {
+    if (typeof fitMirrorToolPanel === 'function') return fitMirrorToolPanel(panel, button, preferredWidth);
     const rect = button.getBoundingClientRect();
     // 1.3.20: on phones the menu is taller than the visual viewport. Use the
     // visual viewport when available, cap the panel height, and let the menu
@@ -18853,9 +18903,9 @@ function feedbackCatButtonTitle() {
         : '挨打猫：反馈这面兔子镜；未选择时不会向模型追加内容';
 }
 
-function updateFeedbackCatButtonTitles() {
+function updateFeedbackCatButtonTitles(scope = document) {
     const title = feedbackCatButtonTitle();
-    document.querySelectorAll?.(`[${FEEDBACK_CAT_ATTR}]`)?.forEach(button => {
+    scope.querySelectorAll?.(`[${FEEDBACK_CAT_ATTR}]`)?.forEach(button => {
         button.title = title;
         button.setAttribute('aria-label', title);
         normalizeRabbitMirrorToolButton(button);
@@ -19025,9 +19075,12 @@ function showFeedbackCatMenu(root, button, draft = null) {
             ? `<div class="rabbit-mirror-feedback-cat-status">当前没有生效中的反馈。</div>${receiptLine}`
             : '<div class="rabbit-mirror-feedback-cat-status">可同时选择多项；关闭而未提交不会影响后续生成。</div>';
     const independentOwner = feedbackCatIndependentOwner(root, button);
+    const actionBridge = globalThis.__rabbitMirrorIndependentActionsV1;
+    const quickResay = independentOwner && actionBridge?.runtime === RUNTIME_VERSION
+        ? actionBridge.prepareQuickResay?.(root, independentOwner) : null;
     const independentActions = independentOwner
         ? `<div class="rabbit-mirror-feedback-cat-actions rabbit-mirror-feedback-cat-mirror-actions">
-            <button type="button" data-rm-feedback-action="resay">↻ 重说</button>
+            <button type="button" data-rm-feedback-action="resay"${quickResay ? ' data-rm-quick-resay="true"' : ''}>↻ ${quickResay ? '快速重说这一面' : '重说'}</button>
             <button type="button" data-rm-feedback-action="history">◷ 兔子镜历史</button>
           </div>`
         : '';
@@ -19109,8 +19162,10 @@ function showFeedbackCatMenu(root, button, draft = null) {
             return;
         }
         if (action === 'resay' || action === 'history') {
+            if (!panel.isConnected) return;
             const owner = independentOwner || feedbackCatIndependentOwner(root, button) || {};
-            const handled = invokeFeedbackMirrorAction(action, root, owner);
+            const handled = action === 'resay' && typeof quickResay === 'function'
+                ? quickResay() : invokeFeedbackMirrorAction(action, root, owner);
             closeFeedbackCatMenu();
             if (!handled) globalThis.toastr?.warning?.('没有找到这条回复对应的副 API 兔子镜。');
             return;
@@ -19183,6 +19238,14 @@ function rabbitMirrorRecipeIdentity(root) {
     const faceIndex = getRabbitMirrorFacePosition(root)?.faceIndex
         ?? (proof?.origin === 'follow' ? proof.faceIndex : null);
     return { chatKey, messageIndex, swipeId, message, ...(Number.isInteger(faceIndex) ? { faceIndex } : {}) };
+}
+
+function rabbitMirrorTextPresentation(root) {
+    const details = root?.matches?.('details') ? root : root?.querySelector?.(':scope > details');
+    const proof = getSanitizedRabbitMirrorFaceProof(root) || getSanitizedRabbitMirrorFaceProof(details)
+        || getSanitizedRabbitMirrorFaceProof(root?.closest?.('toto'));
+    if (proof?.presentationMode) return isTextPresentation(proof);
+    return isTextPresentation(rabbitMirrorRecipeForRoot(root, true));
 }
 
 function rabbitMirrorRecipeForRoot(root, includeExternalOnly = false) {
@@ -19607,24 +19670,23 @@ function showRecipeMenu(root, button) {
     closeRecipeMenu();
     closeFeedbackCatMenu();
     closeMaintenanceRabbitMenu();
-    const recipe = rabbitMirrorRecipeForRoot(root);
-    if (!recipe) {
-        globalThis.toastr?.info?.('这面兔子镜没有可读取的本轮抽签记录。新生成的兔子镜会自动记录。');
-        return false;
-    }
+    const recipe = rabbitMirrorRecipeForRoot(root, true);
     const state = getBlacklistState();
     const favoriteState = getFavoritesState();
-    const items = [...(recipe.themes || []), ...(recipe.formats || [])];
+    const items = [...(recipe?.themes || []), ...(recipe?.formats || [])];
     const panel = document.createElement('div');
     panel.setAttribute(RECIPE_MENU_ATTR, 'true');
     panel.style.cssText = 'position:fixed;z-index:2147483646;box-sizing:border-box;padding:12px 13px;border:1px solid rgba(127,127,127,.35);border-radius:10px;background:var(--SmartThemeBlurTintColor,rgba(28,28,32,.97));color:var(--SmartThemeBodyColor,#eee);box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:auto;font-family:inherit;';
-    const directiveNote = recipe.userDirectiveApplied ? '本轮含用户明确点菜；黑名单只影响之后的随机抽取。' : '';
-    const forcedNote = recipe.forcedVisualScenery ? '本轮含固定动态视觉场景；固定模式会优先于随机黑名单。' : '';
+    const directiveNote = recipe?.userDirectiveApplied ? '本轮含用户明确点菜；黑名单只影响之后的随机抽取。' : '';
+    const forcedNote = recipe?.forcedVisualScenery ? '本轮含固定动态视觉场景；固定模式会优先于随机黑名单。' : '';
+    const emptyNote = !recipe ? '本面暂无可读取的抽签记录；无法确定本面抽中了哪些项目。仍可管理全局黑名单、收藏和全池。'
+        : recipe.hasExternalReferences ? '本面仅有外部材料记录，没有可列出的内部主题或展现形式。可在下方管理全局黑名单、收藏和全池。'
+        : '本轮没有记录主题或展现形式。';
     const totalBlocked = state.themeIds.length + state.formatIds.length;
     const totalFavorites = favoriteState.themeIds.length + favoriteState.formatIds.length;
     panel.innerHTML = `<div style="font-weight:800;font-size:13px;margin-bottom:3px;">🎲 本轮抽签</div>
       <div style="font-size:10px;opacity:.62;line-height:1.45;margin-bottom:7px;">显示的是这一面兔子镜当时真实抽中的内部项目，不做 AI 事后分析。⭐ 收藏提高本地随机权重；🚫 黑名单从随机池排除；两者互斥且都不加 Prompt。</div>
-      ${items.map(recipePanelRow).join('') || '<div style="padding:8px 0;opacity:.68;font-size:11px;">本轮没有记录主题或展现形式。</div>'}
+      ${items.map(recipePanelRow).join('') || `<div data-rm-recipe-record-status style="padding:8px 0;opacity:.68;font-size:11px;">${emptyNote}</div>`}
       <div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;">
         <button type="button" data-rm-recipe-action="favorite-manager" style="flex:1 1 100px;border:1px solid rgba(222,170,55,.34);border-radius:7px;padding:6px 8px;background:rgba(222,170,55,.08);color:inherit;cursor:pointer;font:inherit;font-size:11px;font-weight:700;">⭐ 收藏室${totalFavorites ? `（${totalFavorites}）` : ''}</button>
         <button type="button" data-rm-recipe-action="blacklist-manager" style="flex:1 1 100px;border:1px solid rgba(127,127,127,.34);border-radius:7px;padding:6px 8px;background:rgba(127,127,127,.08);color:inherit;cursor:pointer;font:inherit;font-size:11px;font-weight:700;">🚫 黑名单${totalBlocked ? `（${totalBlocked}）` : ''}</button>
@@ -19761,6 +19823,7 @@ function maintenanceMobileLayoutTextLength(element) {
 
 function maintenanceMobileLayoutIsInternal(element) {
     if (!element?.matches) return true;
+    if (element.closest?.('[data-rm-image-region], [data-rm-image-portal], [data-rm-tool-menu]')) return true;
     if (element.matches('style,script,link,meta,br,summary')) return true;
     if (element.closest?.(`[${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}], [${INTERACTION_DIAGNOSTIC_PANEL_ATTR}]`)) return true;
     if (element.matches(`[${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [${RESAY_ATTR}], [${TOOL_ENTRY_HOST_ATTR}]`)) return true;
@@ -22635,7 +22698,7 @@ async function runMaintenanceNarrowFaceRepair(root, button) {
         if (rejectOversizedMaintenanceRepair(root, button, '窄面电击')) return false;
         if (!maintenanceRepairRunIsCurrent(repairRun)) return false;
         setMaintenanceRabbitState(button, MAINTENANCE_STATES.checking, '⚡ 正在重新测量并恢复这面兔子镜的宽度');
-        const adapter = await import('./independentApi.js?rmv=1.5.55-extfloor1');
+        const adapter = await import('./independentApi.js?rmv=1.5.57-fork1');
         // Loading the adapter is the sole async boundary. Never apply a delayed
         // click to a new chat, Swipe, source revision, face or replacement node.
         if (!root.isConnected || !details.isConnected || !button.isConnected
@@ -22733,6 +22796,7 @@ function showMaintenanceRabbitMenu(root, button) {
       <button type="button" data-rm-maintenance-action="reset-interaction" ${hasRabbitMirrorInteractionResetSnapshot(root) ? '' : 'disabled'}>⏪ 恢复交互初始状态</button>
       <button type="button" data-rm-maintenance-action="restore-before" ${maintenancePreRepairSnapshots.has(maintenanceSnapshotKey(root)) ? '' : 'disabled'}>↩️ 返回修复前</button>
       <button type="button" data-rm-maintenance-action="copy-html" style="min-height:44px!important;">复制本面 HTML（含样式）</button>
+      <button type="button" data-rm-maintenance-action="download-html" style="min-height:44px!important;">下载本面 HTML 文件</button>
       <div data-rm-copy-html-status role="status" aria-live="polite" style="font-size:12px;line-height:1.5;">复制为独立 HTML，仅包含本面。依赖兔子镜脚本的交互不会随文件导出。</div>
       <button type="button" data-rm-maintenance-action="diagnostic">📋 生成全链路诊断</button>
       <button type="button" data-rm-maintenance-action="close">关闭</button>`;
@@ -22752,11 +22816,16 @@ function showMaintenanceRabbitMenu(root, button) {
     const left = Math.max(12, Math.min(rect.left, globalThis.innerWidth - width - 12));
     panel.style.left = `${left}px`;
     panel.style.top = `${Math.min(rect.bottom + 6, globalThis.innerHeight - panel.offsetHeight - 12)}px`;
+    if (typeof fitMirrorToolPanel === 'function') fitMirrorToolPanel(panel, button, 340);
     panel.addEventListener('click', event => {
         const action = event.target?.closest?.('[data-rm-maintenance-action]')?.getAttribute('data-rm-maintenance-action');
         if (!action) return;
         event.preventDefault();
         event.stopPropagation();
+        if (action === 'download-html') {
+            downloadRabbitMirrorCurrentFaceHtml(root, event.target.closest('[data-rm-maintenance-action]'), panel);
+            return;
+        }
         if (action === 'copy-html') {
             void copyRabbitMirrorCurrentFaceHtml(root, event.target.closest('[data-rm-maintenance-action]'), panel);
             return;
@@ -23027,8 +23096,9 @@ function ensureFeedbackCatButton(root, summary, host) {
 
 
 function recipeButtonShouldBeVisible(recipe, blacklistState = getBlacklistState()) {
-    return blacklistState?.enabled === true && !!recipe
-        && (!recipe.hasExternalReferences || !!((recipe.themes?.length || 0) + (recipe.formats?.length || 0)));
+    // Visibility is a user setting; missing face receipts must not hide management.
+    // Recipe resolution itself remains owner-checked in blacklist.js.
+    return blacklistState?.enabled === true;
 }
 
 function clearMirrorTitleDisplayArtifacts(root) {
@@ -23165,7 +23235,7 @@ function ensureRecipeButton(root, summary, host, recipe = rabbitMirrorRecipeForR
     current.textContent = '🎲';
     current.title = recipeButtonTitle(recipe);
     current.setAttribute('aria-label', current.title);
-    current.dataset.rmRecipeAvailable = 'true';
+    current.dataset.rmRecipeAvailable = recipe ? 'true' : 'false';
     if (current.parentElement !== host) host.appendChild(current);
     normalizeRabbitMirrorToolButton(current);
     return current;
@@ -23233,7 +23303,64 @@ function removeFeedbackCatsInChatDom() {
 
 
 const PALETTE_DEDUPE_CHECKED_ATTR = 'data-rabbit-mirror-palette-dedupe-checked';
-function installMaintenanceRabbitsInScope(scope, { allowGlobalRemoval = false, autoSafeForceCurrent = false, historyRestoreLight = false } = {}) {
+// Diagnostics are optional and cannot change the operation's return or error.
+function beginHostWorkTiming(name){
+ let end;
+ try{ end=globalThis.__rabbitMirrorExternalDiag?.beginHostWork?.(name); }catch{}
+ if(typeof end!=='function') return null;
+ return ()=>{ try{ end(); }catch{} };
+}
+let mirrorImageModule = null;
+function loadMirrorImageModule() {
+    if (!mirrorImageModule) mirrorImageModule = import('./imageUi.js?rmv=1.5.53-hostuifix1').catch(error => { mirrorImageModule = null; throw error; });
+    return mirrorImageModule;
+}
+function installUnifiedMirrorTools(root) {
+    const details = root.matches?.('details') ? root : root.querySelector(':scope > details') || root.querySelector('details');
+    const summary = details?.querySelector(':scope > summary');
+    if (!summary) return;
+    const host = ensureRabbitMirrorToolHost(summary);
+    const actions = [];
+    const add = (attr, enabled, id, label, handler) => {
+        const button = host.querySelector(`[${attr}]`);
+        if (button && enabled) actions.push({ id, label, run: event => handler(event, root, button) });
+        else if (button && !enabled) button.remove();
+    };
+    add(MAINTENANCE_RABBIT_ATTR, isMaintenanceRabbitEnabled(), 'maintenance', '🐇 维修兔', handleMaintenanceRabbitClick);
+    add(FEEDBACK_CAT_ATTR, isFeedbackCatEnabled(), 'feedback', '🐈 挨打猫 · 反馈与重说', handleFeedbackCatClick);
+    add(RECIPE_BUTTON_ATTR, true, 'recipe', '🎲 黑名单与本轮抽签', handleRecipeClick);
+    actions.push({ id: 'image', label: '▧ 生图', run: (_event, opener) => {
+        void loadMirrorImageModule().then(module => { if (root.isConnected) return module.openMirrorImagePanel(root, { opener }); })
+            .catch(() => globalThis.toastr?.warning?.('生图面板未能打开，请重新打开后再试。'));
+    } });
+    actions.push({ id: 'theater-favorite', label: '⭐ 收藏本面', run: () => {
+        void (async () => {
+            try {
+                const captured = captureTheaterFavoriteFromRoot(root);
+                if (!captured) {
+                    globalThis.toastr?.warning?.('当前没有可收藏的兔子镜。');
+                    return;
+                }
+                await saveTheaterFavorite(captured);
+                globalThis.toastr?.success?.('已收入兔子镜收藏夹。打开时保留交互，不写入主楼 Prompt。');
+            } catch (error) {
+                globalThis.toastr?.warning?.(String(error?.message || '收藏失败。'));
+            }
+        })();
+    } });
+    installMirrorToolMenu(root, host, actions, () => {
+        closeMaintenanceRabbitMenu(); closeFeedbackCatMenu(); closeRecipeMenu();
+        mirrorImageModule?.then(module => module.closeMirrorImagePanel?.()).catch(() => {});
+    });
+    // Restore saved images even when image generation is disabled; this never requests a model.
+    void loadMirrorImageModule().then(module => { if (root.isConnected) return module.mountMirrorImage(root); })
+        .catch(() => {});
+}
+function installMaintenanceRabbitsInScope(scope, options = {}) {
+    const end = beginHostWorkTiming('maintenance.installScope');
+    try { return installMaintenanceRabbitsInScopeCore(scope, options); } finally { end?.(); }
+}
+function installMaintenanceRabbitsInScopeCore(scope, { allowGlobalRemoval = false, autoSafeForceCurrent = false, historyRestoreLight = false } = {}) {
     if (!isCurrentRuntime() || !scope?.querySelectorAll) return;
     const perfEnd = globalThis.__rabbitMirrorPerfDiag?.begin?.('maintenance.installScope', { allowGlobalRemoval: !!allowGlobalRemoval, historyRestoreLight: !!historyRestoreLight }, 8);
     const maintenanceEnabled = isMaintenanceRabbitEnabled();
@@ -23308,9 +23435,10 @@ function installMaintenanceRabbitsInScope(scope, { allowGlobalRemoval = false, a
         } catch (error) {
             console.debug('[RabbitMirror] recipe button install recovered for one mirror:', error);
         }
+        if (typeof installUnifiedMirrorTools === 'function') installUnifiedMirrorTools(root);
         if (!historyRestoreLight) scheduleCurrentHighConfidenceTextRepair(root);
     });
-    if (feedbackEnabled) updateFeedbackCatButtonTitles();
+    if (feedbackEnabled) updateFeedbackCatButtonTitles(scope);
     perfEnd?.();
 }
 
@@ -25888,7 +26016,7 @@ function maintenanceAutoSafeLiveFingerprint(root, { budgetChecked = false } = {}
     let structural = '';
     try {
         const clone = root.cloneNode(true);
-        clone.querySelectorAll?.(`[${EXTERNAL_REFERENCE_NOTE_ATTR}], [${TOOL_ENTRY_HOST_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}]`).forEach(node => node.remove());
+        clone.querySelectorAll?.(`[data-rm-image-region], [data-rm-image-portal], [${EXTERNAL_REFERENCE_NOTE_ATTR}], [${TOOL_ENTRY_HOST_ATTR}], [${MAINTENANCE_MENU_ATTR}], [${FEEDBACK_CAT_MENU_ATTR}], [${RECIPE_MENU_ATTR}]`).forEach(node => node.remove());
         const volatile = new Set([
             RUNTIME_VERSION_ATTR,
             MAINTENANCE_AUTO_SAFE_ATTR,
@@ -26445,6 +26573,20 @@ function installToolEntryDelegation(chatRoot = getChatRoot()) {
         captureRabbitMirrorInteractionResetFromEventTarget(control);
     };
     toolEntryDelegatedClickHandler = event => {
+        const manualButton = event.target?.closest?.('[data-rm-manual-generate="true"]');
+        if (manualButton && chatRoot.contains(manualButton)) {
+            event.preventDefault();
+            event.stopPropagation();
+            const manualHost = manualButton.closest('.rabbit-mirror-external-host');
+            if (!manualHost?.isConnected || manualButton.disabled) return;
+            // The runtime validates its own host/intent identity; markup alone
+            // never grants permission to send a paid request.
+            const action = globalThis.__rabbitMirrorIndependentActionsV1?.generateManual;
+            if (typeof action === 'function') {
+                Promise.resolve(action(manualHost)).catch(error => console.warn('[RabbitMirror] Manual generation failed:', error));
+            }
+            return;
+        }
         // Reuse this existing delegated boundary: after a collapsed current mirror is
         // opened, one animation frame is enough for layout before the bounded text check.
         // No per-mirror listener, observer or polling loop is introduced.

@@ -20,8 +20,10 @@ const EMPTY_SNAPSHOT = Object.freeze({
     libraries: Object.freeze([]),
     themesByLibrary: Object.freeze([]),
     formatsByLibrary: Object.freeze([]),
+    textsByLibrary: Object.freeze([]),
     themeCount: 0,
     formatCount: 0,
+    textCount: 0,
 });
 
 let snapshot = EMPTY_SNAPSHOT;
@@ -50,6 +52,7 @@ export function externalPoolMetadataForLibrary(library, entries = []) {
         enabled: library?.enabled === true,
         themeIds: [...(light.themesByLibrary[0]?.ids || [])],
         formatIds: [...(light.formatsByLibrary[0]?.ids || [])],
+        ...(light.textCount ? { textIds: [...light.textsByLibrary[0].ids] } : {}),
     };
 }
 
@@ -58,7 +61,8 @@ export function validExternalPoolMetadata(record, libraryId) {
         && record.libraryId === libraryId
         && Array.isArray(record.themeIds) && Array.isArray(record.formatIds)
         && record.themeIds.every(id => typeof id === 'string' && cleanId(id) === id && id.startsWith(`ext:${libraryId}:theme:`))
-        && record.formatIds.every(id => typeof id === 'string' && cleanId(id) === id && id.startsWith(`ext:${libraryId}:format:`));
+        && record.formatIds.every(id => typeof id === 'string' && cleanId(id) === id && id.startsWith(`ext:${libraryId}:format:`))
+        && (record.textIds === undefined || (Array.isArray(record.textIds) && record.textIds.every(id => typeof id === 'string' && cleanId(id) === id && id.startsWith(`ext:${libraryId}:text:`))));
 }
 
 export function setExternalPoolMetadataSnapshot(libraries = [], metadata = []) {
@@ -70,6 +74,7 @@ export function setExternalPoolMetadataSnapshot(libraries = [], metadata = []) {
         entriesByLibrary.set(library.libraryId, [
             ...record.themeIds.map(externalId => ({ externalId, classification: 'theme', enabled: true, userConfirmed: true })),
             ...record.formatIds.map(externalId => ({ externalId, classification: 'format', enabled: true, userConfirmed: true })),
+            ...(record.textIds || []).map(externalId => ({ externalId, classification: 'text', enabled: true, userConfirmed: true })),
         ]);
     }
     return setExternalPoolSnapshot(libraries, entriesByLibrary);
@@ -82,7 +87,7 @@ function cleanId(value, max = 2048) {
 
 function eligibleClassification(value) {
     const text = String(value || '').trim();
-    return text === 'theme' || text === 'format' ? text : '';
+    return text === 'theme' || text === 'format' || text === 'text' ? text : '';
 }
 
 function lightweightEntry(entry, libraryId, classification) {
@@ -95,8 +100,10 @@ export function buildExternalPoolSnapshot(libraries = [], entriesByLibrary = new
     const enabledLibraries = [];
     const themesByLibrary = [];
     const formatsByLibrary = [];
+    const textsByLibrary = [];
     let themeCount = 0;
     let formatCount = 0;
+    let textCount = 0;
     let selectionFirst = 0;
     let selectionSecond = 0;
 
@@ -108,6 +115,7 @@ export function buildExternalPoolSnapshot(libraries = [], entriesByLibrary = new
             : entriesByLibrary?.[libraryId];
         const themeIds = [];
         const formatIds = [];
+        const textIds = [];
         const seen = new Set();
         for (const entry of Array.isArray(sourceEntries) ? sourceEntries : []) {
             if (entry?.enabled !== true || entry?.userConfirmed !== true) continue;
@@ -127,13 +135,18 @@ export function buildExternalPoolSnapshot(libraries = [], entriesByLibrary = new
             selectionFirst = (selectionFirst + (first >>> 0)) >>> 0;
             selectionSecond = (selectionSecond + (second >>> 0)) >>> 0;
             if (classification === 'theme') themeIds.push(light.id);
+            else if (classification === 'text') textIds.push(light.id);
             else formatIds.push(light.id);
         }
-        if (!themeIds.length && !formatIds.length) continue;
+        if (!themeIds.length && !formatIds.length && !textIds.length) continue;
         enabledLibraries.push(Object.freeze({ libraryId }));
         if (themeIds.length) {
             themesByLibrary.push(Object.freeze({ libraryId, ids: Object.freeze(themeIds) }));
             themeCount += themeIds.length;
+        }
+        if (textIds.length) {
+            textsByLibrary.push(Object.freeze({ libraryId, ids: Object.freeze(textIds) }));
+            textCount += textIds.length;
         }
         if (formatIds.length) {
             formatsByLibrary.push(Object.freeze({ libraryId, ids: Object.freeze(formatIds) }));
@@ -145,10 +158,12 @@ export function buildExternalPoolSnapshot(libraries = [], entriesByLibrary = new
         libraries: Object.freeze(enabledLibraries),
         themesByLibrary: Object.freeze(themesByLibrary),
         formatsByLibrary: Object.freeze(formatsByLibrary),
+        textsByLibrary: Object.freeze(textsByLibrary),
+        textCount,
         themeCount,
         formatCount,
     });
-    selectionKeys.set(result, `${themeCount + formatCount}:${selectionFirst.toString(36)}:${selectionSecond.toString(36)}`);
+    selectionKeys.set(result, `${themeCount + formatCount + textCount}:${selectionFirst.toString(36)}:${selectionSecond.toString(36)}`);
     return result;
 }
 
@@ -174,6 +189,9 @@ export function setExternalPoolSnapshotObject(nextSnapshot) {
         for (const id of Array.isArray(library?.formatIds) ? library.formatIds : []) {
             entries.push({ externalId: id, classification: 'format', enabled: true, userConfirmed: true });
         }
+        for (const id of Array.isArray(library?.textIds) ? library.textIds : []) {
+            entries.push({ externalId: id, classification: 'text', enabled: true, userConfirmed: true });
+        }
         entriesByLibrary.set(libraryId, entries);
     }
     return setExternalPoolSnapshot(libraries.map(item => ({ ...item, enabled: item?.enabled !== false })), entriesByLibrary);
@@ -197,11 +215,20 @@ export function externalPoolItem(externalId, kind) {
 }
 
 function kindLibraries(kind) {
+    if (kind === 'text') return snapshot.textsByLibrary;
+    if (kind === 'presentation') {
+        const combined = new Map();
+        for (const library of [...snapshot.formatsByLibrary, ...snapshot.textsByLibrary]) {
+            const ids = combined.get(library.libraryId) || [];
+            combined.set(library.libraryId, [...ids, ...library.ids]);
+        }
+        return [...combined].map(([libraryId, ids]) => ({ libraryId, ids }));
+    }
     return kind === 'format' ? snapshot.formatsByLibrary : snapshot.themesByLibrary;
 }
 
 export function externalPoolEligibleCount(kind) {
-    return kind === 'format' ? snapshot.formatCount : snapshot.themeCount;
+    return kind === 'text' ? snapshot.textCount : kind === 'presentation' ? snapshot.formatCount + snapshot.textCount : kind === 'format' ? snapshot.formatCount : snapshot.themeCount;
 }
 
 export function externalPoolActive(settings, kind) {
@@ -309,7 +336,9 @@ export function pickExternalItems(settings, kind, count, options = {}) {
                 if (remaining < 0) { index = i; break; }
             }
         }
-        const item = externalPoolItem(library.ids[index], kind);
+        const selectedId = library.ids[index];
+        const selectedKind = kind === 'presentation' ? (snapshot.textsByLibrary.some(pool => pool.libraryId === library.libraryId && pool.ids.includes(selectedId)) ? 'text' : 'format') : kind;
+        const item = externalPoolItem(selectedId, selectedKind);
         if (!item) break;
         selected.push(item);
     }
@@ -336,6 +365,11 @@ function snapshotEntryRecords() {
     for (const library of snapshot.formatsByLibrary) {
         const rows = map.get(library.libraryId) || [];
         for (const id of library.ids) rows.push({ externalId: id, classification: 'format', enabled: true, userConfirmed: true });
+        map.set(library.libraryId, rows);
+    }
+    for (const library of snapshot.textsByLibrary) {
+        const rows = map.get(library.libraryId) || [];
+        for (const id of library.ids) rows.push({ externalId: id, classification: 'text', enabled: true, userConfirmed: true });
         map.set(library.libraryId, rows);
     }
     return map;

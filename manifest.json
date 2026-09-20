@@ -1,11 +1,11 @@
 {
   "display_name": "兔子镜小剧场",
   "loading_order": 100,
-  "js": "index.js?rmv=1.5.55-extfloor1",
-  "css": "style.css?rmv=1.5.55",
+  "js": "index.js?rmv=1.5.57-fork1",
+  "css": "style.css?rmv=1.5.57",
   "author": "Toto",
-  "version": "1.5.55",
-  "homePage": "https://github.com/Zaiyebuzuoyouqingdetiangou/toto",
+  "version": "1.5.57",
+  "homePage": "https://github.com/Nancyindaeyo/toto",
   "auto_update": true,
   "generate_interceptor": "rabbitMirrorGenerateInterceptor",
   "minimum_client_version": "1.13.0",
@@ -13,5 +13,5 @@
     "disable": "onDisable",
     "clean": "onClean"
   },
-  "description": "兔子镜小剧场：TT DOM 虚化下独立 API 轻壳外置跟可见楼层；新生成正文落定后补挂并触发副 API。"
+  "description": "兔子镜小剧场 fork：独立 API 失败自动重 roll 最多 2 次且不冲掉已出镜面；本机收藏夹；TT 可见楼层回挂。安装通道为 Nancyindaeyo/toto。"
 }

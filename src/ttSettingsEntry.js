@@ -32,7 +32,7 @@ export function mountRabbitMirrorTtSettingsEntry({ runtimeVersion, isCurrent, ge
       </div>`;
     let hostNote = '完整设置按需加载；聊天显示仍遵循 TT 的 ChatSurface 挂载。';
     if (status.registrationFailure === 'late-projection') {
-        hostNote = 'TT 在聊天投影后才加载兔子镜，已错过注册窗口；需要宿主提供前置加载，关闭/重开虚化或反复点击不能补注册。';
+        hostNote = 'TT 在聊天投影后才加载兔子镜，已错过注册窗口。可见楼层滚入时会从缓存回挂成品，这不是 ChatSurface 晚注册已修好；关闭/重开虚化或反复点击不能补注册。';
     } else if (status.registrationFailure === 'duplicate-participant') {
         hostNote = 'TT 检测到重复的兔子镜参与者；请仅启用一份正式版或测试版，再重启。';
     } else if (!status.registered) {

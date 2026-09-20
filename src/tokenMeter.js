@@ -1,3 +1,4 @@
+import { presentationModeFields } from './presentationMode.js?rmv=1.5.53-visualquick1';
 const TOKEN_METER_STORAGE_KEY = 'rabbit_mirror_theater:token_meter:v1';
 const TOKEN_METER_SOURCE_STORAGE_KEYS = Object.freeze({
     follow: 'rabbit_mirror_theater:token_meter:follow:v1',
@@ -252,6 +253,7 @@ export function recordRabbitMirrorInjection({
         samplingMode: String(metadata.samplingMode || ''),
         themeIds: Array.isArray(metadata.themeIds) ? metadata.themeIds.slice(0, 8) : [],
         formatIds: Array.isArray(metadata.formatIds) ? metadata.formatIds.slice(0, 8) : [],
+        ...presentationModeFields(metadata),
         visualScenery: !!metadata.visualSceneryMode,
         tarotRules: !!metadata.tarotRules,
         touchTheaterRules: !!metadata.touchTheaterRules,
@@ -315,6 +317,7 @@ export function recordRabbitMirrorIndependentPrompt({
         samplingMode: String(metadata.samplingMode || ''),
         themeIds: Array.isArray(metadata.themeIds) ? metadata.themeIds.slice(0, 8) : [],
         formatIds: Array.isArray(metadata.formatIds) ? metadata.formatIds.slice(0, 8) : [],
+        ...presentationModeFields(metadata),
         visualScenery: !!metadata.visualSceneryMode,
         tarotRules: !!metadata.tarotRules,
         touchTheaterRules: !!metadata.touchTheaterRules,

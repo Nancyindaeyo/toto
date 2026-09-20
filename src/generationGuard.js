@@ -1,10 +1,11 @@
+import { presentationModeFields } from './presentationMode.js?rmv=1.5.53-visualquick1';
 import {
     commitPendingComboBatch,
     getCurrentChatKey,
     releasePendingComboBatch,
-} from './storage.js?rmv=1.5.51-narrow1';
-import { recordRabbitMirrorRecipe } from './blacklist.js?rmv=1.5.51-narrow1';
-import { parseMultifaceOutput, recoverableMultifaceFrames, createMultifaceFailureSlot, multifaceRecoveryWithinRawBudgets } from './multifaceProtocol.js?rmv=1.5.51-narrow1';
+} from './storage.js?rmv=1.5.53-visualquick1';
+import { recordRabbitMirrorRecipe } from './blacklist.js?rmv=1.5.53-image1';
+import { parseMultifaceOutput, recoverableMultifaceFrames, createMultifaceFailureSlot, multifaceRecoveryWithinRawBudgets } from './multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 
 const SNAPSHOT_STORAGE_KEY = 'rabbit_mirror_theater:generation_snapshots:v1';
 const ACTIVE_ATTEMPT_STORAGE_KEY = 'rabbit_mirror_theater:active_generation_attempt:v1';
@@ -280,6 +281,7 @@ function copySelectionMetadata(metadata = null) {
         samplingMode: String(metadata.samplingMode || 'classic'),
         themeIds: Array.isArray(metadata.themeIds) ? [...metadata.themeIds] : [],
         formatIds: Array.isArray(metadata.formatIds) ? [...metadata.formatIds] : [],
+        ...presentationModeFields(metadata),
         userDirectiveApplied: !!metadata.userDirectiveApplied,
         forcedVisualScenery: !!metadata.forcedVisualScenery,
         tarotRules: metadata.tarotRules === true,
@@ -425,6 +427,7 @@ function faceMetadata(record, faceIndex) {
         samplingMode: combo.samplingMode,
         themeIds: combo.themeIds,
         formatIds: combo.formatIds,
+        ...presentationModeFields(combo),
         forcedVisualScenery: combo.forcedVisualScenery,
     });
 }

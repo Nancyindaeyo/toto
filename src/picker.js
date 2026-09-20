@@ -1,5 +1,5 @@
-import { THEMATIC_CATEGORIES } from '../data/structured/thematicIndex.js?rmv=1.5.51-narrow1';
-import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.51-narrow1';
+import { THEMATIC_CATEGORIES } from '../data/structured/thematicIndex.js?rmv=1.5.53-cn-boundary1';
+import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.53-cn-boundary1';
 import {
     getCurrentChatKey,
     getDirectiveScopedPick,
@@ -17,10 +17,11 @@ import {
     clearPendingComboBatch,
     createPendingComboBatchPlan,
     findPendingComboBatchPlan,
-} from './storage.js?rmv=1.5.51-narrow1';
-import { filterRandomFormatPool, filterRandomThemePool, getFavoritesState } from './blacklist.js?rmv=1.5.51-narrow1';
-import { describeBatchPlanFailure } from './externalWorldBook/errors.js?rmv=1.5.51-narrow1';
-import { planBatchInteractionDiversity } from './batchInteractionDiversity.js?rmv=1.5.51-narrow1';
+} from './storage.js?rmv=1.5.53-visualquick1';
+import { filterRandomFormatPool, filterRandomThemePool, getFavoritesState } from './blacklist.js?rmv=1.5.53-image1';
+import { describeBatchPlanFailure } from './externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
+import { requestedPresentationMode, presentationModeFields, visualSceneryCombinationEnabled } from './presentationMode.js?rmv=1.5.53-visualquick1';
+import { planBatchInteractionDiversity } from './batchInteractionDiversity.js?rmv=1.5.53-text1';
 import {
     chooseExternalSource,
     externalPoolActive,
@@ -30,7 +31,7 @@ import {
     getExternalPoolSnapshot,
     pickExternalItems,
     sourceMixModeIsExternalOnly,
-} from './externalWorldBook/externalPool.js?rmv=1.5.51-narrow1';
+} from './externalWorldBook/externalPool.js?rmv=1.5.53-text1';
 
 function randomUnit() {
     try {
@@ -144,6 +145,10 @@ function mergeRecent(base, attempts) {
         formatGroups: compactUnique([...(base?.formatGroups || []), ...(attempts?.formatGroups || [])]),
         themeIdHits: mergeRecentHitMaps(base?.themeIdHits, attempts?.themeIdHits),
         formatIdHits: mergeRecentHitMaps(base?.formatIdHits, attempts?.formatIdHits),
+        ...((base?.textIds?.length || attempts?.textIds?.length) ? {
+            textIds: compactUnique([...(base?.textIds || []), ...(attempts?.textIds || [])]),
+            textIdHits: mergeRecentHitMaps(base?.textIdHits, attempts?.textIdHits),
+        } : {}),
         themeGroupHits: mergeRecentHitMaps(base?.themeGroupHits, attempts?.themeGroupHits),
         formatGroupHits: mergeRecentHitMaps(base?.formatGroupHits, attempts?.formatGroupHits),
         uiReviewFocus: Array.isArray(base?.uiReviewFocus) ? [...base.uiReviewFocus] : [],
@@ -462,15 +467,15 @@ function sourceAwareThemeSample({ settings, pool, count, recentIds, recentIdHits
     return uniqueById(selected).slice(0, target);
 }
 
-function sourceAwareFormatSample({ settings, pool, count, recentIds, recentIdHits, recentGroups, avoidRepeat, hardExcludedIds, favoriteIds, eligibleMisses, favoriteMultipliers, recentGroupHitMap, recentFamilyHitMap, immediateFamilyKeys, groupCooldownEnabled, externalHardExcludedIds = [] }) {
-    if (!externalPoolActive(settings, 'format')) {
+function sourceAwareFormatSample({ settings, pool, count, recentIds, recentIdHits, recentGroups, avoidRepeat, hardExcludedIds, favoriteIds, eligibleMisses, favoriteMultipliers, recentGroupHitMap, recentFamilyHitMap, immediateFamilyKeys, groupCooldownEnabled, externalHardExcludedIds = [], presentationKind = 'format' }) {
+    if (!externalPoolActive(settings, presentationKind)) {
         return weightedSample(pool, count, recentIds, recentGroups, avoidRepeat, hardExcludedIds, favoriteIds, eligibleMisses, favoriteMultipliers, recentGroupHitMap, recentFamilyHitMap, immediateFamilyKeys, groupCooldownEnabled);
     }
     const target = Math.max(0, Number(count) || 0);
     const sourceKinds = [];
     const builtinAvailable = pool.length > 0;
     for (let index = 0; index < target; index += 1) {
-        sourceKinds.push(chooseExternalSource(settings, 'format', randomUnit, builtinAvailable) ? 'external' : 'builtin');
+        sourceKinds.push(chooseExternalSource(settings, presentationKind, randomUnit, builtinAvailable) ? 'external' : 'builtin');
     }
     const builtinCount = sourceKinds.filter(kind => kind === 'builtin').length;
     const externalCount = sourceKinds.length - builtinCount;
@@ -478,7 +483,7 @@ function sourceAwareFormatSample({ settings, pool, count, recentIds, recentIdHit
         ? weightedSample(pool, builtinCount, recentIds, recentGroups, avoidRepeat, hardExcludedIds, favoriteIds, eligibleMisses, favoriteMultipliers, recentGroupHitMap, recentFamilyHitMap, immediateFamilyKeys, groupCooldownEnabled)
         : { selected: [], eligibleIds: [] };
     let externals = externalCount
-        ? pickExternalItems(settings, 'format', externalCount, {
+        ? pickExternalItems(settings, presentationKind, externalCount, {
             randomUnit,
             recentIds,
             recentIdHits,
@@ -496,7 +501,7 @@ function sourceAwareFormatSample({ settings, pool, count, recentIds, recentIdHit
     }
     if (builtinSample.selected.length < builtinCount) {
         const deficit = builtinCount - builtinSample.selected.length;
-        externals = [...externals, ...pickExternalItems(settings, 'format', deficit, {
+        externals = [...externals, ...pickExternalItems(settings, presentationKind, deficit, {
             randomUnit,
             recentIds,
             recentIdHits,
@@ -814,8 +819,25 @@ function getVisualSceneryFormat() {
     return PRESENTATION_FORMATS.find(item => item.id === '10.2.2' || normalizeText(item.title) === normalizeText('Visual Scenery')) || null;
 }
 
-function applyDirectiveOrRandom({ settings, directive, themePool, formatPool, themeCount, formatCount, recent, formalRecent, hardRecent, previousThemeFamilyKeys = [], previousFormatFamilyKeys = [], favoriteThemeIds, favoriteFormatIds, favoriteThemeMultipliers, favoriteFormatMultipliers, formatEligibleMisses, externalExcludedThemeIds = [], externalExcludedFormatIds = [] }) {
+function applyDirectiveOrRandom({ settings, directive, themePool, formatPool, themeCount, formatCount, recent, formalRecent, hardRecent, previousThemeFamilyKeys = [], previousFormatFamilyKeys = [], favoriteThemeIds, favoriteFormatIds, favoriteThemeMultipliers, favoriteFormatMultipliers, formatEligibleMisses, externalExcludedThemeIds = [], externalExcludedFormatIds = [], externalExcludedTextIds = [], faceIndex = 0 }) {
     if (directive?.disabled) return { disabled: true, directive };
+    const requestedMode = requestedPresentationMode(settings, faceIndex);
+    const textSettings = { ...settings, externalWorldBookRandomEnabled: true, externalWorldBookMixMode: 'external-only' };
+    if (requestedMode === 'text' && settings.mode !== 'off') {
+        const texts = pickExternalItems(textSettings, 'text', 1, {
+            randomUnit, hardExcludedIds: externalExcludedTextIds, avoidRepeat: settings.avoidRepeat,
+            recentIds: recent.textIds || [], recentIdHits: recent.textIdHits || {},
+            preferredExcludedIds: hardRecent.textIds || [],
+        });
+        if (texts.length) return { themes: [], formats: [], texts, directive, forcedFormats: [],
+            requestedPresentationMode: 'text', presentationMode: 'text',
+            formatFairnessEligibleIds: [], formatFairnessSelectedIds: [] };
+    }
+    if (requestedMode === 'text') settings = { ...settings, forceVisualScenery: false };
+    const combineVisual = visualSceneryCombinationEnabled(settings);
+    // Only the new combination path excludes the already locked visual item.
+    if (combineVisual) formatPool = formatPool.filter(item => item.id !== '10.2.2');
+    const includeAutoText = requestedMode === 'auto' && externalPoolActive(settings, 'text');
     const themeFamilyHitMap = recentFamilyHits(recent.themeIdHits, themeFamilyKey);
     // 格式兄弟家族只参考既有正式提交记录；失败 attempt 仍参与 exact 防重，
     // 但不再连带冷却同 family/group 的未抽中母本。主题与 pity 语义不变。
@@ -849,7 +871,7 @@ function applyDirectiveOrRandom({ settings, directive, themePool, formatPool, th
         Array.isArray(item?.tags) && item.tags.some(tag => String(tag || '').trim().toLowerCase() === 'if'));
     const formatSample = directive?.hasFormatRequest
         ? { selected: [], eligibleIds: [] }
-        : settings.forceVisualScenery
+        : settings.forceVisualScenery && !combineVisual && !includeAutoText
             ? weightedSample(
                 formatPool,
                 formatCount,
@@ -869,11 +891,11 @@ function applyDirectiveOrRandom({ settings, directive, themePool, formatPool, th
                 settings,
                 pool: formatPool,
                 count: formatCount,
-                recentIds: recent.formatIds,
-                recentIdHits: recent.formatIdHits,
+                recentIds: includeAutoText ? [...recent.formatIds, ...(recent.textIds || [])] : recent.formatIds,
+                recentIdHits: includeAutoText ? { ...recent.formatIdHits, ...(recent.textIdHits || {}) } : recent.formatIdHits,
                 recentGroups: formalRecent?.formatGroups || [],
                 avoidRepeat: settings.avoidRepeat,
-                hardExcludedIds: hardRecent.formatIds,
+                hardExcludedIds: includeAutoText ? [...hardRecent.formatIds, ...(hardRecent.textIds || [])] : hardRecent.formatIds,
                 favoriteIds: favoriteFormatIds,
                 eligibleMisses: formatEligibleMisses,
                 favoriteMultipliers: favoriteFormatMultipliers,
@@ -881,26 +903,34 @@ function applyDirectiveOrRandom({ settings, directive, themePool, formatPool, th
                 recentFamilyHitMap: formatFamilyHitMap,
                 immediateFamilyKeys: previousFormatFamilyKeys,
                 groupCooldownEnabled: formatGroupCooldownEnabled,
-                externalHardExcludedIds: externalExcludedFormatIds,
+                externalHardExcludedIds: [...externalExcludedFormatIds, ...externalExcludedTextIds],
+                presentationKind: includeAutoText ? 'presentation' : 'format',
             });
-    const pickedFormats = formatSample.selected;
+    const texts = formatSample.selected.filter(item => item.externalKind === 'text');
+    const pickedFormats = formatSample.selected.filter(item => item.externalKind !== 'text');
+    const isText = requestedMode === 'text' || texts.length > 0;
     const visualSceneryFormat = getVisualSceneryFormat();
-    const forcedFormats = settings.forceVisualScenery && visualSceneryFormat ? [visualSceneryFormat] : [];
+    const forcedFormats = !isText && settings.forceVisualScenery && visualSceneryFormat ? [visualSceneryFormat] : [];
     const directiveFormats = directive?.formats || [];
     const directiveWantsVisualScenery = directiveFormats.some(item => item?.id === '10.2.2');
 
     let formats;
     if (forcedFormats.length) {
-        formats = forcedFormats;
+        formats = combineVisual
+            ? uniqueById([...forcedFormats, ...directiveFormats.filter(item => item.id !== '10.2.2'), ...pickedFormats])
+            : forcedFormats;
     } else if (directiveWantsVisualScenery) {
         formats = uniqueById(directiveFormats);
     } else {
         formats = uniqueById([...directiveFormats, ...pickedFormats]).slice(0, Math.max(formatCount, directiveFormats.length));
     }
 
-    const formatFairnessEligibleIds = settings.forceVisualScenery ? [] : formatSample.eligibleIds;
-    const formatFairnessSelectedIds = settings.forceVisualScenery ? [] : pickedFormats.map(item => item.id);
-    return { themes, formats, directive, forcedFormats, formatFairnessEligibleIds, formatFairnessSelectedIds };
+    const formatFairnessEligibleIds = settings.forceVisualScenery && !combineVisual ? [] : formatSample.eligibleIds;
+    const formatFairnessSelectedIds = settings.forceVisualScenery && !combineVisual ? [] : pickedFormats.map(item => item.id);
+    return { themes, formats, directive, forcedFormats, formatFairnessEligibleIds, formatFairnessSelectedIds,
+        ...(combineVisual && !isText ? { visualSceneryCombination: true } : {}),
+        ...(requestedMode !== 'auto' || isText ? { requestedPresentationMode: requestedMode, presentationMode: isText ? 'text' : 'html' } : {}),
+        ...(texts.length ? { texts } : {}) };
 }
 
 function comboFromSelection(result, settings, recent, uiReviewFocus = null) {
@@ -914,7 +944,9 @@ function comboFromSelection(result, settings, recent, uiReviewFocus = null) {
         formatGroups: result.formats.map(x => x.group).filter(Boolean),
         mode: settings.mode,
         samplingMode: settings.samplingMode || 'classic',
-        forcedVisualScenery: !!settings.forceVisualScenery,
+        forcedVisualScenery: result.presentationMode !== 'text' && !!settings.forceVisualScenery,
+        ...presentationModeFields(result),
+        ...(result.texts?.length ? { texts: result.texts, textIds: result.texts.map(item => item.id) } : {}),
         cooldownRounds: settings.cooldownRounds || 10,
         uiReviewFocus: Array.isArray(uiReviewFocus) && uiReviewFocus.length ? [...uiReviewFocus] : pickUiReviewFocus(5),
         recentUiReviewFocus: recent.uiReviewFocus || [],
@@ -924,13 +956,15 @@ function comboFromSelection(result, settings, recent, uiReviewFocus = null) {
 function rehydrateDirectiveCombo(cached, settings, recent) {
     if (!cached) return null;
     const themes = (cached.themeIds || [])
-        .map(id => THEMATIC_CATEGORIES.find(item => item.id === id))
+        .map(id => id.startsWith('ext:') ? (externalPoolHasAvailable('theme') && getExternalPoolSnapshot().themesByLibrary.some(library => library.ids.includes(id)) ? externalPoolItem(id, 'theme') : null) : THEMATIC_CATEGORIES.find(item => item.id === id))
         .filter(Boolean);
     const formats = (cached.formatIds || [])
-        .map(id => PRESENTATION_FORMATS.find(item => item.id === id))
+        .map(id => id.startsWith('ext:') ? (getExternalPoolSnapshot().formatsByLibrary.some(library => library.ids.includes(id)) ? externalPoolItem(id, 'format') : null) : PRESENTATION_FORMATS.find(item => item.id === id))
         .filter(Boolean);
     if (themes.length !== (cached.themeIds || []).length || formats.length !== (cached.formatIds || []).length) return null;
-    return comboFromSelection({ themes, formats }, settings, recent, cached.uiReviewFocus);
+    const texts = (cached.textIds || []).map(id => getExternalPoolSnapshot().textsByLibrary.some(library => library.ids.includes(id)) ? externalPoolItem(id, 'text') : null);
+    if (texts.some(item => !item)) return null;
+    return comboFromSelection({ themes, formats, ...(texts.length ? { texts } : {}), ...presentationModeFields(cached) }, settings, recent, cached.uiReviewFocus);
 }
 
 function directiveRandomPreferenceScopeKey(settings) {
@@ -954,6 +988,7 @@ function directiveScopeKey(directive, settings) {
     const config = [
         settings.samplingMode || 'classic',
         settings.forceVisualScenery ? 'visual' : 'normal',
+        ...(visualSceneryCombinationEnabled(settings) ? ['visual-combination'] : []),
         settings.themesMin,
         settings.themesMax,
         settings.formatsMin,
@@ -961,11 +996,13 @@ function directiveScopeKey(directive, settings) {
         settings.externalWorldBookRandomEnabled === true ? 'external-on' : 'external-off',
         String(settings.externalWorldBookMixMode || 'builtin-only'),
         directiveRandomPreferenceScopeKey(settings),
+        ...(requestedPresentationMode(settings) !== 'auto' ? [`presentation:${requestedPresentationMode(settings)}`] : []),
         // A partial directive may cache a builtin random half while a library
         // is disabled. New operations must respect later import/enable changes.
         // Keep the OFF cache key byte-identical; in-flight picks remain frozen
         // by the earlier generationScopeKey fast path.
-        ...(settings.externalWorldBookRandomEnabled === true && settings.externalWorldBookMixMode !== 'builtin-only'
+        ...((requestedPresentationMode(settings) === 'text' ||
+            (settings.externalWorldBookRandomEnabled === true && settings.externalWorldBookMixMode !== 'builtin-only'))
             ? [`external-pool:${getExternalPoolSelectionKey()}`] : []),
     ].join('|');
     return hashText(`${directive.messageKey}|${directive.rawDirective}|${config}`);
@@ -987,6 +1024,7 @@ function batchFacesMatch(pending, faces, batchId) {
         const signature = JSON.stringify({
             themeIds: combo.themeIds || [], formatIds: combo.formatIds || [],
             samplingMode: combo.samplingMode || 'classic', forcedVisualScenery: !!combo.forcedVisualScenery,
+            ...presentationModeFields(combo),
         });
         return stored?.batchId === batchId && stored.faceIndex === faceIndex && stored.signature === signature &&
             JSON.stringify(stored.themeIds) === JSON.stringify(combo.themeIds) &&
@@ -999,6 +1037,8 @@ function batchRandomSettingsKey(settings, total, favorites, exclusions, directiv
     // 完整白名单 JSON，不使用可能碰撞的短 hash，也不序列化 API、正文或视觉设置。
     const key = JSON.stringify({
         faceCount: total,
+        ...(Array.from({ length: total }, (_, index) => requestedPresentationMode(settings, index)).some(mode => mode !== 'auto')
+            ? { presentationModes: Array.from({ length: total }, (_, index) => requestedPresentationMode(settings, index)) } : {}),
         mode: settings.mode,
         samplingMode: settings.samplingMode || 'classic',
         themesMin: settings.themesMin,
@@ -1009,6 +1049,7 @@ function batchRandomSettingsKey(settings, total, favorites, exclusions, directiv
         cooldownRounds: settings.cooldownRounds || 10,
         userDirectivePriority: !!settings.userDirectivePriority,
         forceVisualScenery: !!settings.forceVisualScenery,
+        ...(visualSceneryCombinationEnabled(settings) ? { visualSceneryCombination: true } : {}),
         externalWorldBookRandomEnabled: settings.externalWorldBookRandomEnabled === true,
         externalWorldBookMixMode: String(settings.externalWorldBookMixMode || 'builtin-only'),
         blacklistEnabled: settings.blacklistEnabled !== false,
@@ -1018,6 +1059,7 @@ function batchRandomSettingsKey(settings, total, favorites, exclusions, directiv
         favoriteFormats: [...favorites.formatIds].sort().map(id => [id, favorites.formatMultipliers[id]]),
         excludedThemeIds: exclusions.themeIds,
         excludedFormatIds: exclusions.formatIds,
+        ...(exclusions.textIds?.length ? { excludedTextIds: exclusions.textIds } : {}),
         // 只保留已有点菜解析器限定范围内的明确指令，不保存整条用户消息。
         directive: directive ? {
             rawDirective: directive.rawDirective,
@@ -1045,6 +1087,7 @@ function batchPlanningIdentity(settings, generationScopeKey, generationContext, 
     const exclusions = {
         themeIds: compactUnique(Array.isArray(generationContext?.batchExcludedThemeIds) ? generationContext.batchExcludedThemeIds : []).sort(),
         formatIds: compactUnique(Array.isArray(generationContext?.batchExcludedFormatIds) ? generationContext.batchExcludedFormatIds : []).sort(),
+        textIds: compactUnique(Array.isArray(generationContext?.batchExcludedTextIds) ? generationContext.batchExcludedTextIds : []).sort(),
     };
     // 先拒绝本来就超限的设置，不为缺身份/非法签名额外读取聊天。
     if (!batchRandomSettingsKey(settings, total, favorites, exclusions)) return reject('BATCH_SETTINGS_TOO_LARGE');
@@ -1084,7 +1127,7 @@ function batchPickSnapshot(settings, generationContext, planning) {
     };
 }
 
-function planBatchFace(settings, snapshot, usedThemeIds, usedFormatIds, counts = null) {
+function planBatchFace(settings, snapshot, usedThemeIds, usedFormatIds, counts = null, faceIndex = 0, usedTextIds = new Set()) {
     // 在生产 selector 的输入池里移除批内已选 exact，历史不足时的回退不能恢复它们。
     // 不要求每面 family / group 不同，仍由同一权重函数决定。
     const themePool = snapshot.themePool.filter(item => !usedThemeIds.has(item.id));
@@ -1103,6 +1146,7 @@ function planBatchFace(settings, snapshot, usedThemeIds, usedFormatIds, counts =
         hardRecent: {
             themeIds: [...(snapshot.attemptRecent.themeIds || []), ...snapshot.exclusions.themeIds],
             formatIds: [...(snapshot.attemptRecent.formatIds || []), ...snapshot.exclusions.formatIds],
+            textIds: snapshot.attemptRecent.textIds || [],
         },
         previousThemeFamilyKeys: (snapshot.last?.themeIds || []).map(themeFamilyKey),
         previousFormatFamilyKeys: (snapshot.last?.formatIds || []).map(formatFamilyKey),
@@ -1113,6 +1157,8 @@ function planBatchFace(settings, snapshot, usedThemeIds, usedFormatIds, counts =
         formatEligibleMisses: snapshot.formatEligibleMisses,
         externalExcludedThemeIds: [...snapshot.exclusions.themeIds, ...usedThemeIds],
         externalExcludedFormatIds: [...snapshot.exclusions.formatIds, ...usedFormatIds],
+        externalExcludedTextIds: [...(snapshot.exclusions.textIds || []), ...usedTextIds],
+        faceIndex,
     });
     return { result, payload: { combo: comboFromSelection(result, settings, snapshot.recent), last: snapshot.last, directive: snapshot.directive || null } };
 }
@@ -1186,8 +1232,9 @@ function addBatchInteractionDiversity(combos, settings) {
     if (!settings?.avoidRepeat || combos.length < 2 || combos.length > 5) return;
     const hints = planBatchInteractionDiversity(combos.length, {
         enabled: true, recentFamilies: getRecentInteractionFamilies(5),
+        presentationModes: combos.map(combo => combo.presentationMode || 'html'),
     });
-    if (hints) combos.forEach((combo, index) => { combo.interactionDiversity = hints[index]; });
+    if (hints) combos.forEach((combo, index) => { if (hints[index]) combo.interactionDiversity = hints[index]; });
 }
 
 function pickLiveCombinationBatch(settings, planning, faceCount, planningReason = 'BATCH_PLAN_IDENTITY_INVALID') {
@@ -1200,25 +1247,30 @@ function pickLiveCombinationBatch(settings, planning, faceCount, planningReason 
     const snapshot = batchPickSnapshot(settings, null, planning);
     const usedThemeIds = new Set();
     const usedFormatIds = new Set();
+    const usedTextIds = new Set(snapshot.exclusions.textIds || []);
     const fixedThemes = new Set((snapshot.directive?.themes || []).map(item => item.id));
     const fixedFormats = new Set((snapshot.directive?.formats || []).map(item => item.id));
     if (settings.forceVisualScenery) fixedFormats.add('10.2.2');
     const needsRandomThemes = settings.samplingMode !== 'format_only' && !snapshot.directive?.hasThemeRequest;
-    const needsRandomFormats = !settings.forceVisualScenery && !snapshot.directive?.hasFormatRequest;
+    const needsRandomFormats = (!settings.forceVisualScenery || visualSceneryCombinationEnabled(settings)) && !snapshot.directive?.hasFormatRequest;
     const results = [];
     for (let faceIndex = 0; faceIndex < faceCount; faceIndex += 1) {
-        if ((needsRandomThemes && !randomCandidateAvailable(settings, 'theme', snapshot.themePool, usedThemeIds)) ||
-            (needsRandomFormats && !randomCandidateAvailable(settings, 'format', snapshot.formatPool, usedFormatIds))) {
+        const requestedMode = requestedPresentationMode(settings, faceIndex);
+        const textAvailable = requestedMode !== 'html' && (requestedMode === 'text' || externalPoolActive(settings, 'text'))
+            && externalPoolHasAvailable('text', [...usedTextIds]);
+        if (!textAvailable && ((needsRandomThemes && !randomCandidateAvailable(settings, 'theme', snapshot.themePool, usedThemeIds)) ||
+            (needsRandomFormats && !randomCandidateAvailable(settings, 'format', snapshot.formatPool, usedFormatIds)))) {
             throw multiFacePlanningError(`当前候选池不足以抽取 ${faceCount} 面不同的随机内容；请调整黑名单或面数，本次尚未发送请求。`, 'BATCH_CANDIDATE_POOL_EXHAUSTED');
         }
-        const selected = planBatchFace(settings, snapshot, usedThemeIds, usedFormatIds);
+        const selected = planBatchFace(settings, snapshot, usedThemeIds, usedFormatIds, null, faceIndex, usedTextIds);
         const combo = selected.payload.combo;
-        if ((needsRandomThemes && !combo.themeIds.length) || (needsRandomFormats && !combo.formatIds.length)) {
+        if (!combo.textIds?.length && ((needsRandomThemes && !combo.themeIds.length) || (needsRandomFormats && !combo.formatIds.length))) {
             throw multiFacePlanningError('多面抽取未得到完整的随机选题／形式；本次尚未发送请求。', 'BATCH_SELECTION_INCOMPLETE');
         }
         if (!combo.themeIds.length && !combo.formatIds.length && snapshot.directive) combo.customDirective = true;
         for (const id of combo.themeIds) if (!fixedThemes.has(id)) usedThemeIds.add(id);
         for (const id of combo.formatIds) if (!fixedFormats.has(id)) usedFormatIds.add(id);
+        (combo.textIds || []).forEach(id => usedTextIds.add(id));
         results.push(selected);
     }
     addBatchInteractionDiversity(results.map(result => result.payload.combo), settings);
@@ -1247,7 +1299,7 @@ export function pickCombinationForMultifaceResay(settings, resay) {
     const externalSnapshot = getExternalPoolSnapshot();
     const resolveIds = (ids, pool, kind) => {
         if (!Array.isArray(ids) || ids.length > 16) throw multiFacePlanningError('原面抽取记录不完整，不能静默更换选题。');
-        const externalLibraries = kind === 'format' ? externalSnapshot.formatsByLibrary : externalSnapshot.themesByLibrary;
+        const externalLibraries = kind === 'text' ? externalSnapshot.textsByLibrary : kind === 'format' ? externalSnapshot.formatsByLibrary : externalSnapshot.themesByLibrary;
         const selected = ids.map(id => {
             if (typeof id !== 'string' || !id.startsWith('ext:')) return pool.find(item => item.id === id);
             // Re-say is an exact selection, not another random draw. The ID-only
@@ -1260,9 +1312,10 @@ export function pickCombinationForMultifaceResay(settings, resay) {
     };
     const themes = resolveIds(face?.themeIds, THEMATIC_CATEGORIES, 'theme');
     const formats = resolveIds(face?.formatIds, PRESENTATION_FORMATS, 'format');
-    if (!themes.length && !formats.length) throw multiFacePlanningError('原面只有自定义指令，缺少可复用抽取记录；请重新选择整批生成。');
-    const selectedSettings = { ...settings, samplingMode: face.samplingMode || settings.samplingMode, forceVisualScenery: face.forcedVisualScenery === true };
-    return { combo: comboFromSelection({ themes, formats }, selectedSettings, getRecentIds(settings.cooldownRounds || 10)), directive: null, last: null };
+    const texts = resolveIds(face?.textIds || [], [], 'text');
+    if (!themes.length && !formats.length && !texts.length) throw multiFacePlanningError('原面只有自定义指令，缺少可复用抽取记录；请重新选择整批生成。');
+    const selectedSettings = { ...settings, samplingMode: face.samplingMode || settings.samplingMode, forceVisualScenery: face.forcedVisualScenery === true, visualSceneryCombination: face.visualSceneryCombination === true };
+    return { combo: comboFromSelection({ themes, formats, ...(texts.length ? { texts } : {}), ...presentationModeFields(face) }, selectedSettings, getRecentIds(settings.cooldownRounds || 10)), directive: null, last: null };
 }
 
 export function pickCombinationBatch(settings, generationScopeKey = '', generationContext = null, faceCount = 1) {
@@ -1284,7 +1337,9 @@ export function pickCombinationBatch(settings, generationScopeKey = '', generati
 
     const snapshot = batchPickSnapshot(settings, generationContext, planning);
     // 点菜和强制展现优先，不能为了凑面数改写用户明确选择。
-    if (planning.signatureTooLarge || snapshot.directive || settings.forceVisualScenery) {
+    const hasPresentationSelection = Array.from({ length: faceCount }, (_, index) => requestedPresentationMode(settings, index))
+        .some(mode => mode !== 'auto') || externalPoolActive(settings, 'text') || visualSceneryCombinationEnabled(settings);
+    if (planning.signatureTooLarge || (!hasPresentationSelection && (snapshot.directive || settings.forceVisualScenery))) {
         return batchPrioritySingle(settings, snapshot, scopeKey, identityKey, identity.chatKey);
     }
 
@@ -1292,16 +1347,20 @@ export function pickCombinationBatch(settings, generationScopeKey = '', generati
     const faces = [first.payload];
     const usedThemeIds = new Set(first.payload.combo.themeIds);
     const usedFormatIds = new Set(first.payload.combo.formatIds);
+    const usedTextIds = new Set([...(snapshot.exclusions.textIds || []), ...(first.payload.combo.textIds || [])]);
     const wantsThemes = settings.samplingMode !== 'format_only';
-    if (usedFormatIds.size && (!wantsThemes || usedThemeIds.size)) {
+    if (first.payload.combo.textIds?.length || (usedFormatIds.size && (!wantsThemes || usedThemeIds.size))) {
         for (let index = 1; index < faceCount; index += 1) {
-            if (!randomCandidateAvailable(settings, 'format', snapshot.formatPool, usedFormatIds) ||
-                (wantsThemes && !randomCandidateAvailable(settings, 'theme', snapshot.themePool, usedThemeIds))) break;
-            const next = planBatchFace(settings, snapshot, usedThemeIds, usedFormatIds);
-            if (!next.payload.combo.formatIds.length || (wantsThemes && !next.payload.combo.themeIds.length)) break;
+            const mode = requestedPresentationMode(settings, index);
+            const textAvailable = mode !== 'html' && (mode === 'text' || externalPoolActive(settings, 'text')) && externalPoolHasAvailable('text', [...usedTextIds]);
+            if (!textAvailable && (!randomCandidateAvailable(settings, 'format', snapshot.formatPool, usedFormatIds) ||
+                (wantsThemes && !randomCandidateAvailable(settings, 'theme', snapshot.themePool, usedThemeIds)))) break;
+            const next = planBatchFace(settings, snapshot, usedThemeIds, usedFormatIds, null, index, usedTextIds);
+            if (!next.payload.combo.textIds?.length && (!next.payload.combo.formatIds.length || (wantsThemes && !next.payload.combo.themeIds.length))) break;
             faces.push(next.payload);
             next.payload.combo.themeIds.forEach(id => usedThemeIds.add(id));
             next.payload.combo.formatIds.forEach(id => usedFormatIds.add(id));
+            (next.payload.combo.textIds || []).forEach(id => usedTextIds.add(id));
         }
     }
     if (faces.length < 2) return finalizeBatchFallback(first, snapshot, scopeKey, identityKey, identity.chatKey);
@@ -1341,6 +1400,7 @@ export function pickCombination(settings, generationScopeKey = '', generationCon
     const hardRecent = {
         themeIds: [...(attemptRecent.themeIds || []), ...batchExcludedThemeIds],
         formatIds: [...(attemptRecent.formatIds || []), ...batchExcludedFormatIds],
+        textIds: attemptRecent.textIds || [],
     };
     const favorites = getFavoritesState(settings);
     const validFormatIds = PRESENTATION_FORMATS.map(item => String(item?.id || '')).filter(Boolean);
@@ -1388,6 +1448,8 @@ export function pickCombination(settings, generationScopeKey = '', generationCon
             favoriteThemeMultipliers: favorites.themeMultipliers,
             favoriteFormatMultipliers: favorites.formatMultipliers,
             formatEligibleMisses,
+            externalExcludedTextIds: generationContext?.batchExcludedTextIds || [],
+            faceIndex: Number.isSafeInteger(generationContext?.faceIndex) ? generationContext.faceIndex : 0,
         });
         combo = comboFromSelection(result, settings, recent);
         if (result.formatFairnessEligibleIds?.length) {

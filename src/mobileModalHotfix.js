@@ -1,4 +1,4 @@
-const RELEASE_VERSION = '1.5.51';
+const RELEASE_VERSION = '1.5.53';
 const STYLE_ID = 'rabbit_mirror_top_layer_modal_hotfix';
 const TARGET_IDS = ['rh_advanced_modal', 'rh_world_info_prompt_modal', 'rh_independent_tag_filter_modal'];
 

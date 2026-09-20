@@ -1,14 +1,14 @@
-import { ExternalWorldBookError } from './errors.js?rmv=1.5.51-narrow1';
-import { externalEntryId, externalEntryStableIdentity, externalLibraryIdForBook, openExternalLibraryDatabase } from './store.js?rmv=1.5.51-narrow1';
-import { EXTERNAL_POOL_METADATA_VERSION, externalPoolMetadataForLibrary, upsertExternalPoolLibraries } from './externalPool.js?rmv=1.5.51-narrow1';
+import { ExternalWorldBookError } from './errors.js?rmv=1.5.53-cn-boundary1';
+import { externalEntryId, externalEntryStableIdentity, externalLibraryIdForBook, openExternalLibraryDatabase } from './store.js?rmv=1.5.53-text1';
+import { EXTERNAL_POOL_METADATA_VERSION, externalPoolMetadataForLibrary, upsertExternalPoolLibraries } from './externalPool.js?rmv=1.5.53-text1';
 
 export const EXTERNAL_BACKUP_FORMAT = 'RabbitMirror.ExternalLibraries';
 export const EXTERNAL_BACKUP_VERSION = 1;
 export const EXTERNAL_BACKUP_MAX_BYTES = 32 * 1024 * 1024;
 export const EXTERNAL_BACKUP_MAX_LIBRARIES = 1000;
 export const EXTERNAL_BACKUP_MAX_ENTRIES = 25000;
-const KINDS = ['theme', 'format', 'auxiliary', 'ignore', 'pending', 'mixed'];
-const LIBRARY_FIELDS = ['schemaVersion', 'libraryId', 'displayName', 'sourceType', 'sourceTransport', 'sourceWorldBookId', 'sourceWorldBookName', 'sourceHash', 'enabled', 'entryCount', 'themeCount', 'formatCount', 'auxiliaryCount', 'pendingCount', 'ignoredCount', 'createdAt', 'updatedAt', 'poolMetadataVersion'];
+const KINDS = ['theme', 'format', 'text', 'auxiliary', 'ignore', 'pending', 'mixed'];
+const LIBRARY_FIELDS = ['schemaVersion', 'libraryId', 'displayName', 'sourceType', 'sourceTransport', 'sourceWorldBookId', 'sourceWorldBookName', 'sourceHash', 'enabled', 'entryCount', 'themeCount', 'formatCount', 'textCount', 'auxiliaryCount', 'pendingCount', 'ignoredCount', 'createdAt', 'updatedAt', 'poolMetadataVersion'];
 const ENTRY_FIELDS = ['storageKey', 'libraryId', 'externalId', 'sourceEntryIdentity', 'sourceEntryId', 'sourceEntryUid', 'sourceTitle', 'sourceKeywords', 'classification', 'suggestion', 'classificationConfidence', 'userConfirmed', 'localTitle', 'summary', 'rawContent', 'contentHash', 'enabled', 'aliases', 'linkedAuxiliaryIds', 'sourceDisabled', 'sourceConstant', 'sourceSelective', 'originalOrder', 'createdAt', 'updatedAt'];
 
 function invalid(message = '迁移文件结构不完整或版本不支持；没有写入任何库。') {
@@ -47,13 +47,14 @@ export function validateExternalLibraryBackup(raw) {
         for (const name of ['libraryId', 'displayName', 'sourceType', 'sourceTransport', 'sourceWorldBookId', 'sourceWorldBookName', 'sourceHash']) str(library[name], 1000, name === 'libraryId');
         flag(library.enabled);
         for (const name of ['entryCount', 'themeCount', 'formatCount', 'auxiliaryCount', 'pendingCount', 'ignoredCount', 'createdAt', 'updatedAt']) number(library[name]);
+        if (library.textCount !== undefined) number(library.textCount);
         if (library.poolMetadataVersion !== undefined && library.poolMetadataVersion !== EXTERNAL_POOL_METADATA_VERSION) throw invalid();
         if (library.libraryId !== externalLibraryIdForBook({ sourceType: library.sourceType, sourceId: library.sourceWorldBookId })) throw invalid();
         if (libraryIds.has(library.libraryId)) throw invalid('迁移文件内部出现重复库编号，已整批停止；现有库未修改。');
         libraryIds.add(library.libraryId);
         total += snapshot.entries.length;
         if (total > EXTERNAL_BACKUP_MAX_ENTRIES) throw tooLarge();
-        const counts = { theme: 0, format: 0, auxiliary: 0, ignore: 0, pending: 0 };
+        const counts = { theme: 0, format: 0, text: 0, auxiliary: 0, ignore: 0, pending: 0 };
         const entries = snapshot.entries.map(value => {
             const row = fields(value, ENTRY_FIELDS);
             if (!KINDS.includes(row.classification)) throw invalid();
@@ -66,7 +67,7 @@ export function validateExternalLibraryBackup(raw) {
             for (const name of ['userConfirmed', 'enabled', 'sourceDisabled', 'sourceConstant', 'sourceSelective']) flag(row[name]);
             number(row.createdAt); number(row.updatedAt);
             if (row.originalOrder !== null && !Number.isFinite(row.originalOrder)) throw invalid();
-            if ((row.enabled && (!row.userConfirmed || !['theme', 'format', 'auxiliary'].includes(row.classification)))
+            if ((row.enabled && (!row.userConfirmed || !['theme', 'format', 'text', 'auxiliary'].includes(row.classification)))
                 || (row.classification === 'pending' && row.userConfirmed)) throw invalid();
             const stable = externalEntryStableIdentity(row);
             if (row.libraryId !== library.libraryId || row.sourceEntryIdentity !== stable || row.storageKey !== `${library.libraryId}\u0000${stable}`
@@ -79,7 +80,7 @@ export function validateExternalLibraryBackup(raw) {
             return row;
         });
         if (library.entryCount !== entries.length || library.themeCount !== counts.theme || library.formatCount !== counts.format
-            || library.auxiliaryCount !== counts.auxiliary || library.ignoredCount !== counts.ignore || library.pendingCount !== counts.pending) throw invalid();
+            || (library.textCount || 0) !== counts.text || library.auxiliaryCount !== counts.auxiliary || library.ignoredCount !== counts.ignore || library.pendingCount !== counts.pending) throw invalid();
         return { library, entries };
     });
     const byId = new Map(snapshots.flatMap(snapshot => snapshot.entries.map(row => [row.externalId, row])));

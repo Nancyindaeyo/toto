@@ -1,5 +1,7 @@
+import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-visualquick1';
 import { extension_settings } from '../../../../extensions.js';
 import { saveSettingsDebounced } from '../../../../../script.js';
+import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
 
 export const MODULE_NAME = 'rabbit_mirror_theater';
 
@@ -68,8 +70,10 @@ export function normalizeIndependentContextExcludedTags(value) {
             .replace(/^<\s*\/?\s*/, '')
             .replace(/\s*\/?>\s*$/, '')
             .split(/\s/, 1)[0]
-            .toLowerCase();
-        if (!/^[a-z][a-z0-9._:-]{0,63}$/.test(unwrapped) || seen.has(unwrapped)) continue;
+            .toLocaleLowerCase();
+        // User-defined context tags may be Chinese or other Unicode letter names.
+        // Keep the same 64-code-point/name-character boundary used for ASCII tags.
+        if (!/^[\p{L}][\p{L}\p{N}._:-]{0,63}$/u.test(unwrapped) || [...unwrapped].length > 64 || seen.has(unwrapped)) continue;
         seen.add(unwrapped);
         normalized.push(unwrapped);
         if (normalized.length >= INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT) break;
@@ -113,6 +117,7 @@ export const defaultSettings = Object.freeze({
     autoRabbitMirrorInjection: true,
     mode: 'integrated',
     generationSource: 'follow',
+    independentGenerationTiming: 'auto',
     followDisplayMode: 'inline',
     independentConnectionProfileId: '',
     independentApiBaseUrl: '',
@@ -154,6 +159,7 @@ export const defaultSettings = Object.freeze({
     presentationWorldviewLock: false,
     // 每轮生成的兔子镜面数（1～5）。默认 1，关闭多面不改旧单面路径。
     rabbitMirrorFaceCount: 1,
+    rabbitMirrorPresentationModes: ['auto', 'auto', 'auto', 'auto', 'auto'],
     richFormatBias: false,
     maintenanceRabbitEnabled: true,
     maintenanceRabbitAutoSafeEnabled: false,
@@ -176,6 +182,9 @@ export const defaultSettings = Object.freeze({
     userDirectivePriority: true,
     creativeExpansionMode: true,
     forceVisualScenery: false,
+    visualSceneryCombination: false,
+    imageEnabled: false,
+    imagePromptFormat: 'nai5-natural',
     memoryScanEnabled: false,
     memoryWorldBookEnabled: false,
     memoryWorldBookId: '',
@@ -197,6 +206,8 @@ export function getSettings() {
         extension_settings[MODULE_NAME] = cloneDefaultSettings();
     }
     const settings = extension_settings[MODULE_NAME];
+    // Resolve missing/corrupt timing from the old flags before defaults fill it.
+    settings.independentGenerationTiming = independentGenerationTiming(settings);
     const legacyRescueWasEnabled = !!(settings.plainTextRescueMode || settings.codeBlockRescueMode || settings.interactionRescueMode);
     for (const [key, value] of Object.entries(defaultSettings)) {
         if (settings[key] === undefined) settings[key] = value;
@@ -282,6 +293,7 @@ export function getSettings() {
     settings.presentationWorldviewLock = settings.presentationWorldviewLock === true;
     // 只接受数字 1～5；任何异常值（NaN、字符串、0、负数、超界）都回落到 1，
     // 保证旧设置升级与畸形写入都不会意外开启多面。
+    settings.rabbitMirrorPresentationModes = normalizePresentationModes(settings.rabbitMirrorPresentationModes);
     const faceCount = settings.rabbitMirrorFaceCount;
     settings.rabbitMirrorFaceCount = Number.isInteger(faceCount) && faceCount >= 2 && faceCount <= 5 ? faceCount : 1;
     if (settings.autoRabbitMirrorInjection === undefined) settings.autoRabbitMirrorInjection = settings.enabled !== false;
@@ -303,6 +315,9 @@ export function getSettings() {
         ? settings.externalWorldBookMixMode
         : 'builtin-only';
     settings.enhancedVisualDrawing = settings.enhancedVisualDrawing === true;
+    settings.visualSceneryCombination = settings.visualSceneryCombination === true;
+    settings.imageEnabled = settings.imageEnabled === true;
+    settings.imagePromptFormat = settings.imagePromptFormat === 'nai45-tags' ? 'nai45-tags' : 'nai5-natural';
     settings.visualPromptEditingEnabled = !!settings.visualPromptEditingEnabled;
     settings.appearanceReferenceEnabled = settings.appearanceReferenceEnabled === true;
     settings.appearanceReferenceRevision = /^[a-z\d-]{8,80}$/i.test(String(settings.appearanceReferenceRevision || '')) ? String(settings.appearanceReferenceRevision) : '';
@@ -348,6 +363,18 @@ export function syncExternalReferenceVisibility(settings) {
 export function updateSettings(patch) {
     const settings = getSettings();
     const safePatch = patch && typeof patch === 'object' ? { ...patch } : {};
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'independentGenerationTiming')) {
+        safePatch.independentGenerationTiming = independentGenerationTiming({ ...settings, ...safePatch });
+    }
+    if ((safePatch.generationSource ?? settings.generationSource) === 'independent'
+        && (Object.prototype.hasOwnProperty.call(safePatch, 'independentGenerationTiming') || safePatch.generationSource === 'independent')) {
+        const timing = independentGenerationTiming({ ...settings, ...safePatch });
+        const enabled = timing !== 'off';
+        const previousMode = safePatch.mode ?? settings.mode;
+        safePatch.enabled = enabled;
+        safePatch.autoRabbitMirrorInjection = enabled;
+        safePatch.mode = enabled ? (previousMode === 'off' ? 'integrated' : previousMode) : 'off';
+    }
     if (Object.prototype.hasOwnProperty.call(safePatch, 'memoryWorldBookEnabled')) safePatch.memoryWorldBookEnabled = safePatch.memoryWorldBookEnabled === true;
     if (Object.prototype.hasOwnProperty.call(safePatch, 'memoryWorldBookId')) safePatch.memoryWorldBookId = normalizeMemoryWorldBookSettingId(safePatch.memoryWorldBookId);
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyEnabled')) safePatch.independentEarlyBodyEnabled = safePatch.independentEarlyBodyEnabled === true;
@@ -372,11 +399,19 @@ export function updateSettings(patch) {
             ? safePatch.externalWorldBookMixMode
             : 'builtin-only';
     }
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'imageEnabled')) safePatch.imageEnabled = safePatch.imageEnabled === true;
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'imagePromptFormat')) safePatch.imagePromptFormat = safePatch.imagePromptFormat === 'nai45-tags' ? 'nai45-tags' : 'nai5-natural';
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'visualSceneryCombination')) {
+        safePatch.visualSceneryCombination = safePatch.visualSceneryCombination === true;
+    }
     if (Object.prototype.hasOwnProperty.call(safePatch, 'enhancedVisualDrawing')) {
         safePatch.enhancedVisualDrawing = safePatch.enhancedVisualDrawing === true;
     }
     if (Object.prototype.hasOwnProperty.call(safePatch, 'appearanceReferenceEnabled')) safePatch.appearanceReferenceEnabled = safePatch.appearanceReferenceEnabled === true;
     if (Object.prototype.hasOwnProperty.call(safePatch, 'appearanceReferenceRevision')) safePatch.appearanceReferenceRevision = /^[a-z\d-]{8,80}$/i.test(String(safePatch.appearanceReferenceRevision || '')) ? String(safePatch.appearanceReferenceRevision) : '';
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'rabbitMirrorPresentationModes')) {
+        safePatch.rabbitMirrorPresentationModes = normalizePresentationModes(safePatch.rabbitMirrorPresentationModes);
+    }
     if (Object.prototype.hasOwnProperty.call(safePatch, 'rabbitMirrorFaceCount')) {
         const faceCount = safePatch.rabbitMirrorFaceCount;
         safePatch.rabbitMirrorFaceCount = Number.isInteger(faceCount) && faceCount >= 2 && faceCount <= 5 ? faceCount : 1;

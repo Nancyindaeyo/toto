@@ -1,9 +1,10 @@
-import { entryIdentity } from './selectionState.js?rmv=1.5.51-narrow1';
-import { buildExternalEntrySummary } from './summary.js?rmv=1.5.51-narrow1';
+import { entryIdentity } from './selectionState.js?rmv=1.5.53-cn-boundary1';
+import { buildExternalEntrySummary } from './summary.js?rmv=1.5.53-cn-boundary1';
 
 export const EXTERNAL_WORLD_BOOK_CLASSIFICATION = Object.freeze({
     THEME: 'theme',
     FORMAT: 'format',
+    TEXT: 'text',
     MIXED: 'mixed',
     AUXILIARY: 'auxiliary',
     IGNORE: 'ignore',
@@ -187,7 +188,7 @@ export function classifyExternalWorldBookEntry(entry) {
 }
 
 export function applyExternalWorldBookBulkClassification(draft, mode = 'suggested') {
-    const allowed = ['theme', 'format', 'auxiliary', 'ignore'];
+    const allowed = ['theme', 'format', 'text', 'auxiliary', 'ignore'];
     if (mode !== 'suggested' && !allowed.includes(mode)) return Array.isArray(draft) ? draft : [];
     return (Array.isArray(draft) ? draft : []).map(item => {
         if (item.userConfirmed === true || item.classification !== 'pending') return item;
@@ -198,12 +199,14 @@ export function applyExternalWorldBookBulkClassification(draft, mode = 'suggeste
     });
 }
 
-export function createExternalWorldBookClassificationDraft(book, selectedIds) {
+export function createExternalWorldBookClassificationDraft(book, selectedIds, options = {}) {
     const selected = selectedIds instanceof Set ? selectedIds : new Set();
     const entries = (Array.isArray(book?.entries) ? book.entries : [])
         .filter(entry => selected.has(entryIdentity(entry)))
         .map(entry => {
-            const analysis = classifyExternalWorldBookEntry(entry);
+            // Only an explicit text import action assigns text; ordinary classification stays unchanged.
+            const textImport = options.importKind === 'text';
+            const analysis = textImport ? { suggestion: 'text', confidence: 'high', reasons: ['用户选择导入文本类'], suggestedFinalClassification: 'text', autoAccepted: true } : classifyExternalWorldBookEntry(entry);
             return {
                 entryIdentity: entryIdentity(entry),
                 sourceEntryId: entry.sourceEntryId,
@@ -213,7 +216,7 @@ export function createExternalWorldBookClassificationDraft(book, selectedIds) {
                 confidence: analysis.confidence,
                 reasons: [...analysis.reasons],
                 classification: analysis.suggestedFinalClassification,
-                userConfirmed: false,
+                userConfirmed: textImport,
                 requiresReview: !analysis.autoAccepted,
                 localTitle: String(entry.title || '').trim(),
                 summary: buildExternalEntrySummary(entry),
@@ -245,6 +248,7 @@ export function externalWorldBookClassificationCounts(draft) {
         total: 0,
         theme: 0,
         format: 0,
+        text: 0,
         auxiliary: 0,
         ignore: 0,
         pending: 0,
