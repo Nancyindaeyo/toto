@@ -20,14 +20,14 @@ import {
     hashInteractionSignature,
     isCurrentRuntime,
     isRabbitMirrorDetails,
-} from './runtime.js?rmv=1.5.67';
+} from './runtime.js?rmv=1.5.68';
 import {
     getAvailableHostChat,
     getExternalOwnerMessageIndex,
     getRabbitMirrorSummaryText,
     getRawAssistantMessageForRenderedRoot,
-} from './scriptedInteractionRescue.js?rmv=1.5.67';
-import { firstUseInteractionBindings } from './idsAndRearm.js?rmv=1.5.67';
+} from './scriptedInteractionRescue.js?rmv=1.5.68';
+import { firstUseInteractionBindings } from './idsAndRearm.js?rmv=1.5.68';
 import {
     FEEDBACK_CAT_MENU_ATTR,
     MAINTENANCE_AUTO_SAFE_ATTR,
@@ -45,7 +45,7 @@ import {
     removeAllInteractionDiagnosticPanels,
     scheduleCurrentHighConfidenceTextRepair,
     stripMaintenanceRabbitGlyphs,
-} from './diagnostics.js?rmv=1.5.67';
+} from './diagnostics.js?rmv=1.5.68';
 import {
     cancelMaintenanceRepairRun,
     cancelMaintenanceRepairRuns,
@@ -55,9 +55,9 @@ import {
     rabbitMirrorInteractionRootFromTarget,
     rejectOversizedMaintenanceRepair,
     runMaintenanceSafeAutomaticRepairs,
-} from './maintenanceInspect.js?rmv=1.5.67';
-import { decodeHtmlEntities } from './markup.js?rmv=1.5.67';
-import { getRabbitMirrorFacePosition } from './layoutRescue.js?rmv=1.5.67';
+} from './maintenanceInspect.js?rmv=1.5.68';
+import { decodeHtmlEntities } from './markup.js?rmv=1.5.68';
+import { getRabbitMirrorFacePosition } from './layoutRescue.js?rmv=1.5.68';
 import {
     cancelStartupMaintenanceHistoryInstall,
     closeFeedbackCatMenu,
@@ -72,7 +72,7 @@ import {
     removeFeedbackCatsInChatDom,
     removeMaintenanceRabbitsInChatDom,
     toolOutsideCloseOwners,
-} from './toolsChrome.js?rmv=1.5.67';
+} from './toolsChrome.js?rmv=1.5.68';
 
 export let hostScriptModule = null;
 

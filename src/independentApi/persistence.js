@@ -2,7 +2,7 @@
 
 import { presentationModeFields } from '../presentationMode.js?rmv=1.5.53-visualquick1';
 import { independentAdvancedOptionsSignature } from '../advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
-import { refreshRabbitMirrorToolsInScope } from '../outputSanitizer.js?rmv=1.5.67';
+import { refreshRabbitMirrorToolsInScope } from '../outputSanitizer.js?rmv=1.5.68';
 import {
     FACE_SWIPE_FULL_MESSAGE,
     FACE_SWIPE_MAX,
@@ -13,17 +13,18 @@ import {
     currentSwipeEntry,
     readFaceSwipe,
     mutateFaceSwipe,
-} from '../swipeVersions.js?rmv=1.5.67';
-import { RUNTIME_VERSION, byteLength, getContext, hashText } from './runtime.js?rmv=1.5.67';
+} from '../swipeVersions.js?rmv=1.5.68';
+import { RUNTIME_VERSION, byteLength, getContext, hashText } from './runtime.js?rmv=1.5.68';
 import {
     clearEphemeralFaceFailure,
     hasEphemeralFaceFailure,
     independentSwipeDetails,
     independentSwipeFaceIndex,
     mergeFaceDetailsIntoHtml,
+    independentSwipeSlot,
     seedIndependentFaceSwipesFromIdentity,
     writeIndependentOwnerHtml,
-} from './faceSwipe.js?rmv=1.5.67';
+} from './faceSwipe.js?rmv=1.5.68';
 import {
     API_PROFILE_STORE_KEY,
     assistantMessages,
@@ -39,8 +40,8 @@ import {
     savedIndependentRecordForOwner,
     setOwnerLockForBase,
     swipeId,
-} from './connection.js?rmv=1.5.67';
-import { stampExternalDetailsOwnership } from './request.js?rmv=1.5.67';
+} from './connection.js?rmv=1.5.68';
+import { stampExternalDetailsOwnership } from './request.js?rmv=1.5.68';
 import {
     copyIndependentReplacementReceipt,
     ensureExternalTools,
@@ -51,8 +52,8 @@ import {
     normalizeSavedInteractionRecord,
     recoverSavedRecord,
     replaceExternalMultifaceFace,
-} from './geometry.js?rmv=1.5.67';
-import { externalFaceDetails, resolveIndependentActionIdentity, scheduleIndependentReadyPostprocess } from './mount.js?rmv=1.5.67';
+} from './geometry.js?rmv=1.5.68';
+import { externalFaceDetails, resolveIndependentActionIdentity, scheduleIndependentReadyPostprocess } from './mount.js?rmv=1.5.68';
 
 const STORE_KEY = 'rabbit_mirror_independent_outputs_v1';
 
@@ -237,7 +238,7 @@ function remountIndependentFaceFromHtml(identity,html,faceIndex){
 function commitIndependentFaceVersion(identity,mutator){
  if(!identity) return {ok:false,reason:'missing'};
  const faceIndex=independentSwipeFaceIndex(identity);
- const result=mutateFaceSwipe(identity.slot,faceIndex,mutator);
+ const result=mutateFaceSwipe(independentSwipeSlot(identity),faceIndex,mutator);
  if(!result?.ok) return result;
  const entry=currentSwipeEntry(result.state);
  const existing=savedIndependentRecordForOwner(identity.ctx,identity.index,identity.msg,readStore());
@@ -253,7 +254,7 @@ export function independentFaceSwipeView(root,owner={}){
  seedIndependentFaceSwipesFromIdentity(identity);
  const details=independentSwipeDetails(identity);
  const overlay=hasEphemeralFaceFailure(details);
- const state=readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity));
+ const state=readFaceSwipe(independentSwipeSlot(identity),independentSwipeFaceIndex(identity));
  if(!state.versions.length && !overlay) return null;
  const count=state.versions.length;
  const currentIndex=state.currentIndex;
@@ -274,7 +275,7 @@ export function canIndependentFaceResay(root,owner={}){
  if(!identity) return {ok:false,reason:'missing'};
  seedIndependentFaceSwipesFromIdentity(identity);
  if(hasEphemeralFaceFailure(independentSwipeDetails(identity))) return {ok:true,retry:true};
- const state=readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity));
+ const state=readFaceSwipe(independentSwipeSlot(identity),independentSwipeFaceIndex(identity));
  if(!canAppendSwipe(state)) return {ok:false,reason:'full',message:FACE_SWIPE_FULL_MESSAGE};
  return {ok:true};
 }
@@ -284,7 +285,7 @@ export function applyIndependentFaceSwipe(root,index,owner={}){
  if(!identity) return false;
  seedIndependentFaceSwipesFromIdentity(identity);
  const details=independentSwipeDetails(identity);
- if(hasEphemeralFaceFailure(details) && Number(index)===readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity)).currentIndex){
+ if(hasEphemeralFaceFailure(details) && Number(index)===readFaceSwipe(independentSwipeSlot(identity),independentSwipeFaceIndex(identity)).currentIndex){
   clearEphemeralFaceFailure(details);
   const existing=savedIndependentRecordForOwner(identity.ctx,identity.index,identity.msg,readStore());
   if(existing?.html) remountIndependentFaceFromHtml(identity,existing.html,independentSwipeFaceIndex(identity));
@@ -321,7 +322,7 @@ export function hasIndependentSwipeInitial(root){
  const identity=resolveIndependentActionIdentity(root);
  if(!identity) return false;
  seedIndependentFaceSwipesFromIdentity(identity);
- return !!currentSwipeEntry(readFaceSwipe(identity.slot,independentSwipeFaceIndex(identity)))?.initialHtml;
+ return !!currentSwipeEntry(readFaceSwipe(independentSwipeSlot(identity),independentSwipeFaceIndex(identity)))?.initialHtml;
 }
 
 function emptyChatOutputMetadata(){ return {version:CHAT_OUTPUT_METADATA_SCHEMA,owners:{}}; }

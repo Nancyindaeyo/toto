@@ -9,7 +9,7 @@ import {
     refreshRabbitMirrorToolsInScope,
     isolateRabbitMirrorInteractionIds,
     rearmRabbitMirrorSerializedInteractionRoot,
-} from '../outputSanitizer.js?rmv=1.5.67';
+} from '../outputSanitizer.js?rmv=1.5.68';
 import { matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from '../multifaceProof.js?rmv=1.5.53-visualquick1';
@@ -17,7 +17,7 @@ import {
     FOLLOW_MULTIFACE_COMMITTED_EVENT,
     FOLLOW_MULTIFACE_REJECTED_EVENT,
     getRabbitMirrorFollowBatchFailure,
-} from '../visualScanner.js?rmv=1.5.67';
+} from '../visualScanner.js?rmv=1.5.68';
 import { commitPendingComboBatch, releasePendingComboBatch } from '../storage.js?rmv=1.5.53-visualquick1';
 import {
     consumeInjectedFeedbackForSuccessfulIndependentRabbitMirror,
@@ -32,15 +32,16 @@ import {
     automaticRerollExhaustedNote,
     shouldAnnounceAutomaticRerollExhausted,
     isAutomaticRerollStall,
-} from '../automaticReroll.js?rmv=1.5.67';
+} from '../automaticReroll.js?rmv=1.5.68';
 import {
     FACE_SWIPE_FULL_MESSAGE,
     canAppendSwipe,
     seedSwipeState,
     updateCurrentSwipeHtml,
     readFaceSwipe,
+    writeFaceSwipe,
     mutateFaceSwipe,
-} from '../swipeVersions.js?rmv=1.5.67';
+} from '../swipeVersions.js?rmv=1.5.68';
 import {
     ACTION_BRIDGE_KEY,
     CONTEXT_TOTAL_BUDGET,
@@ -61,7 +62,7 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.67';
+} from './runtime.js?rmv=1.5.68';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_CONFIRMATION_TTL_MS,
@@ -88,7 +89,7 @@ import {
     operationEpochForBase,
     pending,
     reserveAutomaticDispatchLease,
-} from './flights.js?rmv=1.5.67';
+} from './flights.js?rmv=1.5.68';
 import {
     HISTORY_PANEL_ATTR,
     INDEPENDENT_RECORD_BUDGET_BYTES,
@@ -106,16 +107,17 @@ import {
     restoreIndependentFaceSwipeInitial,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.67';
+} from './persistence.js?rmv=1.5.68';
 import {
     appendIndependentFaceSwipe,
     faceDetailsListFromHtml,
     hasEphemeralFaceFailure,
     independentRerollMax,
+    independentSwipeSlot,
     scrubSwipeDetailsHtml,
     seedIndependentFaceSwipes,
     showEphemeralFaceFailure,
-} from './faceSwipe.js?rmv=1.5.67';
+} from './faceSwipe.js?rmv=1.5.68';
 import {
     INDEPENDENT_OWNER_OBSERVATION,
     assistantMessages,
@@ -154,7 +156,7 @@ import {
     setOwnerLockForBase,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.67';
+} from './connection.js?rmv=1.5.68';
 import {
     allExternalHosts,
     assertIndependentMarkupComplexityWithDiagnostic,
@@ -179,7 +181,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     wrappedIndependentMirrorHtml,
-} from './request.js?rmv=1.5.67';
+} from './request.js?rmv=1.5.68';
 import {
     DEFERRED_INTERACTION_RESCUE_ATTR,
     INDEPENDENT_CONTENT_WIDTH_BASELINE_ATTR,
@@ -238,7 +240,7 @@ import {
     showIndependentResayStatus,
     transferExternalTools,
     usableReadyDetails,
-} from './geometry.js?rmv=1.5.67';
+} from './geometry.js?rmv=1.5.68';
 import {
     assertEarlyBodyOwner,
     automaticHostGenerationMayUseTools,
@@ -252,7 +254,7 @@ import {
     scheduleStartupHistorySync,
     suppressesAutomaticGeneration,
     unlockAutomaticGenerationCutover,
-} from './earlyBody.js?rmv=1.5.67';
+} from './earlyBody.js?rmv=1.5.68';
 import {
     automaticGenerationCutovers,
     backgroundLifecycleListenersInstalled,
@@ -274,7 +276,7 @@ import {
     writeHostGenerationInProgress,
     writeIndependentActionBridge,
     writeLastAppliedIndependentTiming,
-} from './lifecycle.js?rmv=1.5.67';
+} from './lifecycle.js?rmv=1.5.68';
 
 let generationSequence = 0;
 
@@ -1485,11 +1487,11 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
  }
  if(force){
   const resayFaceIndex=Number.isInteger(multifaceResay?.faceIndex)?multifaceResay.faceIndex:0;
-  if(persistedReady?.html) seedIndependentFaceSwipes(slot,persistedReady.html);
+  if(persistedReady?.html) seedIndependentFaceSwipes(baseSlot,persistedReady.html);
   const earlyHost=el?collapseDuplicateIdentityHosts(el,key,'independent',sourceHash):null;
   const earlyFaces=externalFaceDetails(earlyHost);
   const overlayDetails=earlyFaces.length>1?earlyFaces[resayFaceIndex]:earlyFaces[0];
-  if(!hasEphemeralFaceFailure(overlayDetails) && !canAppendSwipe(readFaceSwipe(slot,resayFaceIndex))){
+  if(!hasEphemeralFaceFailure(overlayDetails) && !canAppendSwipe(readFaceSwipe(baseSlot,resayFaceIndex))){
    globalThis.toastr?.warning?.(FACE_SWIPE_FULL_MESSAGE);
    return null;
   }
@@ -1556,7 +1558,7 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
   }
  }
  if(force){
-  if(previousReadyRecord?.html) seedIndependentFaceSwipes(slot,previousReadyRecord.html);
+  if(previousReadyRecord?.html) seedIndependentFaceSwipes(baseSlot,previousReadyRecord.html);
  } else cancelFlightsForSlot(slot,sourceHash);
  const dispatchLease=force ? createManualDispatchLease() : reserveAutomaticDispatchLease(baseSlot,sourceHash);
  if(!dispatchLease){
@@ -1700,8 +1702,13 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
    if(force){
     const resayFaceIndex=Number.isInteger(multifaceResay?.faceIndex)?multifaceResay.faceIndex:0;
     const faceHtml=multifaceResay?replacementVisualHtml:faceDetailsListFromHtml(completed.html)[0]?.detailsHtml||completed.html;
-    appendIndependentFaceSwipe(settledSlot,resayFaceIndex,faceHtml);
-   } else seedIndependentFaceSwipes(settledSlot,completed.html);
+    const swipeSlot=messageBaseSlotKey(settledCtx,index,settledMsg)||baseSlot;
+    if(swipeSlot && swipeSlot!==baseSlot){
+     const prior=readFaceSwipe(baseSlot,resayFaceIndex);
+     if(prior.versions.length && !readFaceSwipe(swipeSlot,resayFaceIndex).versions.length) writeFaceSwipe(swipeSlot,resayFaceIndex,prior);
+    }
+    appendIndependentFaceSwipe(swipeSlot,resayFaceIndex,faceHtml);
+   } else seedIndependentFaceSwipes(messageBaseSlotKey(settledCtx,index,settledMsg)||baseSlot,completed.html);
    const next=readStore(); saveRecordForSlot(next,settledSlot,completed); writeStore(next);
    setOwnerLockForBase(baseSlot,settledSlot,settledSourceHash);
    writePersistedOwner(settledCtx,index,settledMsg,completed,{overwrite:true});
@@ -1796,7 +1803,7 @@ export async function generateFor(index,msg,force=false,sourceAware=true,multifa
      const overlayRoot=externalFaceDetails(currentHost)[currentHost && externalFaceDetails(currentHost).length>1?faceIndex:0]||currentHost;
      showEphemeralFaceFailure(currentHost,faceIndex,failureMessage,
       ()=>{ resayIndependentMirror(overlayRoot,{}); },
-      ()=>{ applyIndependentFaceSwipe(overlayRoot,readFaceSwipe(failedIdentity.slot,faceIndex).currentIndex); }
+      ()=>{ applyIndependentFaceSwipe(overlayRoot,readFaceSwipe(independentSwipeSlot(failedIdentity),faceIndex).currentIndex); }
      );
     }else{
      ensureExternalUi(liveEl,failedKey,previousReadyRecord.html,'ready','independent',failedHash,previousReadyRecord);
@@ -1956,7 +1963,7 @@ export function resolveIndependentActionIdentity(root,owner={}, {allowPassiveErr
  const faces=externalFaceDetails(host);
  const requestedDetails=root?.matches?.('details')?root:root?.closest?.('details')||root?.querySelector?.('details');
  const faceIndex=faces.length>1?faces.findIndex(face=>face===requestedDetails || face.contains?.(requestedDetails)):-1;
- return {ctx,msg,index,host,slot:messageSlotKey(ctx,index,msg),legacySlots:legacyMessageSlotKeys(ctx,index,msg),key:currentKey,faceIndex};
+ return {ctx,msg,index,host,slot:messageSlotKey(ctx,index,msg),baseSlot:messageBaseSlotKey(ctx,index,msg),legacySlots:legacyMessageSlotKeys(ctx,index,msg),key:currentKey,faceIndex};
 }
 
 function closeIndependentHistoryPanel(){
@@ -2024,7 +2031,7 @@ function showIndependentHistory(root,owner={}){
 
 export function resayIndependentMirror(root,owner={}){
  if(getSettings().generationSource==='follow'){
-  void import('../followFaceRetry.js?rmv=1.5.67').then(({retryFollowFace})=>retryFollowFace(root,owner,{
+  void import('../followFaceRetry.js?rmv=1.5.68').then(({retryFollowFace})=>retryFollowFace(root,owner,{
    getContext,hostBusy:hostGenerationLooksActive,maxRequestChars:MAX_INDEPENDENT_REQUEST_CHARS,
    resolveOwner:target=>{
     const host=target?.closest?.('[data-rabbit-mirror-external-source="true"][data-rm-source="follow"]');

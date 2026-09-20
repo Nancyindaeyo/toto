@@ -12,8 +12,8 @@ initRabbitMirrorHostCompatibility();
 // SecurityFix2 leaves only the prompt interceptor and request guard in the parser-critical
 // graph. The 1.8 MiB UI/sanitizer/independent runtime graph is imported after the host has
 // received a paint/idle opportunity, or immediately after explicit RabbitMirror intent.
-const GOLDEN_MERGE_VERSION = '1.5.67';
-const RABBIT_MIRROR_RUNTIME_VERSION = '1.5.67';
+const GOLDEN_MERGE_VERSION = '1.5.68';
+const RABBIT_MIRROR_RUNTIME_VERSION = '1.5.68';
 const earlyBootstrap = getRabbitMirrorEarlyBootstrap();
 let runtimeCancelled = earlyBootstrap?.cancelled === true || (!!globalThis.__rabbitMirrorTtBootstrap && !earlyBootstrap);
 let runtimeClaimed = !runtimeCancelled;
@@ -76,11 +76,11 @@ async function ensureDeferredCoreRuntime(reason = 'scheduled-idle') {
     if (deferredRuntimeModules) return deferredRuntimeModules;
     if (deferredRuntimePromise) return deferredRuntimePromise;
     deferredRuntimePromise = Promise.all([
-        import('./src/outputSanitizer.js?rmv=1.5.67'),
-        import('./src/visualScanner.js?rmv=1.5.67'),
-        import('./src/independentApi.js?rmv=1.5.67'),
+        import('./src/outputSanitizer.js?rmv=1.5.68'),
+        import('./src/visualScanner.js?rmv=1.5.68'),
+        import('./src/independentApi.js?rmv=1.5.68'),
         import('./src/touchTheater.js?rmv=1.5.56-extfloor1'),
-        import('./src/ui.js?rmv=1.5.67'),
+        import('./src/ui.js?rmv=1.5.68'),
         import('./src/composerClearance.js?rmv=1.5.58-fork1'),
     ]).then(async ([output, visual, independent, touch, ui, clearance]) => {
         if (!runtimeIsActive()) return null;
@@ -336,7 +336,7 @@ function loadMirrorVisualCompat() {
     if (!deferredRuntimeModules) return Promise.resolve(null);
     return Promise.all([
         loadOptional('checkedSelectorRepair', './src/checkedSelectorRepair.js?rmv=1.5.53-cn-boundary1', mod => mod.initRabbitMirrorCheckedSelectorRepair?.()),
-        loadOptional('renderedVisualFeedback', './src/renderedVisualFeedbackHotfix.js?rmv=1.5.67', mod => mod.initRabbitMirrorRenderedVisualFeedbackHotfix?.()),
+        loadOptional('renderedVisualFeedback', './src/renderedVisualFeedbackHotfix.js?rmv=1.5.68', mod => mod.initRabbitMirrorRenderedVisualFeedbackHotfix?.()),
     ]);
 }
 

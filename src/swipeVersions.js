@@ -14,9 +14,18 @@ function hashText(text = '') {
     return (h >>> 0).toString(36);
 }
 
+// Versions belong to the chat message swipe, not a source-hash snapshot.
+// Resay remounts often change the fingerprint; hashed slots used to orphan
+// the stack and re-seed the new HTML as 1/1.
+export function faceSwipeStorageSlot(slot = '') {
+    const text = String(slot || '');
+    const match = text.match(/:(\d+):(\d+):([0-9a-f]{8,64})$/i);
+    return match ? text.slice(0, -(match[3].length + 1)) : text;
+}
+
 export function faceSwipeKey(slot, faceIndex = 0) {
     const index = Number.isInteger(faceIndex) && faceIndex >= 0 ? faceIndex : 0;
-    return `${String(slot || '')}\u0000${index}`;
+    return `${faceSwipeStorageSlot(slot)}\u0000${index}`;
 }
 
 export function emptySwipeState() {
@@ -174,14 +183,27 @@ function emptyStore() {
     return { schema: STORE_SCHEMA, faces: {} };
 }
 
+let memoryStore = null;
+
+function cloneStore(store) {
+    return { schema: STORE_SCHEMA, faces: { ...(store?.faces || {}) } };
+}
+
 function readStore() {
+    if (memoryStore) return cloneStore(memoryStore);
     try {
         const raw = JSON.parse(globalThis.localStorage?.getItem(STORE_KEY) || 'null');
-        if (!raw || typeof raw !== 'object' || !raw.faces || typeof raw.faces !== 'object') return emptyStore();
-        return { schema: STORE_SCHEMA, faces: raw.faces };
-    } catch {
-        return emptyStore();
-    }
+        if (raw && typeof raw === 'object' && raw.faces && typeof raw.faces === 'object') {
+            memoryStore = { schema: STORE_SCHEMA, faces: { ...raw.faces } };
+            return cloneStore(memoryStore);
+        }
+    } catch {}
+    memoryStore = emptyStore();
+    return cloneStore(memoryStore);
+}
+
+export function resetFaceSwipeStoreForTests() {
+    memoryStore = null;
 }
 
 function compactStore(store) {
@@ -197,6 +219,7 @@ function compactStore(store) {
 
 function writeStore(store) {
     const compacted = compactStore(store);
+    memoryStore = compacted;
     try {
         globalThis.localStorage?.setItem(STORE_KEY, JSON.stringify(compacted));
         return true;
@@ -215,17 +238,45 @@ function writeStore(store) {
     }
 }
 
+function matchingSwipeKeys(store, slot, faceIndex = 0) {
+    const suffix = `\u0000${Number.isInteger(faceIndex) && faceIndex >= 0 ? faceIndex : 0}`;
+    const base = faceSwipeStorageSlot(slot);
+    const preferred = `${base}${suffix}`;
+    const keys = [];
+    if (store.faces?.[preferred]) keys.push(preferred);
+    for (const key of Object.keys(store.faces || {})) {
+        if (key === preferred || !key.endsWith(suffix)) continue;
+        const slotPart = key.slice(0, -suffix.length);
+        const hash = slotPart.startsWith(`${base}:`) ? slotPart.slice(base.length + 1) : '';
+        if (slotPart === base || /^[0-9a-f]{8,64}$/i.test(hash)) keys.push(key);
+    }
+    return keys;
+}
+
 export function readFaceSwipe(slot, faceIndex = 0) {
-    const key = faceSwipeKey(slot, faceIndex);
-    return normalizeSwipeState(readStore().faces[key]);
+    const store = readStore();
+    let best = emptySwipeState();
+    for (const key of matchingSwipeKeys(store, slot, faceIndex)) {
+        const state = normalizeSwipeState(store.faces[key]);
+        if (
+            state.versions.length > best.versions.length
+            || (state.versions.length === best.versions.length && state.versions.length && Number(state.touched || 0) > Number(best.touched || 0))
+        ) {
+            best = state;
+        }
+    }
+    return best;
 }
 
 export function writeFaceSwipe(slot, faceIndex, state) {
-    const key = faceSwipeKey(slot, faceIndex);
+    const storageKey = faceSwipeKey(slot, faceIndex);
     const normalized = normalizeSwipeState(state);
     const store = readStore();
-    if (!normalized.versions.length) delete store.faces[key];
-    else store.faces[key] = normalized;
+    for (const key of matchingSwipeKeys(store, slot, faceIndex)) {
+        if (key !== storageKey) delete store.faces[key];
+    }
+    if (!normalized.versions.length) delete store.faces[storageKey];
+    else store.faces[storageKey] = normalized;
     writeStore(store);
     return normalized;
 }

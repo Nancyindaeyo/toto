@@ -13,7 +13,26 @@ import {
     restoreCurrentSwipeInitial,
     faceSwipeBarIntent,
     fallbackFaceSwipeView,
+    faceSwipeStorageSlot,
+    readFaceSwipe,
+    writeFaceSwipe,
+    mutateFaceSwipe,
+    resetFaceSwipeStoreForTests,
 } from '../src/swipeVersions.js';
+
+function mockLocalStorage(setItem) {
+    const data = {};
+    globalThis.localStorage = {
+        getItem(key) { return Object.hasOwn(data, key) ? data[key] : null; },
+        setItem(key, value) {
+            if (typeof setItem === 'function') setItem(key, value, data);
+            else data[key] = String(value);
+        },
+        removeItem(key) { delete data[key]; },
+    };
+    resetFaceSwipeStoreForTests();
+    return data;
+}
 
 function stack(...htmls) {
     let state = emptySwipeState();
@@ -121,4 +140,59 @@ test('title arrows resay at the ends and switch in the middle', () => {
     assert.equal(fallback.label, '1/1');
     assert.deepEqual(faceSwipeBarIntent(fallback, 'next'), { type: 'resay' });
     assert.deepEqual(faceSwipeBarIntent(fallback, 'prev'), { type: 'resay' });
+});
+
+test('storage slot ignores source hash so remounted resays share one stack', () => {
+    assert.equal(faceSwipeStorageSlot('room:5:0:deadbeef12'), 'room:5:0');
+    assert.equal(faceSwipeStorageSlot('room:5:0'), 'room:5:0');
+    assert.equal(faceSwipeStorageSlot('group:chat:3:1:abcdefabcdef'), 'group:chat:3:1');
+});
+
+test('hashed and settled slots append onto the same face stack', () => {
+    mockLocalStorage();
+    const first = mutateFaceSwipe('chat:3:0:aaaabbbb', 0, state => seedSwipeState(state, { html: '<details>old</details>' }));
+    assert.equal(first.ok, true);
+    assert.equal(first.seeded, true);
+    const second = mutateFaceSwipe('chat:3:0:ccccdddd', 0, state => {
+        const seeded = seedSwipeState(state, { html: '<details>new</details>' });
+        if (seeded.seeded) return seeded;
+        return appendSuccessfulSwipe(seeded.state, { html: '<details>new</details>' });
+    });
+    assert.equal(second.ok, true);
+    assert.equal(second.seeded, undefined);
+    const view = readFaceSwipe('chat:3:0:eeeeffff', 0);
+    assert.equal(view.versions.length, 2);
+    assert.equal(view.currentIndex, 1);
+    assert.equal(view.versions[0].html, '<details>old</details>');
+    assert.equal(view.versions[1].html, '<details>new</details>');
+});
+
+test('in-memory swipe store keeps the append when localStorage write fails', () => {
+    mockLocalStorage((_key, value) => {
+        if (String(value).length > 120) throw new Error('quota');
+    });
+    mutateFaceSwipe('chat:1:0', 0, state => seedSwipeState(state, { html: '<details>aaaaaaaaaaaaaaaaaaaa</details>' }));
+    mutateFaceSwipe('chat:1:0', 0, state => appendSuccessfulSwipe(state, { html: '<details>bbbbbbbbbbbbbbbbbbbb</details>' }));
+    const view = readFaceSwipe('chat:1:0', 0);
+    assert.equal(view.versions.length, 2);
+    assert.equal(view.currentIndex, 1);
+});
+
+test('read still finds a legacy hashed store key after remount', () => {
+    const data = mockLocalStorage();
+    data.rabbit_mirror_face_swipes_v1 = JSON.stringify({
+        schema: 1,
+        faces: {
+            ['chat:2:0:ffffeeee\u00000']: stack('<details>keep</details>', '<details>two</details>'),
+        },
+    });
+    resetFaceSwipeStoreForTests();
+    const found = readFaceSwipe('chat:2:0:11112222', 0);
+    assert.equal(found.versions.length, 2);
+    assert.equal(found.versions[1].html, '<details>two</details>');
+    writeFaceSwipe('chat:2:0:11112222', 0, found);
+    const raw = JSON.parse(data.rabbit_mirror_face_swipes_v1);
+    const keys = Object.keys(raw.faces);
+    assert.equal(keys.length, 1);
+    assert.equal(keys[0], 'chat:2:0\u00000');
 });
