@@ -2,6 +2,21 @@ export const AUTOMATIC_REROLL_DEFAULT = 2;
 export const AUTOMATIC_REROLL_MIN = 0;
 export const AUTOMATIC_REROLL_LIMIT = 10;
 export const AUTOMATIC_REROLL_MAX = AUTOMATIC_REROLL_DEFAULT;
+export const AUTOMATIC_REROLL_STALL_MS = 180 * 1000;
+export const AUTOMATIC_REROLL_STALL_CODE = 'RABBIT_MIRROR_INDEPENDENT_STALL_TIMEOUT';
+
+export function stallTimeoutError(lastProgressAt = Date.now()) {
+    const error = new Error('独立 API 已等待 180 秒仍未收到完整兔子镜，已中止本轮。');
+    error.name = 'RabbitMirrorIndependentTimeoutError';
+    error.code = AUTOMATIC_REROLL_STALL_CODE;
+    error.allowAutomaticReroll = true;
+    error.lastProgressAt = lastProgressAt;
+    return error;
+}
+
+export function isAutomaticRerollStall(error) {
+    return error?.code === AUTOMATIC_REROLL_STALL_CODE || error?.allowAutomaticReroll === true;
+}
 
 export function normalizeAutomaticRerollMax(value) {
     const n = Math.round(Number(value));
@@ -19,7 +34,11 @@ export function shouldAutomaticReroll({
     usableReadyFace = false,
     failedPosts = 0,
     max = AUTOMATIC_REROLL_DEFAULT,
+    timedOut = false,
+    aborted = false,
+    stale = false,
 } = {}) {
+    if (timedOut || aborted || stale) return false;
     if (manual || faceResay || usableReadyFace) return false;
     const total = normalizeAutomaticRerollMax(max);
     if (total <= 0) return false;

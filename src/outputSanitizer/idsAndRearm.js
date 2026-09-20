@@ -6,7 +6,7 @@ import {
     escapeRegExp,
     getRabbitMirrorLocalStyleElements,
     hashInteractionSignature,
-} from './runtime.js?rmv=1.5.65';
+} from './runtime.js?rmv=1.5.67';
 import {
     CHANGE_PSEUDO_RESCUE_ATTR,
     DIRECT_ID_CLASS_STATE_RESCUE_ATTR,
@@ -22,20 +22,20 @@ import {
     repairMalformedNestedInteractiveLabels,
     repairRabbitMirrorSelectorPanelGridSpan,
     restoreInteractionInlineOverrides,
-} from './checkedStateRescue.js?rmv=1.5.65';
+} from './checkedStateRescue.js?rmv=1.5.67';
 import {
     RAW_SELF_MUTATION_RESCUE_ATTR,
     chooseMatchingRawRabbitMirrorRoot,
     getRawAssistantMessageForRenderedRoot,
-} from './scriptedInteractionRescue.js?rmv=1.5.65';
+} from './scriptedInteractionRescue.js?rmv=1.5.67';
 import {
     applyCheckedVisualFallback,
     inputHasMeaningfulCheckedSiblingRule,
     installIntelligentInteractionRescue,
-} from './fallbackRescue.js?rmv=1.5.65';
-import { INERT_ACTION_BUTTON_RESCUE_ATTR, INERT_ACTION_STATUS_ATTR } from './diagnostics.js?rmv=1.5.65';
-import { rehydrateRabbitMirrorMaintenanceRepairs } from './choiceRescue.js?rmv=1.5.65';
-import { maintenanceRepairRootBudget } from './maintenanceInspect.js?rmv=1.5.65';
+} from './fallbackRescue.js?rmv=1.5.67';
+import { INERT_ACTION_BUTTON_RESCUE_ATTR, INERT_ACTION_STATUS_ATTR } from './diagnostics.js?rmv=1.5.67';
+import { rehydrateRabbitMirrorMaintenanceRepairs } from './choiceRescue.js?rmv=1.5.67';
+import { maintenanceRepairRootBudget } from './maintenanceInspect.js?rmv=1.5.67';
 
 let interactionScopeCounter = 0;
 

@@ -169,6 +169,7 @@ const FAVORITE_RUNTIME_UI_SELECTOR = [
     '[data-rabbit-mirror-resay]',
     '[data-rm-tool-menu-button]',
     '[data-rm-ephemeral-failure-body]',
+    '[data-rm-face-swipe-host]',
     '[data-rm-face-swipe-bar]',
     '[data-rm-face-favorite-star]',
 ].join(', ');

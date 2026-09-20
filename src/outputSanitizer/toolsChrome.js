@@ -11,8 +11,8 @@ import {
     openTheaterFavoriteLibrary,
     toggleTheaterFavorite,
     isTheaterFavoriteHtml,
-} from '../theaterFavorites.js?rmv=1.5.65';
-import { FACE_SWIPE_FULL_MESSAGE, faceSwipeBarIntent } from '../swipeVersions.js?rmv=1.5.65';
+} from '../theaterFavorites.js?rmv=1.5.67';
+import { FACE_SWIPE_FULL_MESSAGE, faceSwipeBarIntent, fallbackFaceSwipeView } from '../swipeVersions.js?rmv=1.5.67';
 import {
     FEEDBACK_CAT_TYPES,
     clearActiveFeedbackForCurrentChat,
@@ -22,7 +22,7 @@ import {
     getFeedbackCatLastReceiptForCurrentChat,
     setActiveFeedbackForCurrentChat,
 } from '../feedbackCat.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.65';
+import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.5.67';
 import {
     FAVORITE_MULTIPLIER_MAX,
     FAVORITE_MULTIPLIER_MIN,
@@ -65,10 +65,10 @@ import {
     isInsideChatMessage,
     isMaintenanceRabbitEnabled,
     isRabbitMirrorDetails,
-} from './runtime.js?rmv=1.5.65';
-import { getAvailableHostChat } from './scriptedInteractionRescue.js?rmv=1.5.65';
-import { armNestedDetailsReplacementContainment, installNestedDetailsReplacementContainment } from './fallbackRescue.js?rmv=1.5.65';
-import { armRabbitMirrorFirstUseInteraction, repairRabbitMirrorScopedClassAliasesInScope } from './idsAndRearm.js?rmv=1.5.65';
+} from './runtime.js?rmv=1.5.67';
+import { getAvailableHostChat } from './scriptedInteractionRescue.js?rmv=1.5.67';
+import { armNestedDetailsReplacementContainment, installNestedDetailsReplacementContainment } from './fallbackRescue.js?rmv=1.5.67';
+import { armRabbitMirrorFirstUseInteraction, repairRabbitMirrorScopedClassAliasesInScope } from './idsAndRearm.js?rmv=1.5.67';
 import {
     FEEDBACK_CAT_MENU_ATTR,
     FEEDBACK_HISTORY_EVENT,
@@ -88,8 +88,8 @@ import {
     rabbitMirrorLanguageBalance,
     scheduleCurrentHighConfidenceTextRepair,
     setMaintenanceRabbitState,
-} from './diagnostics.js?rmv=1.5.65';
-import { clearOrphanedStructuredStaticDisclosureArtifacts } from './choiceRescue.js?rmv=1.5.65';
+} from './diagnostics.js?rmv=1.5.67';
+import { clearOrphanedStructuredStaticDisclosureArtifacts } from './choiceRescue.js?rmv=1.5.67';
 import {
     MAINTENANCE_FINDING_STAGE_LABELS,
     beginMaintenanceRepairRun,
@@ -107,19 +107,19 @@ import {
     runMaintenanceRevealClipRepair,
     runMaintenanceUserRepair,
     triggerDiagnosticForMaintenanceRoot,
-} from './maintenanceInspect.js?rmv=1.5.65';
+} from './maintenanceInspect.js?rmv=1.5.67';
 import {
     getRabbitMirrorFacePosition,
     installMaintenanceHorizontalClipOpenRescue,
     repairLegacyMaintenanceMobileStateRows,
-} from './layoutRescue.js?rmv=1.5.65';
+} from './layoutRescue.js?rmv=1.5.67';
 import {
     getMessageIndexFromMirrorNode,
     installMaintenanceAutoSafeOpenPatrol,
     installManagedRabbitMirrorTools,
     pruneMaintenanceAutoSafeOpenBindings,
     scheduleMaintenanceAutoSafeForRoot,
-} from './lifecycle.js?rmv=1.5.65';
+} from './lifecycle.js?rmv=1.5.67';
 
 let recipeOutsideCloseCleanup = null;
 
@@ -1810,9 +1810,35 @@ function installFavoriteStar(root, host, before) {
     return star;
 }
 
-function installFaceSwipeBar(root, host, before) {
+function liveFaceSwipeView(root) {
     const bridge = independentActionBridge();
-    const view = bridge?.runtime === RUNTIME_VERSION ? bridge.swipeView?.(root) : null;
+    if (bridge?.runtime !== RUNTIME_VERSION) return null;
+    return bridge.swipeView?.(root) || fallbackFaceSwipeView();
+}
+
+function ensureFaceSwipeHost(summary) {
+    if (!summary?.appendChild) return null;
+    let row = summary.querySelector(':scope > [data-rm-face-swipe-host]');
+    if (!row) {
+        row = document.createElement('span');
+        row.setAttribute('data-rm-face-swipe-host', 'true');
+    }
+    // Sit next to the native ▶ so a right-floated star/rabbit cannot clip it.
+    if (summary.firstElementChild !== row) summary.insertBefore(row, summary.firstElementChild);
+    const styles = {
+        all: 'initial', display: 'inline-flex', 'align-items': 'center', 'justify-content': 'flex-start',
+        float: 'none', flex: '0 0 auto', position: 'relative', 'z-index': '2147483002',
+        width: 'auto', 'min-width': 'max-content', height: 'auto', 'min-height': '28px',
+        margin: '0 6px 0 0', padding: '0', overflow: 'visible', visibility: 'visible', opacity: '1',
+        'pointer-events': 'auto', 'white-space': 'nowrap', 'vertical-align': 'middle',
+        color: 'inherit', font: 'inherit', 'line-height': '1',
+    };
+    for (const [property, value] of Object.entries(styles)) setImportantStyle(row, property, value);
+    return row;
+}
+
+function installFaceSwipeBar(root, host) {
+    const view = liveFaceSwipeView(root);
     let bar = host.querySelector(':scope > [data-rm-face-swipe-bar]');
     if (!view) {
         bar?.remove();
@@ -1828,7 +1854,7 @@ function installFaceSwipeBar(root, host, before) {
             if (!action) return;
             stopTitleToggle(event);
             const live = independentActionBridge();
-            const current = live?.swipeView?.(root);
+            const current = liveFaceSwipeView(root);
             if (!current) return;
             const intent = faceSwipeBarIntent(current, action);
             if (intent.type === 'select') live.selectSwipe?.(root, intent.index);
@@ -1836,8 +1862,7 @@ function installFaceSwipeBar(root, host, before) {
             else if (intent.type === 'delete') live.deleteSwipe?.(root);
         }, true);
     }
-    if (before?.parentElement === host) host.insertBefore(bar, before);
-    else host.append(bar);
+    host.append(bar);
     const label = bar.querySelector('[data-rm-face-swipe-label]');
     if (label) label.textContent = view.label;
     const prev = bar.querySelector('[data-rm-face-swipe="prev"]');
@@ -1863,14 +1888,17 @@ function installFaceSwipeBar(root, host, before) {
 }
 
 function installFaceTitleChrome(root, host) {
+    const summary = host?.parentElement;
     const rabbit = host.querySelector(':scope > [data-rm-tool-menu-button]');
-    const star = installFavoriteStar(root, host, rabbit);
-    installFaceSwipeBar(root, host, star || rabbit);
+    installFavoriteStar(root, host, rabbit);
+    host.querySelectorAll(':scope > [data-rm-face-swipe-bar]').forEach(node => node.remove());
+    const swipeHost = ensureFaceSwipeHost(summary);
+    if (swipeHost) installFaceSwipeBar(root, swipeHost);
 }
 
 function stripTheaterFavoriteTitleChrome(scope) {
     if (!scope?.querySelectorAll) return;
-    scope.querySelectorAll(`[${TOOL_ENTRY_HOST_ATTR}], [data-rm-face-swipe-bar], [data-rm-face-favorite-star], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [data-rm-tool-menu-button]`).forEach(node => node.remove());
+    scope.querySelectorAll(`[${TOOL_ENTRY_HOST_ATTR}], [data-rm-face-swipe-host], [data-rm-face-swipe-bar], [data-rm-face-favorite-star], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [data-rm-tool-menu-button]`).forEach(node => node.remove());
 }
 
 function installUnifiedMirrorTools(root) {
@@ -1897,7 +1925,7 @@ function installUnifiedMirrorTools(root) {
             .catch(() => globalThis.toastr?.warning?.('生图面板未能打开，请重新打开后再试。'));
     } });
     actions.push({ id: 'theater-favorite-library', label: '📖 打开收藏夹', run: () => {
-        void import('../independentApi.js?rmv=1.5.65').then(module =>
+        void import('../independentApi.js?rmv=1.5.67').then(module =>
             openTheaterFavoriteLibrary((container, record) => module.hydrateIndependentFavoriteHtml(container, record)))
             .catch(error => globalThis.toastr?.warning?.(String(error?.message || '无法打开收藏夹。')));
     } });

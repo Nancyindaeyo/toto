@@ -1,9 +1,9 @@
 // Split from independentApi.js — flights.
 
 import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
-import { configuredAutomaticRerollMax } from '../automaticReroll.js?rmv=1.5.60-fork1';
-import { baseSlotOf } from './connection.js?rmv=1.5.65';
-import { automaticGenerationCutovers } from './lifecycle.js?rmv=1.5.65';
+import { AUTOMATIC_REROLL_STALL_MS, configuredAutomaticRerollMax, stallTimeoutError } from '../automaticReroll.js?rmv=1.5.67';
+import { baseSlotOf } from './connection.js?rmv=1.5.67';
+import { automaticGenerationCutovers } from './lifecycle.js?rmv=1.5.67';
 
 export const pending = new Map();
 // A failed automatic generation owns its exact chat+mesid+swipe+sourceHash until
@@ -102,31 +102,44 @@ export function clearAutomaticFailureStop(slot='',sourceHash=''){ automaticFailu
 
 export function clearAutomaticFailureStops(){ automaticFailureStops.clear(); }
 
-export function createIndependentRequestDeadline(controller,onTimeout){
- let idleTimer=0; let absoluteTimer=0; let settled=false; let lastProgressAt=Date.now();
+export function createIndependentRequestDeadline(controller,onTimeout,options={}){
+ let idleTimer=0; let absoluteTimer=0; let stallTimer=0; let settled=false; let lastProgressAt=Date.now();
+ const stallMs=Number(options.stallMs);
+ const idleMs=Number(options.idleMs);
+ const absoluteMs=Number(options.absoluteMs);
+ const stallWait=Number.isFinite(stallMs)&&stallMs>0?stallMs:AUTOMATIC_REROLL_STALL_MS;
+ const idleWait=Number.isFinite(idleMs)&&idleMs>0?idleMs:INDEPENDENT_REQUEST_IDLE_TIMEOUT_MS;
+ const absoluteWait=Number.isFinite(absoluteMs)&&absoluteMs>0?absoluteMs:INDEPENDENT_REQUEST_ABSOLUTE_TIMEOUT_MS;
  const fail=kind=>{
   if(settled) return;
   settled=true;
   if(idleTimer) clearTimeout(idleTimer);
   if(absoluteTimer) clearTimeout(absoluteTimer);
-  idleTimer=0; absoluteTimer=0;
+  if(stallTimer) clearTimeout(stallTimer);
+  idleTimer=0; absoluteTimer=0; stallTimer=0;
+  const stall=kind==='stall';
   const idle=kind==='idle';
-  const error=new Error(idle
+  const error=stall?stallTimeoutError(lastProgressAt):new Error(idle
    ? '独立 API 已连续 5 分钟未收到新响应，已停止本次等待。可在挨打猫中重说；本轮不会自动重新发送付费请求。'
    : '独立 API 已达到 20 分钟总等待上限，已停止本次等待。可在挨打猫中重说；本轮不会自动重新发送付费请求。');
-  error.name='RabbitMirrorIndependentTimeoutError';
-  error.code=idle?'RABBIT_MIRROR_INDEPENDENT_IDLE_TIMEOUT':'RABBIT_MIRROR_INDEPENDENT_ABSOLUTE_TIMEOUT';
-  error.lastProgressAt=lastProgressAt;
-  try{ controller?.abort?.(idle?'independent-request-idle-timeout':'independent-request-absolute-timeout'); }catch{}
+  if(!stall){
+   error.name='RabbitMirrorIndependentTimeoutError';
+   error.code=idle?'RABBIT_MIRROR_INDEPENDENT_IDLE_TIMEOUT':'RABBIT_MIRROR_INDEPENDENT_ABSOLUTE_TIMEOUT';
+   error.lastProgressAt=lastProgressAt;
+  }
+  try{ controller?.abort?.(stall?'independent-request-stall-timeout':idle?'independent-request-idle-timeout':'independent-request-absolute-timeout'); }catch{}
   onTimeout?.(error);
  };
  const armIdle=()=>{
   if(settled) return;
   if(idleTimer) clearTimeout(idleTimer);
-  idleTimer=setTimeout(()=>fail('idle'),INDEPENDENT_REQUEST_IDLE_TIMEOUT_MS);
+  idleTimer=setTimeout(()=>fail('idle'),idleWait);
  };
  armIdle();
- absoluteTimer=setTimeout(()=>fail('absolute'),INDEPENDENT_REQUEST_ABSOLUTE_TIMEOUT_MS);
+ // Streaming chunks reset idle silence, but not this wall clock. Incomplete
+ // content after 180s is treated as a stuck attempt and may automatic-reroll.
+ stallTimer=setTimeout(()=>fail('stall'),stallWait);
+ absoluteTimer=setTimeout(()=>fail('absolute'),absoluteWait);
  return {
   progress(){ if(settled) return false; lastProgressAt=Date.now(); armIdle(); return true; },
   clear(){
@@ -134,7 +147,8 @@ export function createIndependentRequestDeadline(controller,onTimeout){
    settled=true;
    if(idleTimer) clearTimeout(idleTimer);
    if(absoluteTimer) clearTimeout(absoluteTimer);
-   idleTimer=0; absoluteTimer=0;
+   if(stallTimer) clearTimeout(stallTimer);
+   idleTimer=0; absoluteTimer=0; stallTimer=0;
   },
   lastProgressAt:()=>lastProgressAt,
  };

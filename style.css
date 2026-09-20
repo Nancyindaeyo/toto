@@ -410,6 +410,20 @@ toto[data-rabbit-mirror="true"] summary {
   isolation: isolate !important;
 }
 
+[data-rm-face-swipe-host] {
+  display: inline-flex !important;
+  align-items: center !important;
+  float: none !important;
+  flex: 0 0 auto !important;
+  min-width: max-content !important;
+  min-height: 28px !important;
+  margin: 0 6px 0 0 !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  pointer-events: auto !important;
+  z-index: 2147483002 !important;
+}
 .rabbit-mirror-face-swipe-bar {
   display: inline-flex !important;
   align-items: center !important;

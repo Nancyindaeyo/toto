@@ -9,6 +9,9 @@ import {
     automaticRerollStatusText,
     automaticRerollExhaustedNote,
     shouldAnnounceAutomaticRerollExhausted,
+    AUTOMATIC_REROLL_STALL_MS,
+    stallTimeoutError,
+    isAutomaticRerollStall,
 } from '../src/automaticReroll.js';
 
 test('zero usable faces allow two extra automatic posts', () => {
@@ -37,6 +40,24 @@ test('exhausted copy only after the extra automatic posts are used up', () => {
     assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 3 }), true);
     assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 1, usableReadyFace: true }), false);
     assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 3, manual: true }), false);
+});
+
+test('http/empty/format failures reroll; idle timeout and abort do not', () => {
+    const fail = { failedPosts: 1, max: 2 };
+    assert.equal(shouldAutomaticReroll(fail), true);
+    assert.equal(shouldAutomaticReroll({ ...fail, timedOut: true }), false);
+    assert.equal(shouldAutomaticReroll({ ...fail, aborted: true }), false);
+    assert.equal(shouldAutomaticReroll({ ...fail, stale: true }), false);
+    assert.equal(shouldAutomaticReroll({ failedPosts: 1, usableReadyFace: true }), false);
+});
+
+test('180s stall without complete content is rerollable', () => {
+    assert.equal(AUTOMATIC_REROLL_STALL_MS, 180000);
+    const stall = stallTimeoutError(1);
+    assert.equal(isAutomaticRerollStall(stall), true);
+    assert.match(stall.message, /180 秒/);
+    assert.equal(shouldAutomaticReroll({ failedPosts: 1, timedOut: false, aborted: false }), true);
+    assert.equal(shouldAutomaticReroll({ failedPosts: 1, timedOut: true }), false);
 });
 
 test('settings clamp keeps 0 as no extra automatic posts', () => {

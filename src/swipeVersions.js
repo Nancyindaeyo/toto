@@ -65,6 +65,20 @@ export function swipeFullMessage() {
 
 // Title ‹ › at the ends mean 重说, not a dead control. Overlay prev remounts
 // the last success; next at the last slot (or 1/1) pays for a new version.
+export function fallbackFaceSwipeView() {
+    return {
+        count: 1,
+        currentIndex: 0,
+        overlay: false,
+        label: '1/1',
+        canPrev: false,
+        canNext: false,
+        canDelete: false,
+        canResay: true,
+        full: false,
+    };
+}
+
 export function faceSwipeBarIntent(view, action) {
     if (!view || !action) return { type: 'noop' };
     if (action === 'delete') return view.canDelete ? { type: 'delete' } : { type: 'noop' };

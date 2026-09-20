@@ -12,6 +12,7 @@ import {
     updateCurrentSwipeHtml,
     restoreCurrentSwipeInitial,
     faceSwipeBarIntent,
+    fallbackFaceSwipeView,
 } from '../src/swipeVersions.js';
 
 function stack(...htmls) {
@@ -116,4 +117,8 @@ test('title arrows resay at the ends and switch in the middle', () => {
     const overlay = { currentIndex: 0, canNext: false, canDelete: false, canResay: true, overlay: true };
     assert.deepEqual(faceSwipeBarIntent(overlay, 'prev'), { type: 'select', index: 0 });
     assert.deepEqual(faceSwipeBarIntent(overlay, 'next'), { type: 'resay' });
+    const fallback = fallbackFaceSwipeView();
+    assert.equal(fallback.label, '1/1');
+    assert.deepEqual(faceSwipeBarIntent(fallback, 'next'), { type: 'resay' });
+    assert.deepEqual(faceSwipeBarIntent(fallback, 'prev'), { type: 'resay' });
 });
