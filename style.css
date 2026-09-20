@@ -1357,8 +1357,24 @@ html[data-rabbit-mirror-external-sampling-enabled="false"] [data-rabbit-mirror-r
 }
 /* Compact the last message's large spacer, but reserve the measured part of its
    footer/swipe controls that really extends outside. No theme artwork is copied. */
-#chat > .mes.last_mes:has(+ .rabbit-mirror-external-host[data-rm-source="independent"][data-rm-placement="external"]:not([hidden])) {
-  margin-bottom:var(--rm-external-footer-clearance,0px) !important;
+#chat .mes:has(> [data-rabbit-mirror-external-shell="true"]){
+  flex-wrap:wrap;
+}
+#chat .mes > [data-rabbit-mirror-external-shell="true"]{
+  flex:1 1 100%;
+  order:50;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  margin-left:0 !important;
+}
+#chat .mes_block > [data-rabbit-mirror-external-shell="true"],
+#chat .mes_block > [data-rabbit-mirror-independent-inline-anchor="true"] + [data-rabbit-mirror-external-shell="true"]{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  margin-top:8px;
 }
 .rabbit-mirror-help-update-row { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px; margin:8px 0; }
 .rabbit-mirror-quick-start { flex:1 1 180px; min-width:0; }

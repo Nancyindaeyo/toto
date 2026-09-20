@@ -2,8 +2,8 @@
 
 import { presentationModeFields } from '../presentationMode.js?rmv=1.5.53-visualquick1';
 import { scheduleRabbitMirrorComposerClearance } from '../composerClearance.js?rmv=1.5.58-fork1';
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorExternalPlacementParent } from '../hostCompatibility.js?rmv=1.5.58-fork1';
-import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorExternalPlacementParent } from '../hostCompatibility.js?rmv=1.5.71';
+import { getSettings } from '../settings.js?rmv=1.5.71';
 import {
     cleanRabbitMirrorOutput,
     compactTotoBlock,
@@ -17,7 +17,7 @@ import {
     clearRabbitMirrorHorizontalClipArtifacts,
     sanitizeRabbitMirrorUntrustedTemplate,
     validateRabbitMirrorRecoveredStyleAssignments,
-} from '../outputSanitizer.js?rmv=1.5.70';
+} from '../outputSanitizer.js?rmv=1.5.71';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
@@ -36,8 +36,8 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.70';
-import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.70';
+} from './runtime.js?rmv=1.5.71';
+import { automaticDispatchAlreadyConsumed, automaticFailureStops, generationPolls, operationEpochForBase } from './flights.js?rmv=1.5.71';
 import {
     INDEPENDENT_HTML_BUDGET_BYTES,
     INTERACTION_STATE_MIGRATION_KEY,
@@ -46,7 +46,7 @@ import {
     persistedOwnerForMessage,
     readStore,
     writeStore,
-} from './persistence.js?rmv=1.5.70';
+} from './persistence.js?rmv=1.5.71';
 import {
     chatKey,
     copyIndependentOwnerLineage,
@@ -63,7 +63,7 @@ import {
     savedRecordMatchesObserved,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.70';
+} from './connection.js?rmv=1.5.71';
 import {
     EXTERNAL_GEOMETRY_SETTLE_STEPS_MS,
     allExternalHosts,
@@ -97,7 +97,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     writeGeometryDataset,
-} from './request.js?rmv=1.5.70';
+} from './request.js?rmv=1.5.71';
 import {
     activeIndependentFlightForBase,
     automaticCutoverVersionToken,
@@ -119,20 +119,20 @@ import {
     runtimeMode,
     serializeExternalFaceDetails,
     stripIndependentTransientLayoutArtifacts,
-} from './mount.js?rmv=1.5.70';
+} from './mount.js?rmv=1.5.71';
 import {
     automaticHostGenerationRenderMatches,
     hasExistingFollowRabbitMirror,
     queueMessageSync,
     suppressesAutomaticGeneration,
-} from './earlyBody.js?rmv=1.5.70';
+} from './earlyBody.js?rmv=1.5.71';
 import {
     automaticGenerationCutovers,
     persistedInteractionMigrationHandle,
     persistedInteractionMigrationIdle,
     writePersistedInteractionMigrationHandle,
     writePersistedInteractionMigrationIdle,
-} from './lifecycle.js?rmv=1.5.70';
+} from './lifecycle.js?rmv=1.5.71';
 
 let externalGeometryFrame = 0;
 
@@ -516,7 +516,11 @@ export function placeExternalHost(el,host,key='',source='independent'){
  host.dataset.rmPlacement='external';
  if(source==='independent' && (needsReanchor || placementChanged)) clearExternalShellIntegration(host);
  if(needsReanchor){
-  if(managedParent) managedParent.append(host);
+  if(managedParent){
+   const body=messageBody(el);
+   if(body && managedParent===body.parentElement) body.insertAdjacentElement('afterend',host);
+   else managedParent.append(host);
+  }
   else parent.insertBefore(host,el.nextSibling);
  }
  host.dataset.rmExternalPlacementEstablished='true';
@@ -571,7 +575,16 @@ export function markExternalHostsAwaitingOwner(mesid=''){
     queueMessageSync([Number(id)]);
     return;
    }
-   for(const host of externalHostsOwnedByMesid(id)) host.remove();
+   for(const host of externalHostsOwnedByMesid(id)){
+    // Error cards are the only retry surface after a crash. TT may briefly
+    // detach the owner .mes; do not throw the card away during that gap.
+    if(host.dataset?.rmState==='error' || host.dataset?.rmMissingShellRetry==='true'){
+     host.hidden=true;
+     host.dataset.rmAwaitingOwner='true';
+     continue;
+    }
+    host.remove();
+   }
  },1800);
  orphanExternalHostTimers.set(id,timer);
 }

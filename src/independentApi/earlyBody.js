@@ -1,15 +1,18 @@
 // Split from independentApi.js — earlyBody.
 
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface } from '../hostCompatibility.js?rmv=1.5.58-fork1';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface } from '../hostCompatibility.js?rmv=1.5.71';
 import { recordTtSurface, ttSurfaceNow } from '../ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
-import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
+import { getSettings } from '../settings.js?rmv=1.5.71';
 import { independentGenerationTiming } from '../independentTiming.js?rmv=1.5.53-timing1';
 import { independentAdvancedOptionsSignature } from '../advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
 import {
-    MISSING_INDEPENDENT_RETRY_SHELL_LIMIT,
     MISSING_INDEPENDENT_RETRY_SHELL_MESSAGE,
+    assistantRowsInScanRange,
+    formatMissingShellReport,
+    hasUsableAssistantBody,
+    normalizeMissingShellScanRange,
     shouldRestoreMissingIndependentRetryShell,
-} from './missingRetryShell.js?rmv=1.5.70';
+} from './missingRetryShell.js?rmv=1.5.71';
 import {
     INDEPENDENT_GENERATION_INTENTS_KEY,
     INDEPENDENT_GENERATION_INTENT_TYPES,
@@ -19,7 +22,7 @@ import {
     currentRuntime,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.70';
+} from './runtime.js?rmv=1.5.71';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_POLL_INTERVAL_MS,
@@ -33,7 +36,7 @@ import {
     markAutomaticFailureStop,
     operationEpochForBase,
     pending,
-} from './flights.js?rmv=1.5.70';
+} from './flights.js?rmv=1.5.71';
 import {
     appendHistoryEntry,
     chatPersistenceSlot,
@@ -43,7 +46,7 @@ import {
     synchronizeIndependentChatPersistence,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.70';
+} from './persistence.js?rmv=1.5.71';
 import {
     activeGlobalWorldInfoCapture,
     assistantMessages,
@@ -92,14 +95,14 @@ import {
     withOwnerLockStoreBatch,
     writeActiveGlobalWorldInfoCapture,
     writeHostModule,
-} from './connection.js?rmv=1.5.70';
+} from './connection.js?rmv=1.5.71';
 import {
     allExternalHosts,
     externalHosts,
     removeEmptyFollowExternalAnchors,
     removeEmptyInlineAnchors,
     withExternalHostSyncIndex,
-} from './request.js?rmv=1.5.70';
+} from './request.js?rmv=1.5.71';
 import {
     beginHostWorkTiming,
     clearExternalHostFreshSourceState,
@@ -132,7 +135,7 @@ import {
     setPlaceholderSummary,
     usableReadyDetails,
     withRestorableHtmlCacheBatch,
-} from './geometry.js?rmv=1.5.70';
+} from './geometry.js?rmv=1.5.71';
 import {
     INDEPENDENT_INTENT_OWNER,
     abortFlight,
@@ -186,7 +189,7 @@ import {
     serializeExternalFaceDetails,
     stampAutomaticAuthorizationEpoch,
     withHistoricalRestoreLightPass,
-} from './mount.js?rmv=1.5.70';
+} from './mount.js?rmv=1.5.71';
 import {
     automaticGenerationCutovers,
     hostGenerationHintStartedAt,
@@ -211,7 +214,7 @@ import {
     writeStartupHistoryFallbackRoot,
     writeSyncRunning,
     writeSyncTimer,
-} from './lifecycle.js?rmv=1.5.70';
+} from './lifecycle.js?rmv=1.5.71';
 
 let earlyBodyParserPromise=null;
 
@@ -1040,7 +1043,7 @@ function syncMessagesCore(indices=null){
    const tailMessage=tailIndex>=0?ctx.chat?.[tailIndex]:null;
     const activeGenerationIndex=generationActive && isRabbitMirrorEligibleAssistantMessage(tailMessage) ? tailIndex : -1;
     const recentRetryIndices=mode==='independent'
-     ? new Set(recentAssistantMessages(ctx,MISSING_INDEPENDENT_RETRY_SHELL_LIMIT).map(row=>Number(row.i)).filter(n=>Number.isInteger(n)&&n>=0))
+     ? new Set(assistantRowsInScanRange(assistantMessages(ctx), normalizeMissingShellScanRange(st.missingShellScanRange)).map(row=>Number(row.i)).filter(n=>Number.isInteger(n)&&n>=0))
      : null;
     const rows=allowed
      ? [...allowed].sort((a,b)=>a-b).map(i=>({m:ctx.chat?.[i],i})).filter(({m})=>isRabbitMirrorEligibleAssistantMessage(m))
@@ -1140,14 +1143,14 @@ function syncMessagesCore(indices=null){
         // That flag correctly blocks automatic POST, but must not block the
         // retry card that sits under this assistant reply. Never POST here.
         const followMirror=hasExistingFollowRabbitMirror(ctx,i,m);
-        const isTargetFloor=recentRetryIndices?.has(i)===true || allowed?.has(Number(i))===true;
+        const isTargetFloor=recentRetryIndices?.has(i)===true;
         if(!saved?.html && (!keep || keep.dataset?.rmState==='loading') && !activeBaseFlight && !persistedSuppressed && !followMirror
          && !automaticFailureStopFor(slot,sourceHash)
          && shouldRestoreMissingIndependentRetryShell({
           timing:independentGenerationTiming(st),
           hasFollowMirror:followMirror,
           isTargetFloor,
-          hasMessageBody:!!(String(m?.mes||'').trim() || String(m?.extra?.display_text||'').trim()),
+          hasMessageBody:hasUsableAssistantBody(m),
           isActiveGenerationTarget,
           quickWaiting,
          })){
@@ -1459,6 +1462,35 @@ export function queueMessageSync(indices=[]){
     }));
    }
  },120));
+}
+
+export function listMissingIndependentRetryFloors(){
+ const ctx=getContext();
+ const st=getSettings();
+ const range=normalizeMissingShellScanRange(st.missingShellScanRange);
+ if(runtimeMode()!=='independent') return {range,floors:[],text:'当前不是独立 API，不会扫描缺壳楼层。'};
+ const store=readStore();
+ const floors=[];
+ for(const {m,i} of assistantRowsInScanRange(assistantMessages(ctx),range)){
+  if(!hasUsableAssistantBody(m) || hasExistingFollowRabbitMirror(ctx,i,m)) continue;
+  const persisted=persistedOwnerForMessage(ctx,i,m);
+  if(persisted?.deleted) continue;
+  const observed=passiveObservedIdentity(ctx,i,m);
+  const saved=persisted?.html?persisted:findSavedRecord(store,observed.slot,observed.legacySlots||[]);
+  if(saved?.html && independentStoredHtmlRestorable(saved.html) && savedRecordMatchesObserved(saved,observed)) continue;
+  const el=messageElement(i);
+  const hosts=el?externalHosts(el).filter(node=>node.dataset.rmSource==='independent'):[];
+  if(hosts.some(host=>readyDetailsFromHost(host))) continue;
+  floors.push({index:i,mounted:!!el,hasErrorHost:hosts.some(host=>host.dataset.rmState==='error')});
+ }
+ return {range,floors,text:formatMissingShellReport({range,floors})};
+}
+
+export function resyncMissingIndependentRetryShells(){
+ const listed=listMissingIndependentRetryFloors();
+ const ids=listed.floors.map(item=>Number(item.index)).filter(index=>Number.isInteger(index)&&index>=0&&messageElement(index));
+ if(ids.length) queueMessageSync(ids);
+ return listed;
 }
 
 function nodeMessageIndex(node){

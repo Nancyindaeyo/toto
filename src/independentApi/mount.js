@@ -1,7 +1,7 @@
 // Split from independentApi.js — mount.
 
 import { presentationModeFields } from '../presentationMode.js?rmv=1.5.53-visualquick1';
-import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
+import { getSettings } from '../settings.js?rmv=1.5.71';
 import { independentGenerationTiming } from '../independentTiming.js?rmv=1.5.53-timing1';
 import { independentAdvancedOptionsSignature } from '../advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
 import {
@@ -9,7 +9,7 @@ import {
     refreshRabbitMirrorToolsInScope,
     isolateRabbitMirrorInteractionIds,
     rearmRabbitMirrorSerializedInteractionRoot,
-} from '../outputSanitizer.js?rmv=1.5.70';
+} from '../outputSanitizer.js?rmv=1.5.71';
 import { matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from '../multifaceProof.js?rmv=1.5.53-visualquick1';
@@ -17,7 +17,7 @@ import {
     FOLLOW_MULTIFACE_COMMITTED_EVENT,
     FOLLOW_MULTIFACE_REJECTED_EVENT,
     getRabbitMirrorFollowBatchFailure,
-} from '../visualScanner.js?rmv=1.5.70';
+} from '../visualScanner.js?rmv=1.5.71';
 import { commitPendingComboBatch, releasePendingComboBatch } from '../storage.js?rmv=1.5.53-visualquick1';
 import {
     consumeInjectedFeedbackForSuccessfulIndependentRabbitMirror,
@@ -32,7 +32,7 @@ import {
     automaticRerollExhaustedNote,
     shouldAnnounceAutomaticRerollExhausted,
     isAutomaticRerollStall,
-} from '../automaticReroll.js?rmv=1.5.70';
+} from '../automaticReroll.js?rmv=1.5.71';
 import {
     FACE_SWIPE_FULL_MESSAGE,
     canAppendSwipe,
@@ -41,7 +41,7 @@ import {
     readFaceSwipe,
     writeFaceSwipe,
     mutateFaceSwipe,
-} from '../swipeVersions.js?rmv=1.5.70';
+} from '../swipeVersions.js?rmv=1.5.71';
 import {
     ACTION_BRIDGE_KEY,
     CONTEXT_TOTAL_BUDGET,
@@ -62,7 +62,7 @@ import {
     getContext,
     hashText,
     independentMaintenanceLiveRepairLocked,
-} from './runtime.js?rmv=1.5.70';
+} from './runtime.js?rmv=1.5.71';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_CONFIRMATION_TTL_MS,
@@ -89,7 +89,7 @@ import {
     operationEpochForBase,
     pending,
     reserveAutomaticDispatchLease,
-} from './flights.js?rmv=1.5.70';
+} from './flights.js?rmv=1.5.71';
 import {
     HISTORY_PANEL_ATTR,
     INDEPENDENT_RECORD_BUDGET_BYTES,
@@ -107,7 +107,7 @@ import {
     restoreIndependentFaceSwipeInitial,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.70';
+} from './persistence.js?rmv=1.5.71';
 import {
     appendIndependentFaceSwipe,
     faceDetailsListFromHtml,
@@ -117,7 +117,7 @@ import {
     scrubSwipeDetailsHtml,
     seedIndependentFaceSwipes,
     showEphemeralFaceFailure,
-} from './faceSwipe.js?rmv=1.5.70';
+} from './faceSwipe.js?rmv=1.5.71';
 import {
     INDEPENDENT_OWNER_OBSERVATION,
     assistantMessages,
@@ -156,7 +156,7 @@ import {
     setOwnerLockForBase,
     slotSearchKeys,
     swipeId,
-} from './connection.js?rmv=1.5.70';
+} from './connection.js?rmv=1.5.71';
 import {
     allExternalHosts,
     assertIndependentMarkupComplexityWithDiagnostic,
@@ -181,7 +181,7 @@ import {
     wrapIndependentFace,
     wrapPreparedIndependentFace,
     wrappedIndependentMirrorHtml,
-} from './request.js?rmv=1.5.70';
+} from './request.js?rmv=1.5.71';
 import {
     DEFERRED_INTERACTION_RESCUE_ATTR,
     INDEPENDENT_CONTENT_WIDTH_BASELINE_ATTR,
@@ -240,7 +240,7 @@ import {
     showIndependentResayStatus,
     transferExternalTools,
     usableReadyDetails,
-} from './geometry.js?rmv=1.5.70';
+} from './geometry.js?rmv=1.5.71';
 import {
     assertEarlyBodyOwner,
     automaticHostGenerationMayUseTools,
@@ -254,7 +254,7 @@ import {
     scheduleStartupHistorySync,
     suppressesAutomaticGeneration,
     unlockAutomaticGenerationCutover,
-} from './earlyBody.js?rmv=1.5.70';
+} from './earlyBody.js?rmv=1.5.71';
 import {
     automaticGenerationCutovers,
     backgroundLifecycleListenersInstalled,
@@ -276,7 +276,7 @@ import {
     writeHostGenerationInProgress,
     writeIndependentActionBridge,
     writeLastAppliedIndependentTiming,
-} from './lifecycle.js?rmv=1.5.70';
+} from './lifecycle.js?rmv=1.5.71';
 
 let generationSequence = 0;
 
@@ -1208,7 +1208,7 @@ export function ensureGenerationPlaceholderForIndex(index,waitingForBody=true){
  if(!currentRuntime() || runtimeMode()!=='independent') return null;
  const live=currentGenerationIdentity(index); const el=messageElement(index);
  if(!live || !el) return null;
- if(suppressesAutomaticGeneration(live.ctx,index) || hasExistingFollowRabbitMirror(live.ctx,index,live.msg)) return null;
+ if(hasExistingFollowRabbitMirror(live.ctx,index,live.msg)) return null;
  const store=readStore();
  const recovered=recoverSavedRecord(store,live.slot,live);
  if(recovered.storeChanged) writeStore(store);
@@ -1218,6 +1218,7 @@ export function ensureGenerationPlaceholderForIndex(index,waitingForBody=true){
  const preciseFailure=automaticFailureStopFor(live.slot,live.sourceHash);
  if(preciseFailure) return renderAutomaticFailureStop(index,live,preciseFailure)||existing;
  if(existing?.dataset?.rmState==='error' && String(existing.dataset.rmSourceHash||'')===String(live.sourceHash||'')) return existing;
+ if(suppressesAutomaticGeneration(live.ctx,index)) return existing||null;
  return ensureReplyGenerationPlaceholder(el,live.key,live.sourceHash,waitingForBody);
 }
 
@@ -2034,7 +2035,7 @@ function showIndependentHistory(root,owner={}){
 
 export function resayIndependentMirror(root,owner={}){
  if(getSettings().generationSource==='follow'){
-  void import('../followFaceRetry.js?rmv=1.5.70').then(({retryFollowFace})=>retryFollowFace(root,owner,{
+  void import('../followFaceRetry.js?rmv=1.5.71').then(({retryFollowFace})=>retryFollowFace(root,owner,{
    getContext,hostBusy:hostGenerationLooksActive,maxRequestChars:MAX_INDEPENDENT_REQUEST_CHARS,
    resolveOwner:target=>{
     const host=target?.closest?.('[data-rabbit-mirror-external-source="true"][data-rm-source="follow"]');

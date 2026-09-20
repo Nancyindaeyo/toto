@@ -1,27 +1,27 @@
-import { SETTINGS_UI_VERSION, RUNTIME_VERSION, escapeHtml, isCurrentRuntime } from './ui/runtime.js?rmv=1.5.70';
-import { buildRabbitMirrorSettingsDialogHtml, buildWorldInfoPromptModalHtml, buildTagFilterModalHtml } from './ui/settingsTemplate.js?rmv=1.5.70';
-import { attachIndependentApiDiagnosticListener, attachTokenMeterListener, renderIndependentApiDiagnostic, renderTokenMeter } from './ui/tokenMeter.js?rmv=1.5.70';
-import { attachWorldInfoBooksListener, clearCollapsedAllWorldInfoBookRows, clearPulledWorldInfoBooks, installWorldInfoBookVisibilityObserver, pullAllWorldInfoBooks, renderWorldInfoBookSettings, resetWorldInfoBookUiState } from './ui/worldInfoBooks.js?rmv=1.5.70';
-import { installTtDiagnosticEntry } from './ui/ttDiagnostics.js?rmv=1.5.70';
+import { SETTINGS_UI_VERSION, RUNTIME_VERSION, escapeHtml, isCurrentRuntime } from './ui/runtime.js?rmv=1.5.71';
+import { buildRabbitMirrorSettingsDialogHtml, buildWorldInfoPromptModalHtml, buildTagFilterModalHtml } from './ui/settingsTemplate.js?rmv=1.5.71';
+import { attachIndependentApiDiagnosticListener, attachTokenMeterListener, renderIndependentApiDiagnostic, renderTokenMeter } from './ui/tokenMeter.js?rmv=1.5.71';
+import { attachWorldInfoBooksListener, clearCollapsedAllWorldInfoBookRows, clearPulledWorldInfoBooks, installWorldInfoBookVisibilityObserver, pullAllWorldInfoBooks, renderWorldInfoBookSettings, resetWorldInfoBookUiState } from './ui/worldInfoBooks.js?rmv=1.5.71';
+import { installTtDiagnosticEntry } from './ui/ttDiagnostics.js?rmv=1.5.71';
 
 import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-visualquick1';
-import { DEFAULT_INDEPENDENT_CONTEXT_EXCLUDED_TAGS, DEFAULT_VISUAL_PROMPT, INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT, RABBIT_MIRROR_BANNED_WORD_MAX_COUNT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, normalizeRabbitMirrorBannedWords, updateSettings, resetSettings } from './settings.js?rmv=1.5.60-fork1';
+import { DEFAULT_INDEPENDENT_CONTEXT_EXCLUDED_TAGS, DEFAULT_VISUAL_PROMPT, INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT, RABBIT_MIRROR_BANNED_WORD_MAX_COUNT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS, getSettings, normalizeIndependentContextExcludedTags, normalizeRabbitMirrorBannedWords, updateSettings, resetSettings } from './settings.js?rmv=1.5.71';
 import { clearLastCombo, getCurrentChatKey } from './storage.js?rmv=1.5.53-visualquick1';
 import { normalizeEarlyBodyTags } from './earlyBodyTags.js?rmv=1.5.53-cn-boundary1';
 import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
-import { applyRabbitMirrorHostSurface } from './hostCompatibility.js?rmv=1.5.58-fork1';
+import { applyRabbitMirrorHostSurface } from './hostCompatibility.js?rmv=1.5.71';
 import { DEFAULT_BEHAVIOR_RULE_TEXT, resolveBehaviorRuleText } from './behaviorRules.js?rmv=1.5.53-cn-boundary1';
 import { clearRecentIndependentTransportDiagnostics } from './transportDiagnostics.js?rmv=1.5.53-cn-boundary1';
 import { parseIndependentAdvancedOptions } from './advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
 import { parseRabbitMirrorReplacementLines, formatRabbitMirrorReplacementLines } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { clearRabbitMirrorPrompt, startManualEntryDiagnostic, stopManualEntryDiagnostic, getManualEntryDiagnosticState } from './injector.js?rmv=1.5.53-image1';
 import { clearFeedbackCatExtensionPrompt, getActiveFeedbackForCurrentChat, syncFeedbackCatExtensionPrompt } from './feedbackCat.js?rmv=1.5.53-cn-boundary1';
-import { configureMaintenanceAutoSafeMode, refreshMaintenanceRabbits } from './outputSanitizer.js?rmv=1.5.70';
+import { configureMaintenanceAutoSafeMode, refreshMaintenanceRabbits } from './outputSanitizer.js?rmv=1.5.71';
 import { scanMemoryPlugins, testMemoryProvider } from './memoryScanner.js?rmv=1.5.53-cn-boundary1';
-import { fetchIndependentModels, getIndependentConnectionProfiles, getIndependentSavedModels, getLastIndependentModelListDiagnostic, hydrateIndependentFavoriteHtml, importCurrentSillyTavernConnection, refreshRabbitMirrorGenerationMode, scanCurrentChatIndependentContextTags, testIndependentConnection } from './independentApi.js?rmv=1.5.70';
+import { fetchIndependentModels, getIndependentConnectionProfiles, getIndependentSavedModels, getLastIndependentModelListDiagnostic, hydrateIndependentFavoriteHtml, importCurrentSillyTavernConnection, listMissingIndependentRetryFloors, refreshRabbitMirrorGenerationMode, resyncMissingIndependentRetryShells, scanCurrentChatIndependentContextTags, testIndependentConnection } from './independentApi.js?rmv=1.5.71';
 import { configureRabbitMirrorNoSendRegex, inspectRabbitMirrorNoSendRegex, openSillyTavernRegexSettings } from './regexConfigurator.js?rmv=1.5.53-cn-boundary1';
 import { BLACKLIST_CHANGED_EVENT, blacklistEntries, blacklistPoolStats, clearBlacklist, removeBlacklistItem, setBlacklistEnabled, favoriteEntries, removeFavoriteItem, setFavoriteMultiplier, clearFavorites } from './blacklist.js?rmv=1.5.53-image1';
-import { THEATER_FAVORITES_CHANGED_EVENT, deleteTheaterFavorite, groupTheaterFavoritesByCharacter, listTheaterFavorites, openTheaterFavoriteLibrary, openTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.70';
+import { THEATER_FAVORITES_CHANGED_EVENT, deleteTheaterFavorite, groupTheaterFavoritesByCharacter, listTheaterFavorites, openTheaterFavoriteLibrary, openTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.71';
 
 import { mountSettingsAppearance, destroySettingsAppearance } from './settingsAppearance.js?rmv=1.5.60-fork1';
 
@@ -399,6 +399,7 @@ export function initRabbitMirrorUI() {
     $(`input[name="rh_generation_source"][value="${settings.generationSource || 'follow'}"]`).prop('checked', true);
     $(`input[name="rh_follow_display"][value="${settings.followDisplayMode || 'inline'}"]`).prop('checked', true);
     $(`input[name="rh_independent_display"][value="${settings.independentDisplayMode || 'external'}"]`).prop('checked', true);
+    $('#rh_missing_shell_range').val(String(settings.missingShellScanRange || 10));
     $('#rh_independent_base').val(settings.independentApiBaseUrl || '');
     $('#rh_independent_key').val(settings.independentApiKey || '');
     $('#rh_independent_temperature').val(settings.independentApiTemperature ?? 0.8);
@@ -579,7 +580,14 @@ export function initRabbitMirrorUI() {
         $('#rh_independent_mode_status').text(independent
             ? `当前副 API：${{ auto: '自动生成', manual: '手动生成', off: '关闭' }[timing]}。${timingDescriptions[timing]}`
             : `当前使用“跟随当前 API”；标签隔离${current.followTagIsolationEnabled === true ? '已开启' : '未开启'}，其余独立 API 设置可提前配置。`);
+        renderMissingShellReport();
     };
+    function renderMissingShellReport() {
+        const target = document.getElementById('rh_missing_shell_report');
+        if (!target) return;
+        try { target.textContent = listMissingIndependentRetryFloors().text; }
+        catch { target.textContent = '当前聊天还不能检查缺壳楼层。'; }
+    }
     syncGenerationModeFields();
     renderIndependentApiDiagnostic();
     attachIndependentApiDiagnosticListener();
@@ -964,6 +972,18 @@ export function initRabbitMirrorUI() {
     });
     $('input[name="rh_follow_display"]').on('change', e => { updateSettings({ followDisplayMode: e.target.value === 'external' ? 'external' : 'inline' }); refreshRabbitMirrorGenerationMode(); });
     $('input[name="rh_independent_display"]').on('change', e => { updateSettings({ independentDisplayMode: e.target.value === 'external_then_inline' ? 'external_then_inline' : 'external' }); refreshRabbitMirrorGenerationMode(); });
+    $('#rh_missing_shell_range').on('change', e => {
+        updateSettings({ missingShellScanRange: e.target.value });
+        const listed = resyncMissingIndependentRetryShells();
+        const target = document.getElementById('rh_missing_shell_report');
+        if (target) target.textContent = listed.text;
+    });
+    $('#rh_missing_shell_rescan').on('click', () => {
+        const listed = resyncMissingIndependentRetryShells();
+        const target = document.getElementById('rh_missing_shell_report');
+        if (target) target.textContent = listed.text;
+        toastr?.info?.(listed.floors.length ? `已检查到 ${listed.floors.length} 楼缺外壳。` : listed.text);
+    });
     $('#rh_independent_read_global_world_info').on('change', e => {
         updateSettings({ independentReadGlobalWorldInfo: e.target.checked === true });
         toastr?.info?.(e.target.checked ? '已开启世界书读取，从下一轮生效。' : '已关闭世界书读取，从下一轮生效。');

@@ -1,8 +1,8 @@
 // Split from ui.js — settings HTML strings only.
 
-import { INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS } from '../settings.js?rmv=1.5.60-fork1';
+import { INDEPENDENT_CONTEXT_EXCLUDED_TAG_MAX_COUNT, VISUAL_AVOID_PROMPT_MAX_CHARS, VISUAL_EXTRA_PROMPT_MAX_CHARS, VISUAL_PROMPT_MAX_CHARS } from '../settings.js?rmv=1.5.71';
 import { BEHAVIOR_RULE_MAX_CHARS } from '../behaviorRules.js?rmv=1.5.53-cn-boundary1';
-import { RUNTIME_VERSION, SETTINGS_UI_VERSION } from './runtime.js?rmv=1.5.70';
+import { RUNTIME_VERSION, SETTINGS_UI_VERSION } from './runtime.js?rmv=1.5.71';
 
 export function buildRabbitMirrorSettingsDialogHtml() {
     return `
@@ -106,6 +106,17 @@ export function buildRabbitMirrorSettingsDialogHtml() {
               <label><input name="rh_independent_display" type="radio" value="external_then_inline"> ② 外置后内嵌</label>
             </div>
               <div style="opacity:.66;font-size:11px;line-height:1.45;margin-top:6px;">只决定副 API 成品显示在哪里，不改变提示词、美化规则或模型。</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid color-mix(in srgb,currentColor 12%,transparent);">
+                <label for="rh_missing_shell_range" style="display:block;font-weight:700;font-size:12px;margin-bottom:6px;">缺壳扫描范围</label>
+                <select id="rh_missing_shell_range" class="text_pole" style="max-width:220px;">
+                  <option value="10">最近 10 楼</option>
+                  <option value="20">最近 20 楼</option>
+                  <option value="all">全部助手回复</option>
+                </select>
+                <p class="rabbit-mirror-subnote" style="margin:6px 0 8px;opacity:.72;font-size:11px;line-height:1.45;">网络中断或闪退后，范围内缺外壳的助手回复下面会挂失败卡，不自动再发请求。TT 端外壳挂在正文栏下方，不能作为 #chat 的兄弟节点。</p>
+                <div id="rh_missing_shell_report" style="padding:7px 9px;border-left:2px solid color-mix(in srgb,var(--SmartThemeBorderColor) 65%,transparent);opacity:.78;font-size:11px;line-height:1.5;word-break:break-word;">打开设置后检查当前聊天。</div>
+                <button id="rh_missing_shell_rescan" class="menu_button" type="button" style="margin-top:6px;">重新检查缺壳楼层</button>
+              </div>
               <div style="opacity:.72;font-size:11px;line-height:1.5;margin-top:8px;">副 API 本轮若没有可用鲜兔镜，会按「自动重 roll 次数」自动再发（默认 2 次，合计请求 = 1 + 该次数）。0 表示失败后不再自动重发。已出的 ready 镜面不会被失败卡盖掉。</div>
             </div>
             <div style="padding:9px 10px;border:1px solid color-mix(in srgb, currentColor 16%, transparent);border-radius:9px;">

@@ -2,7 +2,8 @@ import { normalizePresentationModes } from './presentationMode.js?rmv=1.5.53-vis
 import { extension_settings } from '../../../../extensions.js';
 import { saveSettingsDebounced } from '../../../../../script.js';
 import { independentGenerationTiming } from './independentTiming.js?rmv=1.5.53-timing1';
-import { AUTOMATIC_REROLL_DEFAULT, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.5.70';
+import { AUTOMATIC_REROLL_DEFAULT, normalizeAutomaticRerollMax } from './automaticReroll.js?rmv=1.5.71';
+import { normalizeMissingShellScanRange } from './independentApi/missingRetryShell.js?rmv=1.5.71';
 
 export const MODULE_NAME = 'rabbit_mirror_theater';
 
@@ -144,6 +145,7 @@ export const defaultSettings = Object.freeze({
     independentReadCharacterCardSummary: true,
     independentReadPersonaSummary: true,
     independentDisplayMode: 'external',
+    missingShellScanRange: 10,
     independentReadGlobalWorldInfo: false,
     independentWorldInfoDisabledBooks: [],
     samplingMode: 'classic',
@@ -221,6 +223,7 @@ export function getSettings() {
     if (!['follow', 'independent'].includes(settings.generationSource)) settings.generationSource = 'follow';
     if (!['inline', 'external'].includes(settings.followDisplayMode)) settings.followDisplayMode = 'inline';
     if (!['external', 'external_then_inline'].includes(settings.independentDisplayMode)) settings.independentDisplayMode = 'external';
+    settings.missingShellScanRange = normalizeMissingShellScanRange(settings.missingShellScanRange);
     settings.independentReadGlobalWorldInfo = settings.independentReadGlobalWorldInfo === true;
     settings.independentConnectionProfileId = String(settings.independentConnectionProfileId || '').trim().slice(0, 160);
     settings.independentWorldInfoDisabledBooks = [...new Set((Array.isArray(settings.independentWorldInfoDisabledBooks) ? settings.independentWorldInfoDisabledBooks : [])
@@ -385,6 +388,9 @@ export function updateSettings(patch) {
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentEarlyBodyChatKey')) safePatch.independentEarlyBodyChatKey = String(safePatch.independentEarlyBodyChatKey || '').slice(0, 2048);
     if (Object.prototype.hasOwnProperty.call(safePatch, 'independentAutomaticRerollMax')) {
         safePatch.independentAutomaticRerollMax = normalizeAutomaticRerollMax(safePatch.independentAutomaticRerollMax);
+    }
+    if (Object.prototype.hasOwnProperty.call(safePatch, 'missingShellScanRange')) {
+        safePatch.missingShellScanRange = normalizeMissingShellScanRange(safePatch.missingShellScanRange);
     }
     if (Object.prototype.hasOwnProperty.call(safePatch, 'behaviorRuleMode')) safePatch.behaviorRuleMode = ['always', 'off', 'adult-only'].includes(safePatch.behaviorRuleMode) ? safePatch.behaviorRuleMode : 'always';
     if (Object.prototype.hasOwnProperty.call(safePatch, 'behaviorRuleText')) safePatch.behaviorRuleText = safePatch.behaviorRuleText == null ? null : String(safePatch.behaviorRuleText).replace(/\u0000/g, '').slice(0, 20000);

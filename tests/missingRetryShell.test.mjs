@@ -3,8 +3,12 @@ import assert from 'node:assert/strict';
 import {
     MISSING_INDEPENDENT_RETRY_SHELL_LIMIT,
     MISSING_INDEPENDENT_RETRY_SHELL_MESSAGE,
-    isRecentAssistantIndex,
+    MISSING_SHELL_SCAN_RANGE_ALL,
+    assistantRowsInScanRange,
+    formatMissingShellReport,
     hasUsableAssistantBody,
+    isRecentAssistantIndex,
+    normalizeMissingShellScanRange,
     shouldRestoreMissingIndependentRetryShell,
 } from '../src/independentApi/missingRetryShell.js';
 
@@ -14,8 +18,20 @@ const allowed = {
     hasMessageBody: true,
 };
 
-test('recent assistant window stays at the startup sync bound', () => {
-    assert.equal(MISSING_INDEPENDENT_RETRY_SHELL_LIMIT, 6);
+test('scan range defaults to ten assistant floors and can cover the whole chat', () => {
+    assert.equal(MISSING_INDEPENDENT_RETRY_SHELL_LIMIT, 10);
+    assert.equal(normalizeMissingShellScanRange(undefined), 10);
+    assert.equal(normalizeMissingShellScanRange(6), 10);
+    assert.equal(normalizeMissingShellScanRange(20), 20);
+    assert.equal(normalizeMissingShellScanRange('all'), MISSING_SHELL_SCAN_RANGE_ALL);
+    const rows = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(i => ({ i, m: { mes: String(i) } }));
+    assert.deepEqual(assistantRowsInScanRange(rows, 10).map(row => row.i), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    assert.equal(assistantRowsInScanRange(rows, 'all').length, 12);
+    assert.match(formatMissingShellReport({ range: 10, floors: [{ index: 8 }, { index: 11 }] }), /#8、#11/);
+    assert.match(formatMissingShellReport({ range: 'all', floors: [] }), /没有缺外壳/);
+});
+
+test('recent assistant window uses the selected scan rows', () => {
     assert.equal(isRecentAssistantIndex([{ i: 2 }, { i: 5 }], 5), true);
     assert.equal(isRecentAssistantIndex([{ i: 2 }, { i: 5 }], 4), false);
     assert.equal(isRecentAssistantIndex(null, 5), false);

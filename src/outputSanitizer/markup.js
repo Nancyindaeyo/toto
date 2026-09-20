@@ -1,6 +1,6 @@
 // Split from outputSanitizer.js — markup.
 
-import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
+import { getSettings } from '../settings.js?rmv=1.5.71';
 import { applyRabbitMirrorBannedWordsToDom } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import {
     EXTERNAL_REFERENCE_NOTE_ATTR,
@@ -13,7 +13,7 @@ import {
     clearMirrorTitleDisplayArtifacts,
     escapeRegExp,
     hashInteractionSignature,
-} from './runtime.js?rmv=1.5.70';
+} from './runtime.js?rmv=1.5.71';
 
 const TOTO_BLOCK_RE = /<toto\b[\s\S]*?<\/toto>/gi;
 

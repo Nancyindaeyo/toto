@@ -1,12 +1,12 @@
 // Split from independentApi.js — connection.
 
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages } from '../hostCompatibility.js?rmv=1.5.58-fork1';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages } from '../hostCompatibility.js?rmv=1.5.71';
 import {
     WORLD_INFO_BOOK_NAME_MAX_CHARS,
     getSettings,
     normalizeIndependentContextExcludedTags,
     updateSettings,
-} from '../settings.js?rmv=1.5.60-fork1';
+} from '../settings.js?rmv=1.5.71';
 import { fetchRabbitMirrorIndependentCompletion } from '../independentSecurityGuard.js?rmv=1.5.53-cn-boundary1';
 import { buildIndependentAdvancedCarrier, applyIndependentAdvancedExclusions } from '../advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
 import { describeBatchPlanFailure } from '../externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
@@ -18,8 +18,8 @@ import {
     RUNTIME_VERSION,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.70';
-import { HOST_GENERATION_EVENT_HINT_MS, operationEpochForBase } from './flights.js?rmv=1.5.70';
+} from './runtime.js?rmv=1.5.71';
+import { HOST_GENERATION_EVENT_HINT_MS, operationEpochForBase } from './flights.js?rmv=1.5.71';
 import {
     OWNER_LOCK_STORE_KEY,
     apiProfileKey,
@@ -31,12 +31,12 @@ import {
     writeApiProfileStore,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.70';
+} from './persistence.js?rmv=1.5.71';
 import {
     hasExplicitSourceReplacementEvidence,
     independentStoredHtmlLightRestorable,
     independentStoredHtmlRestorable,
-} from './geometry.js?rmv=1.5.70';
+} from './geometry.js?rmv=1.5.71';
 import {
     activeIndependentFlightForBase,
     messageSourceRevisions,
@@ -44,13 +44,13 @@ import {
     passiveObservedIdentity,
     runtimeMode,
     showIndependentUnsavedOutput,
-} from './mount.js?rmv=1.5.70';
+} from './mount.js?rmv=1.5.71';
 import {
     hostGenerationHintStartedAt,
     hostGenerationInProgress,
     writeHostGenerationHintStartedAt,
     writeHostGenerationInProgress,
-} from './lifecycle.js?rmv=1.5.70';
+} from './lifecycle.js?rmv=1.5.71';
 
 export const API_PROFILE_STORE_KEY = 'rabbit_mirror_independent_api_profiles_v1';
 
