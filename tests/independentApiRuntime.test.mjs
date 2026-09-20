@@ -19,7 +19,7 @@ function loadRuntime() {
 
 test('independentApi runtime loads without flights, connection, or the barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.68');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.69');
     assert.equal(typeof loaded.byteLength, 'function');
     assert.equal(typeof loaded.flightIdentity, 'undefined');
     assert.equal(typeof loaded.initIndependentRabbitMirror, 'undefined');
@@ -46,6 +46,17 @@ test('connection profile helpers stay with the documented connection cut', () =>
     assert.doesNotMatch(source, /export \{[^}]*API_REQUEST_DIAGNOSTIC_EVENT/);
     assert.match(source, /export async function scanCurrentChatIndependentContextTags\(/);
     assert.match(source, /export const API_REQUEST_DIAGNOSTIC_EVENT/);
+});
+
+test('missing retry shell is a standalone decision helper used by earlyBody sync', () => {
+    const helper = readFileSync(new URL('../src/independentApi/missingRetryShell.js', import.meta.url), 'utf8');
+    const earlyBody = readFileSync(new URL('../src/independentApi/earlyBody.js', import.meta.url), 'utf8');
+    const mount = readFileSync(new URL('../src/independentApi/mount.js', import.meta.url), 'utf8');
+    assert.match(helper, /export function shouldRestoreMissingIndependentRetryShell\(/);
+    assert.doesNotMatch(helper, /ensureExternalUi|generateFor/);
+    assert.match(earlyBody, /shouldRestoreMissingIndependentRetryShell\(/);
+    assert.match(earlyBody, /missing-external-shell/);
+    assert.match(mount, /if\(preciseFailure\) return renderAutomaticFailureStop\(/);
 });
 
 test('geometry module owns face auto-width and remeasure', () => {

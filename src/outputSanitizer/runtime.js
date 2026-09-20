@@ -2,7 +2,7 @@
 
 import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
 
-export const RUNTIME_VERSION = '1.5.68';
+export const RUNTIME_VERSION = '1.5.69';
 
 export const RUNTIME_VERSION_ATTR = 'data-rabbit-mirror-runtime-version';
 

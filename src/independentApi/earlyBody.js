@@ -6,6 +6,11 @@ import { getSettings } from '../settings.js?rmv=1.5.60-fork1';
 import { independentGenerationTiming } from '../independentTiming.js?rmv=1.5.53-timing1';
 import { independentAdvancedOptionsSignature } from '../advancedRequestOptions.js?rmv=1.5.53-cn-boundary1';
 import {
+    MISSING_INDEPENDENT_RETRY_SHELL_LIMIT,
+    MISSING_INDEPENDENT_RETRY_SHELL_MESSAGE,
+    shouldRestoreMissingIndependentRetryShell,
+} from './missingRetryShell.js?rmv=1.5.69';
+import {
     INDEPENDENT_GENERATION_INTENTS_KEY,
     INDEPENDENT_GENERATION_INTENT_TYPES,
     INDEPENDENT_GENERATION_STOPS_KEY,
@@ -14,7 +19,7 @@ import {
     currentRuntime,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.68';
+} from './runtime.js?rmv=1.5.69';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_POLL_INTERVAL_MS,
@@ -28,7 +33,7 @@ import {
     markAutomaticFailureStop,
     operationEpochForBase,
     pending,
-} from './flights.js?rmv=1.5.68';
+} from './flights.js?rmv=1.5.69';
 import {
     appendHistoryEntry,
     chatPersistenceSlot,
@@ -38,7 +43,7 @@ import {
     synchronizeIndependentChatPersistence,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.68';
+} from './persistence.js?rmv=1.5.69';
 import {
     activeGlobalWorldInfoCapture,
     assistantMessages,
@@ -87,14 +92,14 @@ import {
     withOwnerLockStoreBatch,
     writeActiveGlobalWorldInfoCapture,
     writeHostModule,
-} from './connection.js?rmv=1.5.68';
+} from './connection.js?rmv=1.5.69';
 import {
     allExternalHosts,
     externalHosts,
     removeEmptyFollowExternalAnchors,
     removeEmptyInlineAnchors,
     withExternalHostSyncIndex,
-} from './request.js?rmv=1.5.68';
+} from './request.js?rmv=1.5.69';
 import {
     beginHostWorkTiming,
     clearExternalHostFreshSourceState,
@@ -127,7 +132,7 @@ import {
     setPlaceholderSummary,
     usableReadyDetails,
     withRestorableHtmlCacheBatch,
-} from './geometry.js?rmv=1.5.68';
+} from './geometry.js?rmv=1.5.69';
 import {
     INDEPENDENT_INTENT_OWNER,
     abortFlight,
@@ -181,7 +186,7 @@ import {
     serializeExternalFaceDetails,
     stampAutomaticAuthorizationEpoch,
     withHistoricalRestoreLightPass,
-} from './mount.js?rmv=1.5.68';
+} from './mount.js?rmv=1.5.69';
 import {
     automaticGenerationCutovers,
     hostGenerationHintStartedAt,
@@ -206,7 +211,7 @@ import {
     writeStartupHistoryFallbackRoot,
     writeSyncRunning,
     writeSyncTimer,
-} from './lifecycle.js?rmv=1.5.68';
+} from './lifecycle.js?rmv=1.5.69';
 
 let earlyBodyParserPromise=null;
 
@@ -1034,6 +1039,9 @@ function syncMessagesCore(indices=null){
    const tailIndex=Array.isArray(ctx.chat)?ctx.chat.length-1:-1;
    const tailMessage=tailIndex>=0?ctx.chat?.[tailIndex]:null;
     const activeGenerationIndex=generationActive && isRabbitMirrorEligibleAssistantMessage(tailMessage) ? tailIndex : -1;
+    const recentRetryIndices=mode==='independent'
+     ? new Set(recentAssistantMessages(ctx,MISSING_INDEPENDENT_RETRY_SHELL_LIMIT).map(row=>Number(row.i)).filter(n=>Number.isInteger(n)&&n>=0))
+     : null;
     const rows=allowed
      ? [...allowed].sort((a,b)=>a-b).map(i=>({m:ctx.chat?.[i],i})).filter(({m})=>isRabbitMirrorEligibleAssistantMessage(m))
     : assistantMessages(ctx);
@@ -1128,6 +1136,25 @@ function syncMessagesCore(indices=null){
          // them. Actual replacement happens only when a new generation starts.
          saved=null;
        }
+        // Crash / network / TT unmount can leave a recent floor with no shell.
+        // Record the same in-session failure stop used by real errors so the
+        // existing terminal UI path can remount a retry card. Never POST here.
+        if(!saved?.html && !keep && !activeBaseFlight && !persistedSuppressed && !automaticGenerationSuppressed
+         && !automaticFailureStopFor(slot,sourceHash)
+         && shouldRestoreMissingIndependentRetryShell({
+          timing:independentGenerationTiming(st),
+          isRecentAssistant:recentRetryIndices?.has(i)===true,
+          hasMessageBody:!!String(m?.mes||'').trim(),
+          isActiveGenerationTarget,
+          quickWaiting,
+         })){
+          markAutomaticFailureStop(slot,sourceHash,'missing-external-shell',{
+           baseSlot,
+           operationEpoch:operationEpochForBase(baseSlot),
+           message:MISSING_INDEPENDENT_RETRY_SHELL_MESSAGE,
+           code:'missing-external-shell',
+          });
+         }
         const passiveFailure=!saved?.html && !persistedSuppressed && !activeBaseFlight
           && (!keep || keep.dataset?.rmState==='error')
           ? passiveIndependentFailureForIdentity(ctx,i,m,keep) : null;
