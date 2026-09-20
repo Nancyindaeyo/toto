@@ -1,5 +1,7 @@
 // Visible floors that lost their external shell cannot retry: the button lives
-// on that shell. Restore a terminal error card, never an automatic POST.
+// on that shell. Restore a terminal error card below that assistant reply.
+// Automatic-generation authorization must never gate this UI: after a crash
+// there is no cutover, and that is exactly when the retry card is needed.
 
 export const MISSING_INDEPENDENT_RETRY_SHELL_LIMIT = 6;
 
@@ -11,20 +13,24 @@ export function isRecentAssistantIndex(recentRows, index) {
     return recentRows.some(row => Number(row?.i) === id);
 }
 
+export function hasUsableAssistantBody(message) {
+    return !!(String(message?.mes || '').trim() || String(message?.extra?.display_text || '').trim());
+}
+
 export function shouldRestoreMissingIndependentRetryShell({
     timing = '',
     hasSavedHtml = false,
     persistedDeleted = false,
     hasHost = false,
     hasActiveFlight = false,
-    automaticSuppressed = false,
-    isRecentAssistant = false,
+    hasFollowMirror = false,
+    isTargetFloor = false,
     hasMessageBody = false,
     isActiveGenerationTarget = false,
     quickWaiting = false,
 } = {}) {
     if (timing !== 'auto' && timing !== 'manual') return false;
-    if (hasSavedHtml || persistedDeleted || hasHost || hasActiveFlight || automaticSuppressed) return false;
+    if (hasSavedHtml || persistedDeleted || hasHost || hasActiveFlight || hasFollowMirror) return false;
     if (isActiveGenerationTarget || quickWaiting) return false;
-    return !!(isRecentAssistant && hasMessageBody);
+    return !!(isTargetFloor && hasMessageBody);
 }

@@ -9,7 +9,7 @@ import {
     MISSING_INDEPENDENT_RETRY_SHELL_LIMIT,
     MISSING_INDEPENDENT_RETRY_SHELL_MESSAGE,
     shouldRestoreMissingIndependentRetryShell,
-} from './missingRetryShell.js?rmv=1.5.69';
+} from './missingRetryShell.js?rmv=1.5.70';
 import {
     INDEPENDENT_GENERATION_INTENTS_KEY,
     INDEPENDENT_GENERATION_INTENT_TYPES,
@@ -19,7 +19,7 @@ import {
     currentRuntime,
     getContext,
     hashText,
-} from './runtime.js?rmv=1.5.69';
+} from './runtime.js?rmv=1.5.70';
 import {
     ACTIVE_GENERATION_WAIT_MS,
     FINAL_RENDER_POLL_INTERVAL_MS,
@@ -33,7 +33,7 @@ import {
     markAutomaticFailureStop,
     operationEpochForBase,
     pending,
-} from './flights.js?rmv=1.5.69';
+} from './flights.js?rmv=1.5.70';
 import {
     appendHistoryEntry,
     chatPersistenceSlot,
@@ -43,7 +43,7 @@ import {
     synchronizeIndependentChatPersistence,
     writePersistedOwner,
     writeStore,
-} from './persistence.js?rmv=1.5.69';
+} from './persistence.js?rmv=1.5.70';
 import {
     activeGlobalWorldInfoCapture,
     assistantMessages,
@@ -92,14 +92,14 @@ import {
     withOwnerLockStoreBatch,
     writeActiveGlobalWorldInfoCapture,
     writeHostModule,
-} from './connection.js?rmv=1.5.69';
+} from './connection.js?rmv=1.5.70';
 import {
     allExternalHosts,
     externalHosts,
     removeEmptyFollowExternalAnchors,
     removeEmptyInlineAnchors,
     withExternalHostSyncIndex,
-} from './request.js?rmv=1.5.69';
+} from './request.js?rmv=1.5.70';
 import {
     beginHostWorkTiming,
     clearExternalHostFreshSourceState,
@@ -132,7 +132,7 @@ import {
     setPlaceholderSummary,
     usableReadyDetails,
     withRestorableHtmlCacheBatch,
-} from './geometry.js?rmv=1.5.69';
+} from './geometry.js?rmv=1.5.70';
 import {
     INDEPENDENT_INTENT_OWNER,
     abortFlight,
@@ -186,7 +186,7 @@ import {
     serializeExternalFaceDetails,
     stampAutomaticAuthorizationEpoch,
     withHistoricalRestoreLightPass,
-} from './mount.js?rmv=1.5.69';
+} from './mount.js?rmv=1.5.70';
 import {
     automaticGenerationCutovers,
     hostGenerationHintStartedAt,
@@ -211,7 +211,7 @@ import {
     writeStartupHistoryFallbackRoot,
     writeSyncRunning,
     writeSyncTimer,
-} from './lifecycle.js?rmv=1.5.69';
+} from './lifecycle.js?rmv=1.5.70';
 
 let earlyBodyParserPromise=null;
 
@@ -1136,15 +1136,18 @@ function syncMessagesCore(indices=null){
          // them. Actual replacement happens only when a new generation starts.
          saved=null;
        }
-        // Crash / network / TT unmount can leave a recent floor with no shell.
-        // Record the same in-session failure stop used by real errors so the
-        // existing terminal UI path can remount a retry card. Never POST here.
-        if(!saved?.html && !keep && !activeBaseFlight && !persistedSuppressed && !automaticGenerationSuppressed
+        // Crash / network / TT unmount leave no cutover authorization.
+        // That flag correctly blocks automatic POST, but must not block the
+        // retry card that sits under this assistant reply. Never POST here.
+        const followMirror=hasExistingFollowRabbitMirror(ctx,i,m);
+        const isTargetFloor=recentRetryIndices?.has(i)===true || allowed?.has(Number(i))===true;
+        if(!saved?.html && (!keep || keep.dataset?.rmState==='loading') && !activeBaseFlight && !persistedSuppressed && !followMirror
          && !automaticFailureStopFor(slot,sourceHash)
          && shouldRestoreMissingIndependentRetryShell({
           timing:independentGenerationTiming(st),
-          isRecentAssistant:recentRetryIndices?.has(i)===true,
-          hasMessageBody:!!String(m?.mes||'').trim(),
+          hasFollowMirror:followMirror,
+          isTargetFloor,
+          hasMessageBody:!!(String(m?.mes||'').trim() || String(m?.extra?.display_text||'').trim()),
           isActiveGenerationTarget,
           quickWaiting,
          })){
@@ -1167,13 +1170,18 @@ function syncMessagesCore(indices=null){
           // that exact owner shell; do not schedule or dispatch another request.
           keep=ensureExternalUi(el,key,'正在读取当前上下文并生成兔子镜……','loading','independent',sourceHash);
           if(keep) activeBaseFlight.loadingHost=keep;
-        } else if(!saved?.html && !activeBaseFlight && !persistedSuppressed && !automaticGenerationSuppressed
+        } else if(!saved?.html && !activeBaseFlight && !persistedSuppressed && !followMirror
           && (!keep || keep.dataset?.rmState==='loading') && automaticFailureStopFor(slot,sourceHash)){
-          // Passive DOM replacement must restore the exact terminal state, never
-          // schedule a request or turn the previous failure back into waiting.
+          // Place the terminal card under this assistant reply even when the
+          // crash left no generation authorization. Never schedule a request.
           const live=currentGenerationIdentity(i);
-          if(live?.slot===slot && live.sourceHash===sourceHash){
-           keep=renderAutomaticFailureStop(i,live,automaticFailureStopFor(slot,sourceHash));
+          const failure=automaticFailureStopFor(slot,sourceHash);
+          keep=(live?.slot===slot && live.sourceHash===sourceHash ? renderAutomaticFailureStop(i,live,failure) : null)
+           || ensureExternalUi(el,key,failure?.message||MISSING_INDEPENDENT_RETRY_SHELL_MESSAGE,'error','independent',sourceHash);
+          if(keep){
+           keep.hidden=false;
+           keep.dataset.rmMissingShellRetry=failure?.code==='missing-external-shell'?'true':'false';
+           placeExternalHost(el,keep,keep.dataset.rmKey||key,'independent');
           }
         } else if(!saved?.html && !keep && !persistedSuppressed && (isActiveGenerationTarget && !automaticGenerationSuppressed || quickWaiting)){
           keep=ensureReplyGenerationPlaceholder(el,key,sourceHash,true);
