@@ -383,6 +383,8 @@ export function serializeExternalFaceDetails(host,{scrubTools=true}={}){
   if(scrubTools) clone.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-interaction-diagnostic], [data-rabbit-mirror-interaction-home]')?.forEach(node=>node.remove());
   stripIndependentTransientLayoutArtifacts(clone);
   clone.removeAttribute?.(DEFERRED_INTERACTION_RESCUE_ATTR);
+  clone.removeAttribute?.('data-rm-face-current');
+  clone.style?.removeProperty?.('display');
   return faces.length>1?wrapIndependentFace(clone.outerHTML,index):String(clone.outerHTML||'');
  }).join('\n');
 }

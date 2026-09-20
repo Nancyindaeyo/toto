@@ -862,6 +862,7 @@ export function repatriateExternalDetails(el,host,key,source){
  host.dataset.rmFaceCount=String(kept.length);
  host.classList?.toggle?.('rabbit-mirror-multiface-host',kept.length>1);
  stampExternalDetailsOwnership(host);
+ showMultifaceFace(host,host.dataset.rmFaceView);
  return kept[0]||null;
 }
 
