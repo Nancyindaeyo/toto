@@ -5,6 +5,7 @@ import {
     shouldAutomaticReroll,
     automaticRerollStatusText,
     automaticRerollExhaustedNote,
+    shouldAnnounceAutomaticRerollExhausted,
 } from '../src/automaticReroll.js';
 
 test('zero usable faces allow two extra automatic posts', () => {
@@ -24,4 +25,12 @@ test('status copy keeps the ready shell language', () => {
     assert.match(automaticRerollStatusText(1, 2), /1\/2/);
     assert.match(automaticRerollStatusText(2, 2), /已出的镜面会保留/);
     assert.match(automaticRerollExhaustedNote(2), /2\/2/);
+});
+
+test('exhausted copy only after the extra automatic posts are used up', () => {
+    assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 1 }), false);
+    assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 2 }), false);
+    assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 3 }), true);
+    assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 1, usableReadyFace: true }), false);
+    assert.equal(shouldAnnounceAutomaticRerollExhausted({ failedPosts: 3, manual: true }), false);
 });

@@ -1288,3 +1288,28 @@ html[data-rabbit-mirror-external-sampling-enabled="false"] [data-rabbit-mirror-r
     overflow-wrap: anywhere;
     text-align: left;
 }
+
+[data-rm-theater-favorite-stage],
+.rabbit-mirror-theater-favorite-host {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+}
+.rabbit-mirror-theater-favorite-host {
+  isolation: isolate;
+}
+dialog[data-rm-theater-favorite-viewer],
+dialog[data-rm-theater-favorite-library] {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+}

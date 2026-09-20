@@ -21,3 +21,13 @@ export function automaticRerollExhaustedNote(attempts = AUTOMATIC_REROLL_MAX) {
     const total = Math.max(1, Number(attempts) || AUTOMATIC_REROLL_MAX);
     return `已自动重试 ${total}/${total}，不会继续自动重发。请手动重新生成兔子镜。`;
 }
+
+export function shouldAnnounceAutomaticRerollExhausted({
+    manual = false,
+    faceResay = false,
+    usableReadyFace = false,
+    failedPosts = 0,
+} = {}) {
+    if (manual || faceResay || usableReadyFace) return false;
+    return Math.max(0, Number(failedPosts) || 0) > AUTOMATIC_REROLL_MAX;
+}

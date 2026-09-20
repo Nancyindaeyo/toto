@@ -33,7 +33,7 @@ export const QUICK_START_GROUPS = [
         setting('behavior', '补充创作规则', '高级设置 → 独立 API：选择注入方式，编辑并保存；可清空、关闭或恢复默认，只影响独立 API。', '#rh_behavior_rule_text', 'worldinfo'),
         setting('draw', '本轮抽签记录', '在 Prompt 估算里查看逐面记录；镜面的挨打猫里也可查看本轮抽签。', '#rh_token_meter'),
         setting('favorites', '收藏偏好', '提高收藏项目的随机抽取权重，不保证每轮必出。', '#rh_favorite_summary'),
-        setting('theater-favorites', '兔子镜收藏夹', '回看已收藏成品，按角色卡分组；聊天里也可在工具菜单打开收藏夹。', '#rh_theater_favorite_section'),
+        setting('theater-favorites', '兔子镜收藏夹', '回看已收藏成品，按角色卡分组；聊天里也可在工具菜单打开收藏夹。', '#rh_theater_favorite_summary'),
         setting('blacklist', '抽签黑名单', '排除不喜欢的随机项目；明确指令和强制场景有例外。', '#rh_blacklist_enabled'),
         setting('replacement', '禁词与文字替换', '本地删除或替换兔子镜可见文字，不改聊天原文。', '#rh_banned_words', 'replacement'),
     ] },
@@ -166,6 +166,7 @@ export function mountRabbitMirrorQuickStart({ root, openAdvanced, closeAdvanced 
         }
         let selector = item.target;
         if (item.id === 'display') selector = root.querySelector('#rh_generation_independent')?.checked ? '#rh_independent_display_row' : '#rh_follow_display_row';
+        if (item.id === 'theater-favorites') root.__rabbitMirrorWorkbench?.navigate?.('theaterFavorites');
         const scope = item.page ? doc.getElementById('rh_advanced_modal') : root;
         const target = scope?.querySelector(selector);
         if (!target) { showMessage('此入口暂时不可用，请在原设置中查找；没有修改任何配置。'); return; }

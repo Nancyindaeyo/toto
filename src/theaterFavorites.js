@@ -219,11 +219,22 @@ export function captureTheaterFavoriteFromRoot(root, owner = {}) {
 let viewer = null;
 let library = null;
 
+function overlayParent() {
+    const settings = document.getElementById('rabbit_mirror_theater_settings');
+    if (settings?.tagName === 'DIALOG' && (settings.open || settings.hasAttribute('open'))) return settings;
+    return document.body;
+}
+
+function dismissOverlay(overlay) {
+    try { if (overlay?.open && typeof overlay.close === 'function') overlay.close(); } catch {}
+    overlay?.remove?.();
+}
+
 export function closeTheaterFavoriteViewer() {
     if (!viewer) return;
     const { overlay, keydown } = viewer;
     document.removeEventListener('keydown', keydown, true);
-    overlay.remove();
+    dismissOverlay(overlay);
     viewer = null;
 }
 
@@ -231,20 +242,45 @@ export function closeTheaterFavoriteLibrary() {
     if (!library) return;
     const { overlay, keydown } = library;
     document.removeEventListener('keydown', keydown, true);
-    overlay.remove();
+    dismissOverlay(overlay);
     library = null;
 }
 
 function overlayCard(label) {
-    const overlay = document.createElement('div');
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
+    const overlay = document.createElement('dialog');
     overlay.setAttribute('aria-label', label);
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:10070;box-sizing:border-box;background:rgba(8,10,14,.62);padding:max(16px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:center;';
+    overlay.style.cssText = 'position:fixed;inset:0;width:auto;height:auto;max-width:none;max-height:none;margin:0;padding:max(16px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));box-sizing:border-box;border:0;background:rgba(8,10,14,.62);display:flex;align-items:center;justify-content:center;z-index:10070;';
     const card = document.createElement('div');
-    card.style.cssText = 'width:min(720px,calc(100vw - 24px));max-height:min(88vh,calc(100dvh - 48px));overflow:auto;background:var(--SmartThemeBlurTintColor,#202226);color:var(--SmartThemeBodyColor,#ddd);border:1px solid color-mix(in srgb,currentColor 18%,transparent);border-radius:18px;box-shadow:0 22px 70px rgba(0,0,0,.42);padding:14px;box-sizing:border-box;';
+    card.setAttribute('data-rm-theater-favorite-card', 'true');
+    card.style.cssText = 'width:min(720px,calc(100vw - 24px));max-height:min(88vh,calc(100dvh - 48px));overflow:auto;background:var(--SmartThemeBlurTintColor,#202226);color:var(--SmartThemeBodyColor,#ddd);border:1px solid color-mix(in srgb,currentColor 18%,transparent);border-radius:18px;box-shadow:0 22px 70px rgba(0,0,0,.42);padding:14px;box-sizing:border-box;position:relative;isolation:isolate;';
     overlay.append(card);
+    overlay.addEventListener('click', event => event.stopPropagation());
+    overlay.addEventListener('pointerdown', event => event.stopPropagation());
+    overlay.addEventListener('submit', event => { event.preventDefault(); event.stopPropagation(); });
     return { overlay, card };
+}
+
+function presentOverlay(overlay) {
+    overlayParent().append(overlay);
+    try {
+        if (typeof overlay.showModal === 'function') overlay.showModal();
+        else overlay.setAttribute('open', '');
+    } catch {
+        overlay.setAttribute('open', '');
+    }
+}
+
+function bindOverlayDismiss(overlay, close) {
+    overlay.addEventListener('cancel', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+    });
+    overlay.addEventListener('pointerdown', event => {
+        if (event.target !== overlay) return;
+        event.preventDefault();
+        close();
+    });
 }
 
 export async function openTheaterFavoriteViewer(id, hydrate) {
@@ -273,13 +309,28 @@ export async function openTheaterFavoriteViewer(id, hydrate) {
     const stage = document.createElement('div');
     stage.setAttribute('data-rm-theater-favorite-stage', 'true');
     card.append(header, note, stage);
-    overlay.addEventListener('pointerdown', event => { if (event.target === overlay) closeTheaterFavoriteViewer(); });
-    const keydown = event => { if (event.key === 'Escape') closeTheaterFavoriteViewer(); };
+    stage.style.cssText = 'position:relative;max-width:100%;overflow:auto;isolation:isolate;';
+    stage.addEventListener('submit', event => { event.preventDefault(); event.stopPropagation(); });
+    bindOverlayDismiss(overlay, closeTheaterFavoriteViewer);
+    const keydown = event => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeTheaterFavoriteViewer();
+    };
     document.addEventListener('keydown', keydown, true);
-    document.body.append(overlay);
+    presentOverlay(overlay);
     viewer = { overlay, keydown };
-    if (typeof hydrate !== 'function') throw new Error('收藏夹缺少挂载管线。');
-    await hydrate(stage, record);
+    if (typeof hydrate !== 'function') {
+        closeTheaterFavoriteViewer();
+        throw new Error('收藏夹缺少挂载管线。');
+    }
+    try {
+        await hydrate(stage, record);
+    } catch (error) {
+        closeTheaterFavoriteViewer();
+        throw error;
+    }
     return record;
 }
 
@@ -346,14 +397,16 @@ export async function openTheaterFavoriteLibrary(hydrate) {
         }
     }
     card.append(header, note, list);
-    overlay.addEventListener('pointerdown', event => { if (event.target === overlay) closeTheaterFavoriteLibrary(); });
+    bindOverlayDismiss(overlay, closeTheaterFavoriteLibrary);
     const keydown = event => {
         if (event.key !== 'Escape') return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
         if (viewer) closeTheaterFavoriteViewer();
         else closeTheaterFavoriteLibrary();
     };
     document.addEventListener('keydown', keydown, true);
-    document.body.append(overlay);
+    presentOverlay(overlay);
     library = { overlay, keydown };
     return rows;
 }

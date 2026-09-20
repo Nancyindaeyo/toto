@@ -9,12 +9,12 @@ import { parseIndependentAdvancedOptions, buildIndependentAdvancedCarrier, apply
 import { buildRabbitMirrorPromptDetails, planRabbitMirrorPromptDetails, renderRabbitMirrorPromptPlan, prepareSelectedMemoryForPrompt, memoryRequestSettingsKey, assertMemoryRequestSettings } from './promptBuilder.js?rmv=1.5.53-image1';
 import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from './externalWorldBook/store.js?rmv=1.5.53-text1';
 import { describeExternalWorldBookPreflightFailure, describeBatchPlanFailure } from './externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
-import { cleanRabbitMirrorOutput, compactTotoBlock, refreshRabbitMirrorToolsInScope, repairMalformedRabbitMirrorMarkup, repairRabbitMirrorScopedClassAliasesInScope, isolateRabbitMirrorInteractionIds, rearmRabbitMirrorSerializedInteractionRoot, armRabbitMirrorFirstUseInteraction, repairRabbitMirrorPersistedExclusiveGridSpan, clearRabbitMirrorHorizontalClipArtifacts, sanitizeRabbitMirrorUntrustedTemplate, validateRabbitMirrorRecoveredStyleAssignments } from './outputSanitizer.js?rmv=1.5.58-fork1';
+import { cleanRabbitMirrorOutput, compactTotoBlock, refreshRabbitMirrorToolsInScope, repairMalformedRabbitMirrorMarkup, repairRabbitMirrorScopedClassAliasesInScope, isolateRabbitMirrorInteractionIds, rearmRabbitMirrorSerializedInteractionRoot, armRabbitMirrorFirstUseInteraction, repairRabbitMirrorPersistedExclusiveGridSpan, clearRabbitMirrorHorizontalClipArtifacts, sanitizeRabbitMirrorUntrustedTemplate, validateRabbitMirrorRecoveredStyleAssignments } from './outputSanitizer.js?rmv=1.5.59-fork1';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from './bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from './replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput, recoverableMultifaceFrames, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from './multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from './multifaceProof.js?rmv=1.5.53-visualquick1';
-import { FOLLOW_MULTIFACE_COMMITTED_EVENT, FOLLOW_MULTIFACE_REJECTED_EVENT, getRabbitMirrorFollowBatchFailure, scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.53-hostuifix1';
+import { FOLLOW_MULTIFACE_COMMITTED_EVENT, FOLLOW_MULTIFACE_REJECTED_EVENT, getRabbitMirrorFollowBatchFailure, scanRabbitMirrorHtml } from './visualScanner.js?rmv=1.5.59-fork1';
 import { getCurrentChatKey, updateLatestVisualSignature, parseVisualFamilySkeleton, describeVisualFamilyDimensions, markPendingBatchAttempt, commitPendingComboBatch, releasePendingComboBatch } from './storage.js?rmv=1.5.53-visualquick1';
 import { buildFeedbackCatFinalCheck, buildFeedbackCatPrompt, consumeInjectedFeedbackForSuccessfulIndependentRabbitMirror, getActiveFeedbackForCurrentChat, markFeedbackCatInjected } from './feedbackCat.js?rmv=1.5.53-cn-boundary1';
 import { getRabbitMirrorRecipe, recordRabbitMirrorRecipe } from './blacklist.js?rmv=1.5.53-image1';
@@ -22,9 +22,9 @@ import { readFollowPartialResult, followPartialResultFaceOwnerKey } from './foll
 import { recordRabbitMirrorIndependentPrompt } from './tokenMeter.js?rmv=1.5.53-visualquick1';
 import { PRESENTATION_FORMATS } from '../data/structured/presentationIndex.js?rmv=1.5.53-cn-boundary1';
 import { rememberIndependentTransportDiagnostic } from './transportDiagnostics.js?rmv=1.5.53-cn-boundary1';
-import { AUTOMATIC_REROLL_MAX, shouldAutomaticReroll, automaticRerollStatusText, automaticRerollExhaustedNote } from './automaticReroll.js?rmv=1.5.58-fork1';
+import { AUTOMATIC_REROLL_MAX, shouldAutomaticReroll, automaticRerollStatusText, automaticRerollExhaustedNote, shouldAnnounceAutomaticRerollExhausted } from './automaticReroll.js?rmv=1.5.59-fork1';
 
-const RUNTIME_VERSION = '1.5.58';
+const RUNTIME_VERSION = '1.5.59';
 const STORE_KEY = 'rabbit_mirror_independent_outputs_v1';
 const INTERACTION_STATE_MIGRATION_KEY = 'rabbit_mirror_independent_interaction_state_migration_securityfix2_v2';
 const API_PROFILE_STORE_KEY = 'rabbit_mirror_independent_api_profiles_v1';
@@ -4497,7 +4497,7 @@ function addExternalHostToIndexMap(map,key,host){
  bucket.add(host);
 }
 function buildExternalHostSyncIndex(){
- const hosts=[...(document.querySelectorAll?.(`[${SOURCE_ATTR}]`)||[])];
+ const hosts=liveChatExternalHosts(document.querySelectorAll?.(`[${SOURCE_ATTR}]`));
  const byMesid=new Map(); const byKey=new Map();
  for(const host of hosts){
   addExternalHostToIndexMap(byMesid,String(host?.dataset?.rmOwnerMesid||host?.dataset?.rmExternalOwnerMessage||''),host);
@@ -4506,7 +4506,7 @@ function buildExternalHostSyncIndex(){
  return {hosts,hostSet:new Set(hosts),byMesid,byKey};
 }
 function registerExternalHostInSyncIndex(host){
- const index=externalHostSyncIndex; if(!index || !host) return;
+ const index=externalHostSyncIndex; if(!index || !host || isTheaterFavoriteHost(host)) return;
  if(!index.hostSet.has(host)){ index.hostSet.add(host); index.hosts.push(host); }
  addExternalHostToIndexMap(index.byMesid,String(host.dataset?.rmOwnerMesid||host.dataset?.rmExternalOwnerMessage||''),host);
  addExternalHostToIndexMap(index.byKey,String(host.dataset?.rmKey||''),host);
@@ -4517,8 +4517,16 @@ function withExternalHostSyncIndex(run){
  try{ return run(); }
  finally{ if(owns) externalHostSyncIndex=null; }
 }
+function isTheaterFavoriteHost(node){
+ return !!(node?.dataset?.rmFavorite==='true'
+  || node?.classList?.contains('rabbit-mirror-theater-favorite-host')
+  || node?.closest?.('[data-rm-theater-favorite-host="true"], [data-rm-theater-favorite-stage], [data-rm-theater-favorite-viewer], [data-rm-theater-favorite-library]'));
+}
+function liveChatExternalHosts(nodes){
+ return [...(nodes||[])].filter(node=>node?.isConnected!==false && node?.hasAttribute?.(SOURCE_ATTR) && !isTheaterFavoriteHost(node));
+}
 function liveIndexedExternalHosts(bucket){
- return [...(bucket||[])].filter(node=>node?.isConnected!==false && node?.hasAttribute?.(SOURCE_ATTR));
+ return liveChatExternalHosts(bucket);
 }
 function cssAttributeValue(value=''){
  const text=String(value||'');
@@ -4526,8 +4534,8 @@ function cssAttributeValue(value=''){
  catch{return text.replace(/[\\"\n\r\f]/g,char=>`\\${char}`);}
 }
 function allExternalHosts(){
- if(externalHostSyncIndex) return externalHostSyncIndex.hosts.filter(node=>node?.isConnected!==false && node?.hasAttribute?.(SOURCE_ATTR));
- return [...(document.querySelectorAll?.(`[${SOURCE_ATTR}]`)||[])];
+ if(externalHostSyncIndex) return liveChatExternalHosts(externalHostSyncIndex.hosts);
+ return liveChatExternalHosts(document.querySelectorAll?.(`[${SOURCE_ATTR}]`));
 }
 function indexedExternalHostsByMesid(mesid=''){
  const id=String(mesid||'');
@@ -8876,7 +8884,9 @@ async function generateFor(index,msg,force=false,sourceAware=true,multifaceResay
   const keptReady=!!readyDetailsFromHost(liveHost);
   const failedPosts=Math.max(Number(dispatchLease?.consumeCount?.()||0), Number(flight.automaticRerollCount||0));
   let failureMessage=String(err?.message||err||'generation-failed');
-  if(!force && failedPosts>=1) failureMessage=`${failureMessage} ${automaticRerollExhaustedNote(AUTOMATIC_REROLL_MAX)}`;
+  if(shouldAnnounceAutomaticRerollExhausted({manual:!!force,faceResay:!!(multifaceResay||singlePresentationResay),usableReadyFace:keptReady,failedPosts})){
+   failureMessage=`${failureMessage} ${automaticRerollExhaustedNote(AUTOMATIC_REROLL_MAX)}`;
+  }
   const terminalDiagnostic=republishIndependentTerminalFailure(failedIdentity.ctx,index,failedIdentity.msg,failedHash,baseSlot,operationEpoch,err,dispatchLease);
   markAutomaticFailureStop(failedIdentity.slot,failedHash,'generation-failed',{
    baseSlot,operationEpoch,
@@ -9109,7 +9119,7 @@ function showIndependentHistory(root,owner={}){
 }
 function resayIndependentMirror(root,owner={}){
  if(getSettings().generationSource==='follow'){
-  void import('./followFaceRetry.js?rmv=1.5.53-hostuifix1').then(({retryFollowFace})=>retryFollowFace(root,owner,{
+  void import('./followFaceRetry.js?rmv=1.5.59-fork1').then(({retryFollowFace})=>retryFollowFace(root,owner,{
    getContext,hostBusy:hostGenerationLooksActive,maxRequestChars:MAX_INDEPENDENT_REQUEST_CHARS,
    resolveOwner:target=>{
     const host=target?.closest?.('[data-rabbit-mirror-external-source="true"][data-rm-source="follow"]');
@@ -11938,7 +11948,7 @@ async function reconfigureRuntime({coldStart=false}={}){
      installObserverIfNeeded({skipHistoricalProbe:coldStart});
      if(runtimeModeTransition) schedulePassiveRecoveryAfterSourceSwitch(sequence);
    }
-   if(mode==='off'){ document.querySelectorAll(`[${SOURCE_ATTR}]`).forEach(n=>n.remove()); removeEmptyInlineAnchors(document); removeEmptyFollowExternalAnchors(document); }
+   if(mode==='off'){ document.querySelectorAll(`[${SOURCE_ATTR}]`).forEach(n=>{ if(!isTheaterFavoriteHost(n)) n.remove(); }); removeEmptyInlineAnchors(document); removeEmptyFollowExternalAnchors(document); }
    return;
  }
  scheduleStartupHistorySync(sequence);
@@ -11950,20 +11960,38 @@ async function reconfigureRuntime({coldStart=false}={}){
  // host generation lifecycle or an explicit swipe/resay owns all authorization.
 }
 export function refreshRabbitMirrorGenerationMode(){ void reconfigureRuntime(); }
+function containFavoriteHostLayout(host){
+ if(!host?.style) return;
+ host.style.setProperty('position','relative','important');
+ host.style.setProperty('inset','auto','important');
+ host.style.setProperty('left','auto','important');
+ host.style.setProperty('top','auto','important');
+ host.style.setProperty('right','auto','important');
+ host.style.setProperty('bottom','auto','important');
+ host.style.setProperty('width','100%','important');
+ host.style.setProperty('max-width','100%','important');
+ host.style.setProperty('height','auto','important');
+ host.style.setProperty('transform','none','important');
+ host.style.setProperty('z-index','auto','important');
+ for(const el of host.querySelectorAll?.('[style]')||[]){
+  const position=String(el.style?.position||'').toLowerCase();
+  if(position==='fixed' || position==='sticky') el.style.position='absolute';
+ }
+}
 export function hydrateIndependentFavoriteHtml(container,record){
  if(!container) return null;
  const html=String(record?.html||'').trim();
  if(!html) return null;
  const host=document.createElement('div');
- host.setAttribute(SOURCE_ATTR,'true');
- host.setAttribute(EXTERNAL_SHELL_ATTR,'true');
- host.className='rabbit-mirror-external-host rabbit-mirror-external-shell rabbit-mirror-theater-favorite-host';
+ host.setAttribute('data-rm-theater-favorite-host','true');
+ host.className='rabbit-mirror-theater-favorite-host';
  host.dataset.rmKey=String(record?.id||'favorite');
- host.dataset.rmSource='independent';
+ host.dataset.rmSource='favorite';
  host.dataset.rmState='ready';
  host.dataset.rmFavorite='true';
+ host.dataset.rmPlacement='contained';
  if(hasMultifaceMarkup(html)){
-  if(!mountExternalFaceDetails(host,'favorite','independent',html,{locallyPrepared:false})){
+  if(!mountExternalFaceDetails(host,'favorite','favorite',html,{locallyPrepared:false})){
    container.replaceChildren();
    container.append('这面收藏无法按当前净化规则挂载。');
    return null;
@@ -11975,14 +12003,21 @@ export function hydrateIndependentFavoriteHtml(container,record){
    container.append('这面收藏缺少可展示的兔子镜结构。');
    return null;
   }
-  markExternalDetails(details,'favorite','independent');
+  markExternalDetails(details,'favorite','favorite');
   host.append(details);
  }
  host.__rabbitMirrorIndependentSource=html;
+ delete host.dataset.rmOwnerChat;
+ delete host.dataset.rmOwnerMesid;
+ delete host.dataset.rmExternalOwnerMessage;
+ delete host.dataset.rmOwnerSwipe;
+ delete host.dataset.rmSourceHash;
  stampExternalDetailsOwnership(host);
- markMountedFaceProofs(host,'independent',null);
+ markMountedFaceProofs(host,'favorite',null);
+ containFavoriteHostLayout(host);
  container.replaceChildren(host);
  ensureExternalTools(host);
+ containFavoriteHostLayout(host);
  return host;
 }
 export async function initIndependentRabbitMirror({isActive=()=>true}={}){
@@ -12040,7 +12075,7 @@ export function destroyIndependentRabbitMirror(){
  disconnectObserver(); unsubscribeHostEvents(); removeFeedbackMirrorActionListeners(); removeFollowMultifaceCommitListener(); removeRepairPersistenceListener(); removeExternalGeometryListeners(); removeBackgroundLifecycleListeners();
  syncRunning=false; pending.clear(); clearAutomaticFailureStops(); messageSourceRevisions.clear(); activeGlobalWorldInfoCapture=null; globalWorldInfoSnapshots.clear(); preparedReadyHtmlCache.clear(); activeRestorableHtmlCache=null; activeOwnerLockBatch=null; activeOwnerLockBatchDirty=false;
  document.querySelectorAll(`[${SOURCE_ATTR}][data-rm-source="follow"]`).forEach(host=>restoreFollowInline(host));
- document.querySelectorAll(`[${SOURCE_ATTR}][data-rm-source="independent"]`).forEach(n=>n.remove());
+ document.querySelectorAll(`[${SOURCE_ATTR}][data-rm-source="independent"]`).forEach(n=>{ if(!isTheaterFavoriteHost(n)) n.remove(); });
  removeEmptyInlineAnchors(document); removeEmptyFollowExternalAnchors(document);
  if(globalThis.__rabbitMirrorIndependentCleanup===destroyIndependentRabbitMirror) delete globalThis.__rabbitMirrorIndependentCleanup;
 }

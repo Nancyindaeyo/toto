@@ -1,5 +1,6 @@
 // UI palettes from the user-provided Hearttrace source, by Toto.
 // Presentation only: no generation settings, Prompt, content storage, or network.
+import { closeTheaterFavoriteLibrary, closeTheaterFavoriteViewer } from './theaterFavorites.js?rmv=1.5.59-fork1';
 export const UI_THEMES = Object.freeze([
   {
     "id": "default",
@@ -340,7 +341,7 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
         }
         for(const tab of tabs.children){const selected=tab.dataset.rhTab===definitions[active][0];tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
         back.hidden=history.length===0&&!searching;
-        if(active==='favorites'||active==='blacklist')onNavigate('preferences');
+        if(active==='theaterFavorites'||active==='favorites'||active==='blacklist')onNavigate('preferences');
         if(active==='books')onNavigate('books');
         sync();main.scrollTop=0;if(focus&&!back.hidden)back.focus({preventScroll:true});
     }
@@ -391,21 +392,35 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
             else root.setAttribute('open','');
             trackViewport();applyTheme();paint();close.focus({preventScroll:true});
         }else{
+            closeTheaterFavoriteViewer();
+            closeTheaterFavoriteLibrary();
             viewportCleanup?.();
             if(root.open&&typeof root.close==='function')root.close();else root.removeAttribute('open');
             root.hidden=true;originFocus?.focus?.({preventScroll:true});
         }
     }
-    listen(root,'cancel',event=>{if(event.target!==root)return;event.preventDefault();setOpen(false);});
+    listen(root,'cancel',event=>{
+        if(event.target!==root)return;
+        event.preventDefault();
+        if(doc.querySelector('[data-rm-theater-favorite-viewer],[data-rm-theater-favorite-library]'))return;
+        setOpen(false);
+    });
     for(const [key,name] of Object.entries(tabNames)){const tab=button(name,()=>{history=[];navigate(key,false);});tab.dataset.rhTab=key;tab.setAttribute('role','tab');tabs.append(tab);}
     listen(tabs,'keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;const items=[...tabs.children],i=items.indexOf(e.target);if(i<0)return;e.preventDefault();const j=e.key==='Home'?0:e.key==='End'?items.length-1:(i+(e.key==='ArrowLeft'?-1:1)+items.length)%items.length;items[j].click();items[j].focus();});
     listen(search,'input',()=>paint());
     listen(searchResults,'click',e=>{const result=e.target.closest('[data-rh-search-result]');if(result)navigate(result.dataset.rhSearchResult);});
     listen(root,'change',()=>sync());
-    listen(root,'click',e=>{if(e.target===root)setOpen(false);});
+    listen(root,'click',e=>{
+        if(e.target!==root)return;
+        if(doc.querySelector('[data-rm-theater-favorite-viewer],[data-rm-theater-favorite-library]'))return;
+        setOpen(false);
+    });
     listen(root,'keydown',e=>{
         if(e.target.closest?.('dialog')!==root)return;
-        if(e.key==='Escape'){e.preventDefault();setOpen(false);}
+        if(e.key==='Escape'){
+            if(doc.querySelector('[data-rm-theater-favorite-viewer],[data-rm-theater-favorite-library]')){e.preventDefault();return;}
+            e.preventDefault();setOpen(false);
+        }
         if(e.key!=='Tab')return;
         const items=[...window.querySelectorAll('button,input,select,textarea,a[href],[tabindex="0"]')].filter(n=>!n.disabled&&n.getClientRects().length);
         const first=items[0],last=items.at(-1);if(e.shiftKey&&doc.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&doc.activeElement===last){e.preventDefault();first?.focus();}
@@ -418,5 +433,5 @@ export function mountSettingsAppearance(root, { onNavigate = () => {} } = {}) {
     root.__rabbitMirrorWorkbench={open:()=>setOpen(true),navigate,hasEntry:()=>entry.isConnected,
         isComplete:()=>requiredControls.every(id=>root.querySelectorAll('#'+id).length===1)};
     applyTheme();paint();
-    const cleanup=()=>{viewportCleanup?.();if(root.open&&typeof root.close==='function')root.close();listeners.splice(0).forEach(fn=>fn());entry.remove();delete root.__rabbitMirrorWorkbench;mounts.delete(root);};mounts.set(root,cleanup);
+    const cleanup=()=>{closeTheaterFavoriteViewer();closeTheaterFavoriteLibrary();viewportCleanup?.();if(root.open&&typeof root.close==='function')root.close();listeners.splice(0).forEach(fn=>fn());entry.remove();delete root.__rabbitMirrorWorkbench;mounts.delete(root);};mounts.set(root,cleanup);
 }
