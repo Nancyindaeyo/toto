@@ -364,8 +364,13 @@ export function showMultifaceFace(host,index=0){
  host.dataset.rmFaceView=String(next);
  host.classList.toggle('rabbit-mirror-multiface-host',faces.length>1);
  for(const [i,face] of faces.entries()){
-  if(faces.length>1 && i===next) face.setAttribute('data-rm-face-current','true');
+  const current=faces.length>1 && i===next;
+  if(current) face.setAttribute('data-rm-face-current','true');
   else face.removeAttribute('data-rm-face-current');
+  // Independent-shell CSS forces display:block on every sibling details.
+  // Inline important is the only way to keep pager faces from stacking.
+  if(faces.length>1 && !current) face.style.setProperty('display','none','important');
+  else face.style.removeProperty('display');
  }
  return next;
 }

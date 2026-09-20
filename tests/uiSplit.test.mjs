@@ -17,10 +17,10 @@ function loadRuntime() {
 
 test('ui runtime loads without settings, independentApi, or the ui barrel', () => {
     const loaded = loadRuntime();
-    assert.equal(loaded.RUNTIME_VERSION, '1.5.74');
+    assert.equal(loaded.RUNTIME_VERSION, '1.5.75');
     assert.equal(loaded.SETTINGS_UI_VERSION, '1.12-layered-ui3-missingshell2-requestbudget1');
     assert.equal(loaded.escapeHtml('<a "b">'), '&lt;a &quot;b&quot;&gt;');
-    loaded.__rabbitMirrorRuntimeVersion = '1.5.74';
+    loaded.__rabbitMirrorRuntimeVersion = '1.5.75';
     assert.equal(loaded.isCurrentRuntime(), true);
     loaded.__rabbitMirrorRuntimeVersion = 'other';
     assert.equal(loaded.isCurrentRuntime(), false);
