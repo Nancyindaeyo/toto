@@ -1,6 +1,6 @@
 // Split from independentApi.js — connection.
 
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages } from '../hostCompatibility.js?rmv=1.6';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages } from '../hostCompatibility.js?rmv=1.6.3-ttchild1';
 import {
     WORLD_INFO_BOOK_NAME_MAX_CHARS,
     getSettings,
@@ -36,7 +36,7 @@ import {
     hasExplicitSourceReplacementEvidence,
     independentStoredHtmlLightRestorable,
     independentStoredHtmlRestorable,
-} from './geometry.js?rmv=1.6';
+} from './geometry.js?rmv=1.6.3-ttchild1';
 import {
     activeIndependentFlightForBase,
     messageSourceRevisions,
@@ -44,7 +44,7 @@ import {
     passiveObservedIdentity,
     runtimeMode,
     showIndependentUnsavedOutput,
-} from './mount.js?rmv=1.6';
+} from './mount.js?rmv=1.6.1';
 import {
     hostGenerationHintStartedAt,
     hostGenerationInProgress,

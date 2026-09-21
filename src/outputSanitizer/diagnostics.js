@@ -150,7 +150,7 @@ import {
     inspectMaintenanceViewportLayout,
     maintenanceMobileLayoutIsPassportManaged,
 } from './layoutRescue.js?rmv=1.6';
-import { normalizeRabbitMirrorToolButton, rabbitMirrorTextPresentation } from './toolsChrome.js?rmv=1.6';
+import { normalizeRabbitMirrorToolButton, rabbitMirrorTextPresentation } from './toolsChrome.js?rmv=1.6.3-star2';
 import {
     getMessageIndexFromMirrorNode,
     hostScriptModule,

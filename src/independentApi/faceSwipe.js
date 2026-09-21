@@ -1,7 +1,7 @@
 // Split from independentApi.js — faceSwipe.
 
 import { getSettings } from '../settings.js?rmv=1.6';
-import { refreshRabbitMirrorToolsInScope } from '../outputSanitizer.js?rmv=1.6';
+import { refreshRabbitMirrorToolsInScope } from '../outputSanitizer.js?rmv=1.6.3-star2';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 import { configuredAutomaticRerollMax } from '../automaticReroll.js?rmv=1.6';
 import { seedSwipeState, appendSuccessfulSwipe, faceSwipeStorageSlot, readFaceSwipe, mutateFaceSwipe } from '../swipeVersions.js?rmv=1.6';
@@ -9,7 +9,7 @@ import { EPHEMERAL_FAILURE_ATTR, EPHEMERAL_FAILURE_BODY_ATTR, RUNTIME_VERSION } 
 import { independentRecordWithinBudget, readStore, writePersistedOwner, writeStore } from './persistence.js?rmv=1.6';
 import { chatKey, saveRecordForSlot, savedIndependentRecordForOwner, swipeId } from './connection.js?rmv=1.6';
 import { hasMultifaceMarkup, wrapIndependentFace } from './request.js?rmv=1.6';
-import { externalFaceDetails, showIndependentUnsavedOutput } from './mount.js?rmv=1.6';
+import { externalFaceDetails, showIndependentUnsavedOutput } from './mount.js?rmv=1.6.1';
 
 export function independentRerollMax(){ return configuredAutomaticRerollMax(getSettings()); }
 
@@ -32,7 +32,7 @@ export function scrubSwipeDetailsHtml(html){
  template.innerHTML=source;
  const details=template.content.querySelector?.('details');
  if(!details) return source;
- details.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-maintenance-rabbit], [data-rabbit-mirror-feedback-cat], [data-rabbit-mirror-resay], [data-rm-ephemeral-failure-body], [data-rm-face-swipe-host], [data-rm-face-swipe-bar], [data-rm-face-favorite-star]')?.forEach(node=>node.remove());
+ details.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-maintenance-rabbit], [data-rabbit-mirror-feedback-cat], [data-rabbit-mirror-resay], [data-rm-ephemeral-failure-body], [data-rm-face-swipe-host], [data-rm-face-swipe-bar], [data-rm-face-swipe-delete], [data-rm-face-favorite-star]')?.forEach(node=>node.remove());
  details.querySelectorAll?.('[data-rm-ephemeral-failure-hidden]')?.forEach(node=>{ node.removeAttribute('data-rm-ephemeral-failure-hidden'); node.hidden=false; });
  details.removeAttribute?.(EPHEMERAL_FAILURE_ATTR);
  return String(details.outerHTML||source).trim();

@@ -1,8 +1,8 @@
 // Split from independentApi.js — geometry.
 
 import { presentationModeFields } from '../presentationMode.js?rmv=1.5.53-visualquick1';
-import { scheduleRabbitMirrorComposerClearance } from '../composerClearance.js?rmv=1.5.58-fork1';
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorExternalPlacementParent } from '../hostCompatibility.js?rmv=1.6';
+import { scheduleRabbitMirrorComposerClearance } from '../composerClearance.js?rmv=1.6.3-ttchild1';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorExternalPlacementParent } from '../hostCompatibility.js?rmv=1.6.3-ttchild1';
 import { getSettings } from '../settings.js?rmv=1.6';
 import {
     cleanRabbitMirrorOutput,
@@ -17,7 +17,7 @@ import {
     clearRabbitMirrorHorizontalClipArtifacts,
     sanitizeRabbitMirrorUntrustedTemplate,
     validateRabbitMirrorRecoveredStyleAssignments,
-} from '../outputSanitizer.js?rmv=1.6';
+} from '../outputSanitizer.js?rmv=1.6.3-star2';
 import { rememberRabbitMirrorFilteredDom, cloneRabbitMirrorFilteredNode } from '../bannedWords.js?rmv=1.5.53-cn-boundary1';
 import { createRabbitMirrorTextReplacementReceipt, matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
@@ -120,7 +120,7 @@ import {
     serializeExternalFaceDetails,
     showMultifaceFace,
     stripIndependentTransientLayoutArtifacts,
-} from './mount.js?rmv=1.6';
+} from './mount.js?rmv=1.6.1';
 import {
     automaticHostGenerationRenderMatches,
     hasExistingFollowRabbitMirror,
@@ -176,7 +176,7 @@ const PERSISTED_STATE_STYLE_ATTRS = [...RUNTIME_STATE_STYLE_ATTRS, ...MAINTENANC
 
 const PERSISTED_STATE_ARIA_ATTRS = ['aria-pressed','aria-selected','aria-expanded','aria-current','aria-checked'];
 
-const PERSISTED_RUNTIME_UI_SELECTOR = '[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-maintenance-rabbit], [data-rabbit-mirror-feedback-cat], [data-rabbit-mirror-resay], [data-rabbit-mirror-interaction-home], [data-rabbit-mirror-interaction-diagnostic], [data-rabbit-mirror-reference-note], [data-rm-ephemeral-failure-body], [data-rm-face-swipe-bar], [data-rm-face-favorite-star]';
+const PERSISTED_RUNTIME_UI_SELECTOR = '[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-maintenance-rabbit], [data-rabbit-mirror-feedback-cat], [data-rabbit-mirror-resay], [data-rabbit-mirror-interaction-home], [data-rabbit-mirror-interaction-diagnostic], [data-rabbit-mirror-reference-note], [data-rm-ephemeral-failure-body], [data-rm-face-swipe-bar], [data-rm-face-swipe-delete], [data-rm-face-favorite-star]';
 
 const PERSISTED_STATE_ATTR_RE = /^(?:data-rm-(?:.*(?:active|selected|open|used|filled|touch-hover|pseudo-active|target-active)|checked-pseudo-rule-target|labeled-checked-verify-target|reversible-style-baseline|reversible-text-baseline|click-to-restore)|data-rabbit-mirror-(?:labeled-checked(?:-last|-verify|-verify-count)?|checked-text-rule-rescue|expanded-opacity-rescue|inert-action-active|radio-reset-last|stale-checked-inline-cleanup|deferred-interaction-rescue))$/i;
 
@@ -393,11 +393,10 @@ export function remeasureRabbitMirrorFaceGeometry(root){
  const placement=String(host.dataset.rmPlacement||'external');
  if(placement==='inline') return result(el.contains?.(host)?'inline':'stale');
  if(placement!=='external') return result('unavailable');
- const managedParent=getRabbitMirrorExternalPlacementParent(el);
- if(isRabbitMirrorManagedChatSurface() && !managedParent) return result('unavailable');
- const placementParent=managedParent||el.parentElement;
- if(host.parentElement!==placementParent || el.contains?.(host)) return result('stale');
- if(!managedParent && externalHostAppearsBeforeOwner(el,host)) return result('stale');
+ const {parent:placementParent,insideMessage}=tauriSafeExternalParent(el);
+ if((isRabbitMirrorManagedChatSurface() || globalThis.__TAURITAVERN__) && !placementParent) return result('unavailable');
+ if(host.parentElement!==placementParent || (!insideMessage && el.contains?.(host))) return result('stale');
+ if(!insideMessage && externalHostAppearsBeforeOwner(el,host)) return result('stale');
  const measure=()=>{try{return roundedGeometryNumber(root.getBoundingClientRect().width);}catch{return 0;}};
  const beforeWidth=measure();
  if(beforeWidth<=0) return result('unavailable');
@@ -463,6 +462,19 @@ function externalHostAppearsBeforeOwner(el,host){
  }
 }
 
+function tauriSafeExternalParent(el){
+ const managedParent=getRabbitMirrorExternalPlacementParent(el);
+ if(managedParent) return {parent:managedParent,insideMessage:true};
+ // TT ChatSurface only allows #chat > .mes. Before the ABI latches `managed`,
+ // still park 外置 inside the floor — never as a sibling that stops virtualization.
+ if(!el || !globalThis.__TAURITAVERN__) return {parent:el?.parentElement||null,insideMessage:false};
+ const body=messageBody(el);
+ if(body?.parentElement && el.contains(body.parentElement)) return {parent:body.parentElement,insideMessage:true};
+ const block=el.querySelector?.('.mes_block');
+ if(block && el.contains(block)) return {parent:block,insideMessage:true};
+ return {parent:el,insideMessage:true};
+}
+
 export function placeExternalHost(el,host,key='',source='independent'){
  if(!el||!host) return false;
  scheduleRabbitMirrorComposerClearance();
@@ -506,15 +518,14 @@ export function placeExternalHost(el,host,key='',source='independent'){
   if(previousParent?.hasAttribute?.(INLINE_ANCHOR_ATTR) && previousParent!==anchor && !previousParent.querySelector?.(`[${SOURCE_ATTR}]`)) previousParent.remove();
   return true;
  }
- const managedParent=getRabbitMirrorExternalPlacementParent(el);
- const parent=managedParent || el.parentElement;
+ const {parent,insideMessage}=tauriSafeExternalParent(el);
  if(!parent) return false;
- const managedBody=managedParent ? messageBody(el) : null;
- const managedMisplaced=!!(managedParent && (
-  host.parentElement!==managedParent
-  || (managedBody && managedParent===managedBody.parentElement && host.previousElementSibling!==managedBody)
+ const managedBody=insideMessage ? messageBody(el) : null;
+ const managedMisplaced=!!(insideMessage && (
+  host.parentElement!==parent
+  || (managedBody && parent===managedBody.parentElement && host.previousElementSibling!==managedBody)
  ));
- const needsReanchor = managedParent
+ const needsReanchor = insideMessage
   ? managedMisplaced
   : (host.parentElement!==parent
    || el.contains(host)
@@ -524,10 +535,10 @@ export function placeExternalHost(el,host,key='',source='independent'){
  host.dataset.rmPlacement='external';
  if(source==='independent' && (needsReanchor || placementChanged)) clearExternalShellIntegration(host);
  if(needsReanchor){
-  if(managedParent){
+  if(insideMessage){
    const body=messageBody(el);
-   if(body && managedParent===body.parentElement) body.insertAdjacentElement('afterend',host);
-   else managedParent.append(host);
+   if(body && parent===body.parentElement) body.insertAdjacentElement('afterend',host);
+   else parent.append(host);
   }
   else parent.insertBefore(host,el.nextSibling);
  }
@@ -1621,7 +1632,7 @@ export function ensureExternalTools(host){
  // automatic write here is the guarded Safari auto-root correction scheduled
  // once after a pure-external mirror is actually opened.
  if(host.dataset?.rmFavorite==='true' || host.dataset?.rmSource==='favorite'){
-  host.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-face-swipe-host], [data-rm-face-swipe-bar], [data-rm-face-favorite-star]').forEach(node=>node.remove());
+  host.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-face-swipe-host], [data-rm-face-swipe-bar], [data-rm-face-swipe-delete], [data-rm-face-favorite-star]').forEach(node=>node.remove());
  }else{
   try{ refreshRabbitMirrorToolsInScope(host,{historyRestoreLight}); }catch(error){ console.debug('[RabbitMirror] external tool preparation skipped:',error); }
  }

@@ -34,12 +34,65 @@ export function buildImagePlanningPrompt(input = {}) {
     return { systemPrompt, userPrompt };
 }
 
+// Tolerant extraction, ported from 心迹回廊 (tokimemo) jsonParser:
+// scan the text for balanced top-level {...} objects, aware of strings and escapes,
+// so thinking-type models that wrap the JSON in prose / chain-of-thought still parse.
+function extractBalancedJsonObjects(text) {
+    const results = [];
+    let depth = 0;
+    let start = -1;
+    let inString = false;
+    let escaped = false;
+    for (let i = 0; i < text.length; i += 1) {
+        const ch = text[i];
+        if (inString) {
+            if (escaped) { escaped = false; }
+            else if (ch === '\\') { escaped = true; }
+            else if (ch === '"') { inString = false; }
+            continue;
+        }
+        if (ch === '"') { inString = true; continue; }
+        if (ch === '{') {
+            if (depth === 0) start = i;
+            depth += 1;
+        } else if (ch === '}') {
+            if (depth > 0) {
+                depth -= 1;
+                if (depth === 0 && start >= 0) {
+                    results.push(text.slice(start, i + 1));
+                    start = -1;
+                }
+            }
+        }
+    }
+    return results;
+}
+
+function parseImagePlanCandidates(text) {
+    const trimmed = text.trim();
+    const candidates = [trimmed];
+    // Fenced ```json blocks anywhere in the reply (not only wrapping the whole text).
+    for (const match of trimmed.matchAll(/```(?:json)?[ \t]*\r?\n([\s\S]*?)\n?[ \t]*```/gi)) {
+        candidates.push(match[1]);
+    }
+    // Balanced JSON objects, last one first: thinking models usually put the answer last.
+    const balanced = extractBalancedJsonObjects(trimmed);
+    for (let i = balanced.length - 1; i >= 0; i -= 1) candidates.push(balanced[i]);
+    const seen = new Set();
+    for (const candidate of candidates) {
+        const clean = candidate.trim();
+        if (!clean || seen.has(clean)) continue;
+        seen.add(clean);
+        try { return JSON.parse(clean); }
+        catch { /* try the next candidate */ }
+    }
+    throw new TypeError('画面构思没有返回有效 JSON；请查看或重新构思，不会自动重试。');
+}
+
 export function parseImagePlan(text) {
     let value = text;
     if (typeof text === 'string') {
-        const clean = text.trim().replace(/^```(?:json)?\s*\n?([\s\S]*?)\n?```$/i, '$1');
-        try { value = JSON.parse(clean); }
-        catch { throw new TypeError('画面构思没有返回有效 JSON；请查看或重新构思，不会自动重试。'); }
+        value = parseImagePlanCandidates(text);
     }
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('画面构思必须是一个 JSON 对象。');
     const prompt = string(value.prompt).trim();

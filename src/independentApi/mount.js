@@ -10,7 +10,7 @@ import {
     refreshRabbitMirrorToolsInScope,
     isolateRabbitMirrorInteractionIds,
     rearmRabbitMirrorSerializedInteractionRoot,
-} from '../outputSanitizer.js?rmv=1.6';
+} from '../outputSanitizer.js?rmv=1.6.3-star2';
 import { matchesRabbitMirrorTextReplacementReceipt } from '../replacementReceipt.js?rmv=1.5.53-cn-boundary1';
 import { parseMultifaceOutput, createMultifaceFailureSlot, MULTIFACE_FAILURE_ATTR } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 import { getSanitizedRabbitMirrorFaceProof, markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from '../multifaceProof.js?rmv=1.5.53-visualquick1';
@@ -19,7 +19,7 @@ import {
     FOLLOW_MULTIFACE_REJECTED_EVENT,
     FOLLOW_GENERATION_SETTLED_EVENT,
     getRabbitMirrorFollowBatchFailure,
-} from '../visualScanner.js?rmv=1.6';
+} from '../visualScanner.js?rmv=1.6.3-star2';
 import { commitPendingComboBatch, releasePendingComboBatch } from '../storage.js?rmv=1.5.53-visualquick1';
 import {
     consumeInjectedFeedbackForSuccessfulIndependentRabbitMirror,
@@ -127,7 +127,7 @@ import {
     seedIndependentFaceSwipes,
     seedNeighborIndependentFaceSwipes,
     showEphemeralFaceFailure,
-} from './faceSwipe.js?rmv=1.6';
+} from './faceSwipe.js?rmv=1.6.1';
 import {
     INDEPENDENT_OWNER_OBSERVATION,
     assistantMessages,
@@ -250,7 +250,7 @@ import {
     showIndependentResayStatus,
     transferExternalTools,
     usableReadyDetails,
-} from './geometry.js?rmv=1.6';
+} from './geometry.js?rmv=1.6.3-ttchild1';
 import {
     assertEarlyBodyOwner,
     automaticHostGenerationMayUseTools,
@@ -371,6 +371,11 @@ export function showMultifaceFace(host,index=0){
  const faces=externalFaceDetails(host);
  if(!host || !faces.length) return 0;
  const next=Math.max(0,Math.min(faces.length-1,Number.isInteger(Number(index))?Number(index):0));
+ const previous=Math.max(0,Math.min(faces.length-1,Number(host.dataset.rmFaceView)||0));
+ // 1.6.1: carry the expanded state across face switches. Each face is its own
+ // <details>; without this the incoming face renders collapsed, the card jumps
+ // shorter, and rapid pager taps start missing the moved buttons.
+ const carryOpen=faces.length>1 && previous!==next ? faces[previous]?.hasAttribute?.('open')===true : null;
  host.dataset.rmFaceView=String(next);
  host.classList.toggle('rabbit-mirror-multiface-host',faces.length>1);
  for(const [i,face] of faces.entries()){
@@ -381,6 +386,10 @@ export function showMultifaceFace(host,index=0){
   // Inline important is the only way to keep pager faces from stacking.
   if(faces.length>1 && !current) face.style.setProperty('display','none','important');
   else face.style.removeProperty('display');
+  if(carryOpen!==null){
+   if(current){ if(carryOpen) face.setAttribute('open',''); else face.removeAttribute('open'); }
+   else face.removeAttribute('open');
+  }
  }
  return next;
 }
@@ -390,7 +399,7 @@ export function serializeExternalFaceDetails(host,{scrubTools=true}={}){
  return faces.map((details,index)=>{
   const clone=details.cloneNode(true);
   clone.querySelectorAll?.('[data-rabbit-mirror-reference-note]')?.forEach(node=>node.remove());
-  if(scrubTools) clone.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-interaction-diagnostic], [data-rabbit-mirror-interaction-home]')?.forEach(node=>node.remove());
+  if(scrubTools) clone.querySelectorAll?.('[data-rabbit-mirror-tool-entry-host], [data-rm-image-region], [data-rm-image-portal], [data-rabbit-mirror-interaction-diagnostic], [data-rabbit-mirror-interaction-home], [data-rm-face-swipe-host], [data-rm-face-swipe-bar], [data-rm-face-swipe-delete]')?.forEach(node=>node.remove());
   stripIndependentTransientLayoutArtifacts(clone);
   clone.removeAttribute?.(DEFERRED_INTERACTION_RESCUE_ATTR);
   clone.removeAttribute?.('data-rm-face-current');
@@ -2426,7 +2435,7 @@ async function requestMirrorImagePlan(target,input={},options={}){
  const st={...current,independentExcludedParams:Array.isArray(current.independentExcludedParams)?[...current.independentExcludedParams]:current.independentExcludedParams};
  if((!st.independentConnectionProfileId&&!st.independentApiBaseUrl)||!st.independentApiModel)
   throw new Error('请先完成兔子镜副 API 连接和模型设置；尚未发送请求。');
- const {buildImagePlanningPrompt,parseImagePlan}=await import('../imagePlan.js?rmv=1.5.53-image1');
+ const {buildImagePlanningPrompt,parseImagePlan}=await import('../imagePlan.js?rmv=1.6-image2');
  target.assertCurrent();
  const {systemPrompt,userPrompt}=buildImagePlanningPrompt({...input,title:target.title,faceText:target.faceText,
   floor:target.floor,character:target.character,persona:target.persona,promptFormat:input.promptFormat||st.imagePromptFormat});

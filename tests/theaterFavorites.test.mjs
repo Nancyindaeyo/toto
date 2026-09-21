@@ -30,6 +30,63 @@ test('favorite capture keeps the live face markup and skips placeholders', () =>
     assert.equal(captured.characterName, '幸村');
 });
 
+test('favorite capture from a placeholder walks to the ready face on the same floor', () => {
+    const details = globalThis.document?.createElement?.('details');
+    if (!details) {
+        const ready = {
+            matches(selector) { return selector === 'details'; },
+            classList: { contains: () => false },
+            hasAttribute() { return false; },
+            querySelector() { return { textContent: '  星空剧场  ' }; },
+            outerHTML: '<details><summary>星空剧场</summary><p>可交互</p></details>',
+            dataset: { rabbitMirrorOwnerChat: 'chat-a', rabbitMirrorOwnerMesid: '4', rabbitMirrorOwnerSwipe: '0' },
+            getAttribute() { return 'html'; },
+        };
+        const placeholder = {
+            matches(selector) { return selector === 'details'; },
+            classList: { contains: name => name === 'rabbit-mirror-external-placeholder' },
+            hasAttribute() { return false; },
+            closest(selector) {
+                if (selector.includes('rabbit-mirror-external-host') || selector.includes('external-source')) return host;
+                if (selector.includes('.mes')) return message;
+                return null;
+            },
+            querySelector() { return { textContent: '【兔子镜：正在生成中……】' }; },
+            outerHTML: '<details class="rabbit-mirror-external-placeholder"><summary>【兔子镜：正在生成中……】</summary></details>',
+        };
+        const host = {
+            children: [ready],
+            closest(selector) { return selector.includes('.mes') ? message : null; },
+        };
+        const message = {
+            closest() { return message; },
+            querySelectorAll() { return [host]; },
+        };
+        ready.closest = selector => (selector.includes('external') ? host : message);
+        const captured = captureTheaterFavoriteFromRoot(placeholder, { sourceHash: 'abc', characterId: 'char.png', characterName: '幸村' });
+        assert.equal(captured.title, '星空剧场');
+        assert.match(captured.html, /可交互/);
+        return;
+    }
+    const message = document.createElement('div');
+    message.className = 'mes';
+    message.setAttribute('mesid', '4');
+    const host = document.createElement('div');
+    host.className = 'rabbit-mirror-external-host';
+    host.setAttribute('data-rabbit-mirror-external-source', 'true');
+    const placeholder = document.createElement('details');
+    placeholder.className = 'rabbit-mirror-external-placeholder';
+    placeholder.innerHTML = '<summary>【兔子镜：正在生成中……】</summary>';
+    const ready = document.createElement('details');
+    ready.innerHTML = '<summary> 星空剧场 </summary><p>可交互</p>';
+    host.append(ready);
+    message.append(placeholder, host);
+    const captured = captureTheaterFavoriteFromRoot(placeholder, { chatKey: 'chat-a', mesid: 4, swipe: 0, sourceHash: 'abc', characterName: '幸村', characterId: 'char.png' });
+    assert.equal(captured.title, '星空剧场');
+    assert.match(captured.html, /可交互/);
+    assert.equal(captured.mesid, 4);
+});
+
 test('favorites group by character and keep uncategorized last', () => {
     const groups = groupTheaterFavoritesByCharacter([
         { id: 'a', title: '旧面', characterId: '', characterName: '' },

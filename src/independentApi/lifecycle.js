@@ -22,7 +22,7 @@ import {
     preparedReadyHtmlCache,
     removeExternalGeometryListeners,
     writeActiveRestorableHtmlCache,
-} from './geometry.js?rmv=1.6';
+} from './geometry.js?rmv=1.6.3-ttchild1';
 import {
     abortFlight,
     automaticIndependentTiming,
@@ -50,7 +50,7 @@ import {
     restoreFollowInline,
     restoreMountedFollowSnapshots,
     runtimeMode,
-} from './mount.js?rmv=1.6';
+} from './mount.js?rmv=1.6.1';
 import {
     cancelEarlyBodyProbes,
     captureMountedIndependentPlaceholderIndices,

@@ -1,6 +1,6 @@
 import { recordTtSurface, ttSurfaceNow } from './ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
 // Reserve scrollable space, not a decorative frame. No chat text, polling or model calls.
-import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.6';
+import { isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface } from './hostCompatibility.js?rmv=1.6.3-ttchild1';
 let active = null;
 export function composerOverlap(chat, composer, viewportBottom) {
     if (!chat || !composer || composer.width <= 0 || composer.height <= 0
@@ -32,18 +32,36 @@ export function initRabbitMirrorComposerClearance() {
     destroyRabbitMirrorComposerClearance();
     const chat = document.getElementById('chat');
     if (!chat) return;
-    const managed = isRabbitMirrorManagedChatSurface();
     let frame = 0, stopped = false, spacer = null, lastHeight = 0;
     let observedForm = null, footerOwner = null, footerHeight = 0;
+    let unsubscribeManaged = null;
     const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(entries => schedule(entries?.[0]?.target === chat ? 'resize-chat' : 'resize-form')) : null;
     const viewport = window.visualViewport;
+    function chatSurfaceOwnsChat() {
+        return !!globalThis.__TAURITAVERN__ || isRabbitMirrorManagedChatSurface();
+    }
+    function lastVisibleMessage() {
+        const mounted = chatSurfaceOwnsChat()
+            ? getRabbitMirrorMountedMessages().filter(context => !context.signal.aborted && context.element.isConnected)
+            : [];
+        return mounted.find(context => context.element.matches('.last_mes'))?.element
+            || chat.querySelector(':scope > .mes.last_mes');
+    }
+    function ensureManagedSubscription() {
+        if (unsubscribeManaged || stopped || !isRabbitMirrorManagedChatSurface()) return;
+        unsubscribeManaged = subscribeRabbitMirrorChatSurface({
+            id: 'rabbitmirror/composer-clearance', didMount: onManagedMount,
+            didCommitContent: () => { schedule('managed-commit'); },
+        });
+    }
     function measure() {
         frame = 0;
         const ttStart = ttSurfaceNow();
         if (stopped || !chat.isConnected) return;
-        const mounted = managed ? getRabbitMirrorMountedMessages().filter(context => !context.signal.aborted && context.element.isConnected) : [];
-        const lastMountedOwner = managed ? mounted.find(context => context.element.matches('.last_mes'))?.element : null;
-        const owner = managed ? null : chat.querySelector(':scope > .mes.last_mes:has(+ .rabbit-mirror-external-host[data-rm-source="independent"][data-rm-placement="external"]:not([hidden]))');
+        ensureManagedSubscription();
+        const ownsChat = chatSurfaceOwnsChat();
+        const lastMountedOwner = ownsChat ? lastVisibleMessage() : null;
+        const owner = ownsChat ? null : chat.querySelector(':scope > .mes.last_mes:has(+ .rabbit-mirror-external-host[data-rm-source="independent"][data-rm-placement="external"]:not([hidden]))');
         if (footerOwner !== owner) {
             footerOwner?.style.removeProperty('--rm-external-footer-clearance');
             footerOwner = owner; footerHeight = 0;
@@ -62,8 +80,7 @@ export function initRabbitMirrorComposerClearance() {
             observedForm = form;
             if (form) resize?.observe(form);
         }
-        // First matching shell only; never enumerate historical messages or their content.
-        const hasMirror = managed
+        const hasMirror = ownsChat
             ? !!lastMountedOwner?.querySelector('toto, [data-rabbit-mirror-external-source="true"]')
             : !!chat.querySelector('toto, [data-rabbit-mirror-external-source="true"]');
         const formStyle = form && getComputedStyle(form);
@@ -75,7 +92,7 @@ export function initRabbitMirrorComposerClearance() {
                 recordTtSurface('layout-write', { what: 'spacer-remove', changed: lastHeight !== 0, prev: lastHeight });
                 spacer.remove(); spacer = null;
             }
-            recordTtSurface('clearance-measure', { ms: ttStart ? performance.now() - ttStart : 0, managed, height: 0, changed: lastHeight !== 0 });
+            recordTtSurface('clearance-measure', { ms: ttStart ? performance.now() - ttStart : 0, managed: ownsChat, height: 0, changed: lastHeight !== 0 });
             lastHeight = 0;
             return;
         }
@@ -88,29 +105,27 @@ export function initRabbitMirrorComposerClearance() {
         }
         if (height !== lastHeight) {
             spacer.style.setProperty('--rm-composer-clearance', `${height}px`);
-            // changed 直接来自已算好的 height/lastHeight 比较，未额外读取任何几何。
             recordTtSurface('layout-write', { what: 'clearance-var', changed: true, prev: lastHeight, next: height });
             lastHeight = height;
         }
-        // TT owns all direct #chat children. Reserve space inside its live last
-        // message only; do not append siblings or alter its virtual spacers.
-        const spacerParent = managed ? lastMountedOwner : chat;
+        // TT owns all direct #chat children. Never append this spacer as a sibling
+        // of `.mes` — that is the "unknown direct child: div" virtualizer stop.
+        const spacerParent = ownsChat ? lastMountedOwner : chat;
+        if (ownsChat && !spacerParent) {
+            spacer.remove(); spacer = null; lastHeight = 0;
+            return;
+        }
         if (spacerParent?.lastElementChild !== spacer) {
-            recordTtSurface('layout-write', { what: 'spacer-append', changed: true, managed, height });
+            recordTtSurface('layout-write', { what: 'spacer-append', changed: true, managed: ownsChat, height });
             spacerParent?.append(spacer);
         }
-        recordTtSurface('clearance-measure', { ms: ttStart ? performance.now() - ttStart : 0, managed, height, changed: height !== oldHeight });
-        // Keep an already bottom-anchored reader at the bottom; never jump a history reader.
-        // Managed hosts own their own scroll anchoring and observe message size.
-        if (!managed && nearEnd && height > oldHeight) chat.scrollTop = chat.scrollHeight;
+        recordTtSurface('clearance-measure', { ms: ttStart ? performance.now() - ttStart : 0, managed: ownsChat, height, changed: height !== oldHeight });
+        if (!ownsChat && nearEnd && height > oldHeight) chat.scrollTop = chat.scrollHeight;
     }
     function schedule(source) {
         recordTtSurface('clearance-schedule', { source: typeof source === 'string' ? source : 'unknown' });
         if (!stopped && !frame) frame = requestAnimationFrame(measure);
     }
-    const structure = !managed && typeof MutationObserver === 'function' ? new MutationObserver(records => {
-        if (records.some(r => [...r.addedNodes, ...r.removedNodes].some(n => n !== spacer))) schedule('structure');
-    }) : null;
     const onManagedMount = context => {
         schedule('managed-mount');
         return () => {
@@ -120,11 +135,9 @@ export function initRabbitMirrorComposerClearance() {
             schedule('managed-unmount');
         };
     };
-    const unsubscribeManaged = managed ? subscribeRabbitMirrorChatSurface({
-        id: 'rabbitmirror/composer-clearance', didMount: onManagedMount,
-        // Content revisions do not own the owner-level spacer. Removing it on
-        // each content abort would fight host anchoring during streamed updates.
-        didCommitContent: () => { schedule('managed-commit'); },
+    ensureManagedSubscription();
+    const structure = !chatSurfaceOwnsChat() && typeof MutationObserver === 'function' ? new MutationObserver(records => {
+        if (records.some(r => [...r.addedNodes, ...r.removedNodes].some(n => n !== spacer))) schedule('structure');
     }) : null;
     // 具名包装：事件 handler 直接传 schedule 会把 Event 当作 source，且
     // removeEventListener 必须引用同一函数对象。包装只为标注来源，不改变时序。

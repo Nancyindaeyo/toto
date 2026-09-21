@@ -1,7 +1,7 @@
 // Split from outputSanitizer.js — lifecycle.
 
-import { scheduleRabbitMirrorComposerClearance } from '../composerClearance.js?rmv=1.5.58-fork1';
-import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from '../hostCompatibility.js?rmv=1.6';
+import { scheduleRabbitMirrorComposerClearance } from '../composerClearance.js?rmv=1.6.3-ttchild1';
+import { isRabbitMirrorManagedChatSurface, subscribeRabbitMirrorChatSurface } from '../hostCompatibility.js?rmv=1.6.3-ttchild1';
 import { recordTtSurface, ttSurfaceNow, nextTtSurfaceClickSeq } from '../ttSurfaceDiagnostics.js?rmv=1.5.53-cn-boundary1';
 import { getSettings } from '../settings.js?rmv=1.6';
 import { getCurrentChatKey } from '../storage.js?rmv=1.5.53-visualquick1';
@@ -72,7 +72,7 @@ import {
     removeFeedbackCatsInChatDom,
     removeMaintenanceRabbitsInChatDom,
     toolOutsideCloseOwners,
-} from './toolsChrome.js?rmv=1.6';
+} from './toolsChrome.js?rmv=1.6.3-star2';
 
 export let hostScriptModule = null;
 

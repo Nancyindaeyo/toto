@@ -6,7 +6,7 @@ import { markSanitizedRabbitMirrorFace, rabbitMirrorMultifaceSourceHash } from '
 import { parseMultifaceOutput } from './multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
 import { planRabbitMirrorPromptDetails, renderRabbitMirrorPromptPlan, prepareSelectedMemoryForPrompt, memoryRequestSettingsKey, assertMemoryRequestSettings } from './promptBuilder.js?rmv=1.5.53-image1';
 import { hydrateExternalPoolMetadata, getSelectedExternalEntries } from './externalWorldBook/store.js?rmv=1.5.53-text1';
-import { refreshRabbitMirrorToolsInScope, isolateRabbitMirrorInteractionIds } from './outputSanitizer.js?rmv=1.6';
+import { refreshRabbitMirrorToolsInScope, isolateRabbitMirrorInteractionIds } from './outputSanitizer.js?rmv=1.6.3-star2';
 import { authorizeRabbitMirrorIndependentServiceRequest, assertRabbitMirrorIndependentResponseText } from './independentSecurityGuard.js?rmv=1.5.53-cn-boundary1';
 import { presentationModeFields } from './presentationMode.js?rmv=1.5.53-visualquick1';
 import {

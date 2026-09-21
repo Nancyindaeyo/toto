@@ -24,9 +24,9 @@ import {
 } from '../promptBuilder.js?rmv=1.5.53-image1';
 import { getExternalPoolHydrationStatus, getSelectedExternalEntries, hydrateExternalPoolMetadata } from '../externalWorldBook/store.js?rmv=1.5.53-text1';
 import { describeExternalWorldBookPreflightFailure } from '../externalWorldBook/errors.js?rmv=1.5.53-cn-boundary1';
-import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.6';
+import { cleanRabbitMirrorOutput } from '../outputSanitizer.js?rmv=1.6.3-star2';
 import { parseMultifaceOutput, recoverableMultifaceFrames, MULTIFACE_FAILURE_ATTR, normalizedSummaryText } from '../multifaceProtocol.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.6';
+import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.6.3-star2';
 import {
     updateLatestVisualSignature,
     parseVisualFamilySkeleton,
@@ -106,7 +106,7 @@ import {
     writeExternalGeometryCycleSequence,
     writeExternalGeometryLifecycleEpoch,
     writeExternalGeometryLifecycleReason,
-} from './geometry.js?rmv=1.6';
+} from './geometry.js?rmv=1.6.3-ttchild1';
 import {
     INDEPENDENT_REJECTED_PREVIEW_MAX_CHARS,
     INDEPENDENT_REJECTED_PREVIEW_MAX_ENTRIES,
@@ -122,7 +122,7 @@ import {
     writeExternalHostSyncIndex,
     writeIndependentRejectedPreviewChars,
     writeIndependentRejectedPreviewSequence,
-} from './mount.js?rmv=1.6';
+} from './mount.js?rmv=1.6.1';
 import { assertEarlyBodyOwner } from './earlyBody.js?rmv=1.6';
 
 const NON_STREAM_PROFILE_BY_STREAM_PROFILE={

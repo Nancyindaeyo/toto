@@ -432,7 +432,7 @@ toto[data-rabbit-mirror="true"] summary {
   margin: 0 4px 0 0 !important;
   padding: 0 2px !important;
   color: inherit !important;
-  font: 12px/1 sans-serif !important;
+  font: 13px/1 sans-serif !important;
   pointer-events: auto !important;
   vertical-align: middle !important;
   white-space: nowrap !important;
@@ -442,17 +442,22 @@ toto[data-rabbit-mirror="true"] summary {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 22px !important;
-  min-height: 28px !important;
-  padding: 0 4px !important;
-  border-radius: 8px !important;
+  min-width: 36px !important;
+  min-height: 34px !important;
+  padding: 0 6px !important;
+  border-radius: 10px !important;
   cursor: pointer !important;
   color: inherit !important;
   font: inherit !important;
-  font-size: 16px !important;
+  font-size: 18px !important;
   font-weight: 700 !important;
   line-height: 1 !important;
   opacity: .88 !important;
+  /* 1.6.1: keep rapid pager taps from being eaten by iOS double-tap zoom detection */
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 .rabbit-mirror-face-swipe-bar button:disabled {
   opacity: .35 !important;
@@ -460,9 +465,40 @@ toto[data-rabbit-mirror="true"] summary {
 }
 .rabbit-mirror-face-swipe-bar [data-rm-face-swipe-label] {
   min-width: 2.4em !important;
+  font-size: 13px !important;
   text-align: center !important;
   font-variant-numeric: tabular-nums !important;
   pointer-events: none !important;
+}
+/* 1.6.1: version delete lives at the title row's far right corner, away from the pager */
+.rabbit-mirror-face-swipe-delete {
+  all: unset !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  float: inline-end !important;
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  margin: 0 0 2px 8px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  color: inherit !important;
+  font: 17px/1 sans-serif !important;
+  opacity: .5 !important;
+  position: relative !important;
+  z-index: 2147483002 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.rabbit-mirror-face-swipe-delete:disabled {
+  opacity: .28 !important;
+  cursor: default !important;
 }
 .rabbit-mirror-face-favorite-star {
   all: initial !important;

@@ -2,7 +2,7 @@
 
 import { installMirrorToolMenu, fitMirrorToolPanel } from '../mirrorToolMenu.js?rmv=1.5.58-fork1';
 import { isTextPresentation } from '../presentationMode.js?rmv=1.5.53-visualquick1';
-import { isRabbitMirrorManagedChatSurface } from '../hostCompatibility.js?rmv=1.6';
+import { isRabbitMirrorManagedChatSurface } from '../hostCompatibility.js?rmv=1.6.3-ttchild1';
 import { getSettings, syncExternalReferenceVisibility } from '../settings.js?rmv=1.6';
 import { getCurrentChatKey } from '../storage.js?rmv=1.5.53-visualquick1';
 import { getSanitizedRabbitMirrorFaceProof } from '../multifaceProof.js?rmv=1.5.53-visualquick1';
@@ -11,7 +11,7 @@ import {
     openTheaterFavoriteLibrary,
     toggleTheaterFavorite,
     isTheaterFavoriteHtml,
-} from '../theaterFavorites.js?rmv=1.6';
+} from '../theaterFavorites.js?rmv=1.6.3-fav1';
 import { FACE_SWIPE_FULL_MESSAGE, faceSwipeBarIntent, fallbackFaceSwipeView } from '../swipeVersions.js?rmv=1.6';
 import {
     FEEDBACK_CAT_TYPES,
@@ -22,7 +22,7 @@ import {
     getFeedbackCatLastReceiptForCurrentChat,
     setActiveFeedbackForCurrentChat,
 } from '../feedbackCat.js?rmv=1.5.53-cn-boundary1';
-import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.6';
+import { scanRabbitMirrorHtml } from '../visualScanner.js?rmv=1.6.3-star2';
 import {
     FAVORITE_MULTIPLIER_MAX,
     FAVORITE_MULTIPLIER_MIN,
@@ -1782,6 +1782,12 @@ function paintFavoriteStar(button, on) {
         : '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.7" d="M12 4.2 14.2 9l5.3.4-4.1 3.5 1.3 5.2L12 15.7 7.3 18.1 8.6 12.9 4.5 9.4 9.8 9z"/></svg>';
 }
 
+function favoriteCaptureRootFromStar(star, fallbackRoot) {
+    return rabbitMirrorToolRootFromButton(star)
+        || star?.closest?.('details')
+        || fallbackRoot;
+}
+
 function installFavoriteStar(root, host, before) {
     let star = host.querySelector(':scope > [data-rm-face-favorite-star]');
     if (!star) {
@@ -1789,9 +1795,14 @@ function installFavoriteStar(root, host, before) {
         star.type = 'button';
         star.setAttribute('data-rm-face-favorite-star', 'true');
         star.className = 'rabbit-mirror-face-favorite-star';
+    }
+    // Persisted / transferred stars have no listener. Re-resolve the live details
+    // at click time so a placeholder or swapped face cannot freeze an empty capture.
+    if (!star.dataset.rmFavoriteWired) {
+        star.dataset.rmFavoriteWired = 'true';
         star.addEventListener('click', event => {
             stopTitleToggle(event);
-            const captured = captureTheaterFavoriteFromRoot(root);
+            const captured = captureTheaterFavoriteFromRoot(favoriteCaptureRootFromStar(star, root));
             if (!captured) {
                 globalThis.toastr?.warning?.('当前没有可收藏的兔子镜。');
                 return;
@@ -1804,7 +1815,7 @@ function installFavoriteStar(root, host, before) {
     }
     if (before?.parentElement === host) host.insertBefore(star, before);
     else host.append(star);
-    const captured = captureTheaterFavoriteFromRoot(root);
+    const captured = captureTheaterFavoriteFromRoot(favoriteCaptureRootFromStar(star, root));
     paintFavoriteStar(star, false);
     if (captured?.html) void isTheaterFavoriteHtml(captured.html).then(on => { if (star.isConnected) paintFavoriteStar(star, on); }).catch(() => {});
     return star;
@@ -1816,39 +1827,18 @@ function liveFaceSwipeView(root) {
     return bridge.swipeView?.(root) || fallbackFaceSwipeView();
 }
 
-function ensureFaceSwipeHost(summary) {
-    if (!summary?.appendChild) return null;
-    let row = summary.querySelector(':scope > [data-rm-face-swipe-host]');
-    if (!row) {
-        row = document.createElement('span');
-        row.setAttribute('data-rm-face-swipe-host', 'true');
-    }
-    // Sit next to the native ▶ so a right-floated star/rabbit cannot clip it.
-    if (summary.firstElementChild !== row) summary.insertBefore(row, summary.firstElementChild);
-    const styles = {
-        all: 'initial', display: 'inline-flex', 'align-items': 'center', 'justify-content': 'flex-start',
-        float: 'none', flex: '0 0 auto', position: 'relative', 'z-index': '2147483002',
-        width: 'auto', 'min-width': 'max-content', height: 'auto', 'min-height': '28px',
-        margin: '0 6px 0 0', padding: '0', overflow: 'visible', visibility: 'visible', opacity: '1',
-        'pointer-events': 'auto', 'white-space': 'nowrap', 'vertical-align': 'middle',
-        color: 'inherit', font: 'inherit', 'line-height': '1',
-    };
-    for (const [property, value] of Object.entries(styles)) setImportantStyle(row, property, value);
-    return row;
-}
-
 function installFaceSwipeBar(root, host) {
     const view = liveFaceSwipeView(root);
     let bar = host.querySelector(':scope > [data-rm-face-swipe-bar]');
     if (!view) {
         bar?.remove();
-        return;
+        return null;
     }
     if (!bar) {
         bar = document.createElement('span');
         bar.setAttribute('data-rm-face-swipe-bar', 'true');
         bar.className = 'rabbit-mirror-face-swipe-bar';
-        bar.innerHTML = '<button type="button" data-rm-face-swipe="prev" aria-label="上一版">‹</button><span data-rm-face-swipe-label></span><button type="button" data-rm-face-swipe="next" aria-label="下一版">›</button><button type="button" data-rm-face-swipe="delete" aria-label="删除这一版">×</button>';
+        bar.innerHTML = '<button type="button" data-rm-face-swipe="prev" aria-label="上一版">‹</button><span data-rm-face-swipe-label></span><button type="button" data-rm-face-swipe="next" aria-label="下一版">›</button>';
         bar.addEventListener('click', event => {
             const action = event.target?.closest?.('[data-rm-face-swipe]')?.getAttribute('data-rm-face-swipe');
             if (!action) return;
@@ -1862,12 +1852,15 @@ function installFaceSwipeBar(root, host) {
             else if (intent.type === 'delete') live.deleteSwipe?.(root);
         }, true);
     }
-    host.append(bar);
+    host.prepend(bar);
+    // Stacked (narrow) layout: the pager hugs the left edge via its own auto margin,
+    // keeping justify-content flex-end so star and rabbit stay grouped on the right.
+    if (toolHostShouldStack()) setImportantStyle(bar, 'margin-inline-end', 'auto');
+    else bar.style.removeProperty('margin-inline-end');
     const label = bar.querySelector('[data-rm-face-swipe-label]');
     if (label) label.textContent = view.label;
     const prev = bar.querySelector('[data-rm-face-swipe="prev"]');
     const next = bar.querySelector('[data-rm-face-swipe="next"]');
-    const remove = bar.querySelector('[data-rm-face-swipe="delete"]');
     if (prev) {
         prev.disabled = !(view.canPrev || view.canResay);
         prev.title = view.canPrev ? '上一版' : (view.canResay ? '重说这一面' : '已经是第一版');
@@ -1878,27 +1871,69 @@ function installFaceSwipeBar(root, host) {
         next.title = view.canNext ? '下一版' : (view.canResay ? '重说这一面' : FACE_SWIPE_FULL_MESSAGE);
         next.setAttribute('aria-label', next.title);
     }
-    if (remove) {
-        remove.disabled = !view.canDelete;
-        remove.hidden = false;
-        remove.title = view.canDelete ? '删除当前这一版' : (view.overlay ? '失败这一格不会保存，切回上一版即可清掉' : '只剩一版时不能删除');
-    }
     bar.title = view.overlay ? '这一版生成失败，可切回上一版' : (view.full ? FACE_SWIPE_FULL_MESSAGE : '左右箭头可切换版本；到头后点一下就是重说');
-    return bar;
+    return view;
+}
+
+// 1.6.1: the delete button leaves the pager row and floats at the title row's far
+// right corner, as the summary's first child, so long titles cannot push it down
+// and it can no longer sit one mis-tap away from the › button.
+function installFaceSwipeDelete(root, summary, view) {
+    if (!summary?.appendChild) return null;
+    const stale = [...summary.querySelectorAll('[data-rm-face-swipe-delete]')];
+    let del = stale.find(node => node.parentElement === summary) || stale[0] || null;
+    stale.filter(node => node !== del).forEach(node => node.remove());
+    if (!view) {
+        del?.remove();
+        return null;
+    }
+    if (!del) {
+        del = document.createElement('button');
+        del.type = 'button';
+        del.setAttribute('data-rm-face-swipe-delete', 'true');
+        del.textContent = '×';
+    }
+    // A del restored from persisted HTML has no listener; wire exactly once per node.
+    if (!del.dataset.rmDeleteWired) {
+        del.dataset.rmDeleteWired = 'true';
+        del.className = 'rabbit-mirror-face-swipe-delete';
+        del.addEventListener('click', event => {
+            stopTitleToggle(event);
+            const live = independentActionBridge();
+            const current = liveFaceSwipeView(root);
+            if (!current) return;
+            const intent = faceSwipeBarIntent(current, 'delete');
+            if (intent.type === 'delete') live.deleteSwipe?.(root);
+        }, true);
+    }
+    if (summary.firstElementChild !== del) summary.insertBefore(del, summary.firstElementChild);
+    del.disabled = !view.canDelete;
+    del.title = view.canDelete ? '删除当前这一版' : (view.overlay ? '失败这一格不会保存，切回上一版即可清掉' : '只剩一版时不能删除');
+    del.setAttribute('aria-label', del.title);
+    return del;
+}
+
+function isPlaceholderMirrorRoot(root) {
+    const details = root?.matches?.('details') ? root : root?.querySelector?.(':scope > details, details');
+    return !!details?.classList?.contains('rabbit-mirror-external-placeholder')
+        || !!details?.hasAttribute?.('data-rabbit-mirror-placeholder');
 }
 
 function installFaceTitleChrome(root, host) {
     const summary = host?.parentElement;
     const rabbit = host.querySelector(':scope > [data-rm-tool-menu-button]');
-    installFavoriteStar(root, host, rabbit);
+    if (isPlaceholderMirrorRoot(root)) host.querySelectorAll(':scope > [data-rm-face-favorite-star]').forEach(node => node.remove());
+    else installFavoriteStar(root, host, rabbit);
     host.querySelectorAll(':scope > [data-rm-face-swipe-bar]').forEach(node => node.remove());
-    const swipeHost = ensureFaceSwipeHost(summary);
-    if (swipeHost) installFaceSwipeBar(root, swipeHost);
+    // Pre-1.6.1 pagers floated before the title in their own host; drop that stale shell.
+    summary?.querySelectorAll?.(':scope > [data-rm-face-swipe-host]').forEach(node => node.remove());
+    const view = installFaceSwipeBar(root, host);
+    installFaceSwipeDelete(root, summary, view);
 }
 
 function stripTheaterFavoriteTitleChrome(scope) {
     if (!scope?.querySelectorAll) return;
-    scope.querySelectorAll(`[${TOOL_ENTRY_HOST_ATTR}], [data-rm-face-swipe-host], [data-rm-face-swipe-bar], [data-rm-face-favorite-star], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [data-rm-tool-menu-button]`).forEach(node => node.remove());
+    scope.querySelectorAll(`[${TOOL_ENTRY_HOST_ATTR}], [data-rm-face-swipe-host], [data-rm-face-swipe-bar], [data-rm-face-swipe-delete], [data-rm-face-favorite-star], [${MAINTENANCE_RABBIT_ATTR}], [${FEEDBACK_CAT_ATTR}], [${RECIPE_BUTTON_ATTR}], [data-rm-tool-menu-button]`).forEach(node => node.remove());
 }
 
 function installUnifiedMirrorTools(root) {
@@ -1925,7 +1960,7 @@ function installUnifiedMirrorTools(root) {
             .catch(() => globalThis.toastr?.warning?.('生图面板未能打开，请重新打开后再试。'));
     } });
     actions.push({ id: 'theater-favorite-library', label: '📖 打开收藏夹', run: () => {
-        void import('../independentApi.js?rmv=1.6').then(module =>
+        void import('../independentApi.js?rmv=1.6.3-ttchild1').then(module =>
             openTheaterFavoriteLibrary((container, record) => module.hydrateIndependentFavoriteHtml(container, record)))
             .catch(error => globalThis.toastr?.warning?.(String(error?.message || '无法打开收藏夹。')));
     } });

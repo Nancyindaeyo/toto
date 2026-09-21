@@ -3,7 +3,7 @@ import { clearLastCombo } from './src/storage.js?rmv=1.5.53-visualquick1';
 import { clearAllFeedbackCatState, destroyFeedbackCatPromptSync, initFeedbackCatPromptSync } from './src/feedbackCat.js?rmv=1.5.53-cn-boundary1';
 import { getSettings, updateSettings } from './src/settings.js?rmv=1.6';
 import { initRabbitMirrorIndependentSecurityGuard, destroyRabbitMirrorIndependentSecurityGuard } from './src/independentSecurityGuard.js?rmv=1.5.53-cn-boundary1';
-import { initRabbitMirrorHostCompatibility, isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface, getRabbitMirrorEarlyBootstrap, getRabbitMirrorHostCompatibilityStatus } from './src/hostCompatibility.js?rmv=1.6';
+import { initRabbitMirrorHostCompatibility, isRabbitMirrorManagedChatSurface, getRabbitMirrorMountedMessages, subscribeRabbitMirrorChatSurface, getRabbitMirrorEarlyBootstrap, getRabbitMirrorHostCompatibilityStatus } from './src/hostCompatibility.js?rmv=1.6.3-ttchild1';
 
 // TT requires ownership registration before its first projection, not after the
 // deferred DOM runtime loads. This bridge has no network, timers or heavy imports.
@@ -76,12 +76,12 @@ async function ensureDeferredCoreRuntime(reason = 'scheduled-idle') {
     if (deferredRuntimeModules) return deferredRuntimeModules;
     if (deferredRuntimePromise) return deferredRuntimePromise;
     deferredRuntimePromise = Promise.all([
-        import('./src/outputSanitizer.js?rmv=1.6'),
-        import('./src/visualScanner.js?rmv=1.6'),
-        import('./src/independentApi.js?rmv=1.6'),
-        import('./src/touchTheater.js?rmv=1.5.56-extfloor1'),
-        import('./src/ui.js?rmv=1.6'),
-        import('./src/composerClearance.js?rmv=1.5.58-fork1'),
+        import('./src/outputSanitizer.js?rmv=1.6.3-star2'),
+        import('./src/visualScanner.js?rmv=1.6.3-star2'),
+        import('./src/independentApi.js?rmv=1.6.3-ttchild1'),
+        import('./src/touchTheater.js?rmv=1.6.3-ttchild1'),
+        import('./src/ui.js?rmv=1.6.3-fav1'),
+        import('./src/composerClearance.js?rmv=1.6.3-ttchild1'),
     ]).then(async ([output, visual, independent, touch, ui, clearance]) => {
         if (!runtimeIsActive()) return null;
         deferredRuntimeModules = { output, visual, independent, touch, ui, clearance };

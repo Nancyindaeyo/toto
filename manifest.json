@@ -1,8 +1,8 @@
 {
   "display_name": "兔子镜小剧场",
   "loading_order": 100,
-  "js": "index.js?rmv=1.6",
-  "css": "style.css?rmv=1.6",
+  "js": "index.js?rmv=1.6.3",
+  "css": "style.css?rmv=1.6.1",
   "author": "Toto",
   "version": "1.6",
   "homePage": "https://github.com/Zaiyebuzuoyouqingdetiangou/toto",

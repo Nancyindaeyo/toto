@@ -31,5 +31,5 @@ export {
     refreshFeedbackCats,
     refreshRecipeButtons,
     refreshRabbitMirrorToolsInScope,
-} from './outputSanitizer/toolsChrome.js?rmv=1.6';
+} from './outputSanitizer/toolsChrome.js?rmv=1.6.3-star2';
 export { configureMaintenanceAutoSafeMode, initOutputSanitizer, destroyOutputSanitizer } from './outputSanitizer/lifecycle.js?rmv=1.6';

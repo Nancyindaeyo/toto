@@ -171,6 +171,7 @@ const FAVORITE_RUNTIME_UI_SELECTOR = [
     '[data-rm-ephemeral-failure-body]',
     '[data-rm-face-swipe-host]',
     '[data-rm-face-swipe-bar]',
+    '[data-rm-face-swipe-delete]',
     '[data-rm-face-favorite-star]',
 ].join(', ');
 
@@ -186,9 +187,12 @@ export function sanitizeTheaterFavoriteTitle(title) {
 export function theaterFavoriteTitleFromDetails(details) {
     const summary = details?.querySelector?.(':scope > summary') || details?.querySelector?.('summary');
     if (!summary) return '';
-    const clone = summary.cloneNode(true);
-    clone.querySelectorAll?.(FAVORITE_RUNTIME_UI_SELECTOR)?.forEach(node => node.remove());
-    return sanitizeTheaterFavoriteTitle(clone.textContent);
+    const clone = typeof summary.cloneNode === 'function' ? summary.cloneNode(true) : null;
+    if (clone?.querySelectorAll) {
+        clone.querySelectorAll(FAVORITE_RUNTIME_UI_SELECTOR).forEach(node => node.remove());
+        return sanitizeTheaterFavoriteTitle(clone.textContent);
+    }
+    return sanitizeTheaterFavoriteTitle(summary.textContent);
 }
 
 export function theaterFavoriteDisplayTitle(record) {
@@ -318,9 +322,37 @@ export async function isTheaterFavoriteHtml(html) {
     return !!(await getTheaterFavorite(id));
 }
 
+function isTheaterFavoritePlaceholder(details) {
+    return !!details?.classList?.contains('rabbit-mirror-external-placeholder')
+        || !!details?.hasAttribute?.('data-rabbit-mirror-placeholder');
+}
+
+function firstCapturableFavoriteDetails(nodes) {
+    for (const node of nodes || []) {
+        if (node?.matches?.('details') && !isTheaterFavoritePlaceholder(node)) return node;
+    }
+    return null;
+}
+
+export function resolveTheaterFavoriteCaptureRoot(root) {
+    const direct = root?.matches?.('details') ? root
+        : (root?.closest?.('details') || root?.querySelector?.('details') || null);
+    if (direct && !isTheaterFavoritePlaceholder(direct)) return direct;
+    const host = root?.closest?.('[data-rabbit-mirror-external-source="true"], .rabbit-mirror-external-host')
+        || direct?.closest?.('[data-rabbit-mirror-external-source="true"], .rabbit-mirror-external-host');
+    const fromHost = firstCapturableFavoriteDetails(host?.children);
+    if (fromHost) return fromHost;
+    const message = root?.closest?.('.mes, [mesid]') || host?.closest?.('.mes, [mesid]') || direct?.closest?.('.mes, [mesid]');
+    for (const shell of message?.querySelectorAll?.('[data-rabbit-mirror-external-source="true"], .rabbit-mirror-external-host') || []) {
+        const found = firstCapturableFavoriteDetails(shell.children);
+        if (found) return found;
+    }
+    return null;
+}
+
 export function captureTheaterFavoriteFromRoot(root, owner = {}) {
-    const details = root?.matches?.('details') ? root : root?.closest?.('details') || root?.querySelector?.('details');
-    if (!details || details.classList?.contains('rabbit-mirror-external-placeholder')) return null;
+    const details = resolveTheaterFavoriteCaptureRoot(root);
+    if (!details) return null;
     const html = scrubTheaterFavoriteHtml(details.outerHTML);
     if (!html) return null;
     const title = theaterFavoriteTitleFromDetails(details) || String(details.querySelector?.(':scope > summary')?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);

@@ -30,6 +30,9 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
     let disposed = false;
     let initialized = false;
     let managed = false;
+    let ownershipDetermined = false;
+    let earlyHostWatch = 0;
+    let earlyHostWatchAttempts = 0;
     let registration = null;
     let status = Object.freeze({ host: 'sillytavern', managed: false, registered: false, protocolVersion: null, errorCode: '', projectionFallback: false });
     const subscriptions = new Map();
@@ -295,22 +298,52 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
         }
     }
 
+    // iOS deferred third-party load: extension evaluation can run BEFORE the
+    // host ABI exists, and the first chat projection can land BEFORE the heavy
+    // module graph's first subscribe (~1.4s idle). Poll briefly from evaluation
+    // so registerParticipant runs within ~50ms of the ABI appearing, ahead of
+    // the first projection freeze. Bounded: 80 x 50ms = 4s.
+    function scheduleEarlyHostWatch() {
+        if (earlyHostWatch || disposed) return;
+        const tick = () => {
+            earlyHostWatch = 0;
+            if (disposed || status.registered || status.errorCode || ownershipDetermined) return;
+            if (++earlyHostWatchAttempts > 80) return;
+            const api = hostGlobal?.__TAURITAVERN__?.api?.chatSurface;
+            if (typeof api?.isManagedOwnershipRequired !== 'function') {
+                scheduleEarlyHostWatch();
+                return;
+            }
+            initialize();
+        };
+        earlyHostWatch = hostTimeout(tick, 50);
+    }
+
     function initialize() {
         if (disposed) return status;
         const host = hostGlobal?.__TAURITAVERN__;
         // First evaluation can beat the host ABI on iOS deferred third-party load.
+        // Only a finished determination (registered / errorCode / ownership) may
+        // latch; every incomplete pass clears `initialized` so the early watch
+        // or the first subscribe can retry.
         if (initialized) {
-            if (status.host === 'sillytavern' && host) initialized = false;
-            else return status;
+            if (status.registered || status.errorCode || ownershipDetermined) return status;
+            if (!host) return status;
+            initialized = false;
         }
         initialized = true;
         const api = host?.api?.chatSurface;
         if (!host) {
             initialized = false;
+            scheduleEarlyHostWatch();
             return status;
         }
         status = Object.freeze({ ...status, host: 'tauritavern', protocolVersion: api?.protocolVersion ?? null });
-        if (typeof api?.isManagedOwnershipRequired !== 'function') return status;
+        if (typeof api?.isManagedOwnershipRequired !== 'function') {
+            initialized = false;
+            scheduleEarlyHostWatch();
+            return status;
+        }
         try { managed = api.isManagedOwnershipRequired() === true; }
         catch {
             // Ownership is unknown, so do not launch an unmanaged repair watcher.
@@ -319,6 +352,7 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
             startVisibleProjectionFallback();
             return status;
         }
+        ownershipDetermined = true;
         status = Object.freeze({ ...status, managed });
         if (!managed) return status;
         if (api.protocolVersion !== 1 || typeof api.registerParticipant !== 'function') {
@@ -390,6 +424,8 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
     function dispose() {
         if (disposed) return;
         disposed = true;
+        hostClearTimeout(earlyHostWatch);
+        earlyHostWatch = 0;
         stopVisibleProjectionFallback();
         let firstError = null;
         for (const record of [...mounted.values()]) {
@@ -430,7 +466,9 @@ export function createRabbitMirrorHostCompatibility(hostGlobal = globalThis, dia
             // Managed ChatSurface forbids #chat siblings. `.mes` is a horizontal
             // flex row (avatar + block), so a host appended there shrinks into the
             // leftover slot on the right. Put 纯外置 after `.mes_text` in `.mes_block`.
-            if (!managed || !message) return null;
+            // TT can exist before isManagedOwnershipRequired() is callable. Still
+            // never return null in a way that lets callers insert beside `.mes`.
+            if (!message || (!managed && !hostGlobal?.__TAURITAVERN__)) return null;
             const body = message.querySelector?.('.mes_text');
             if (body?.parentElement && message.contains(body.parentElement)) return body.parentElement;
             const block = message.querySelector?.('.mes_block');
